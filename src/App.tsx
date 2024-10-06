@@ -1,7 +1,6 @@
 import React from 'react';
 import './App.css';
 import { ChakraProvider } from '@chakra-ui/react'
-import JewelryProducts from './components/JewelryProducts';
 import Navbar from './components/Navbar';
 import FrontpageLinkSection from './components/FrontpageLinkSection';
 

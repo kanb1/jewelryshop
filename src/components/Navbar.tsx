@@ -21,13 +21,11 @@ import {
   Button, 
   InputGroup, 
   Input, 
-  textDecoration
 } from "@chakra-ui/react";
 
 import { ChevronDownIcon, StarIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { AiOutlineShoppingCart } from 'react-icons/ai'; // Shopping Cart icon
 import { FaUser } from 'react-icons/fa'; // User icon
-import { color } from "framer-motion";
 
 const Navbar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
