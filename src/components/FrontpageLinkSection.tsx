@@ -22,13 +22,13 @@ const FrontpageLinkSection = () => {
       {/* Right Side with Asymmetric Images */}
       <Box display="flex" flexWrap="wrap" justifyContent="center">
         <Box w="250px" h="200px" bg="gray.300" m={2}>
-        <Image src="/src/images/linksection_img7.jpg" alt="Image 3" />
+        <Image src="/images/linksection_img7.jpg" alt="Image 3" />
         </Box>
         <Box w="400px" h="400px" bg="gray.300" m={2}>
-        <Image src="/src/images/linksection_img6.jpg" alt="Image 2" />
+        <Image src="/images/linksection_img6.jpg" alt="Image 2" />
         </Box>
         <Box w="200px" h="200px" bg="gray.300" m={2}>
-        <Image src="/src/images/linksection_img5.jpg" alt="Image 1" />
+        <Image src="/images/linksection_img5.jpg" alt="Image 1" />
         </Box>
       </Box>
     </Flex>
