@@ -3,6 +3,7 @@ import './App.css';
 import { ChakraProvider } from '@chakra-ui/react'
 import Navbar from './components/Navbar';
 import FrontpageLinkSection from './components/FrontpageLinkSection';
+import FrontpageHeroVideo from './components/FrontpageHeroVideo';
 
 
 const App: React.FC = () => {
@@ -11,6 +12,7 @@ const App: React.FC = () => {
     <Navbar />
     <div className="App">
       <header className="App-header">
+        <FrontpageHeroVideo />
         <FrontpageLinkSection/>
       </header>
     </div>
