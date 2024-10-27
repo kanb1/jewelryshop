@@ -1,23 +1,18 @@
-import { Box, Button, Text } from "@chakra-ui/react";
+import { Box, Button, Text, AspectRatio } from "@chakra-ui/react";
 
 const FrontpageHeroVideo = () => {
   return (
-    <Box position="relative" width="100%" height="50vh" overflow="hidden">
-      {/* Video Background */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-        }}
-      >
-        <source src="/path-to-your-video.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+    <Box className="video-hero-section" position="relative" width="100%" height="50vh" overflow="hidden" p={0} m={0}>
+        <AspectRatio ratio={21 / 9} maxW="100%">
+        <video
+          src="videos/video_hero_earringpose.mp4"  // Ensure this path is correct
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{ objectFit: "cover", width: "100%", height: "100%" }}
+        />
+      </AspectRatio>
 
       {/* Overlay Content */}
       <Box
@@ -34,9 +29,8 @@ const FrontpageHeroVideo = () => {
         textAlign="center"
       >
         <Box>
-          <Text fontSize="4xl" fontWeight="bold" mb={4}>
-            Discover Unique Jewelry
-          </Text>
+          <Text fontSize={{base: "xl", lg:"4xl"}}fontWeight="bold" mb={4}>
+          Crafted with Passion, Worn with Pride</Text>
           <Button colorScheme="teal" size="lg">
             Explore Now
           </Button>

@@ -2,10 +2,14 @@
   width: 100%;
   max-width: 100%; /* Allow it to go full width */
   margin: 0 auto;
-  padding: 2rem; /* This controls the space on the sides */
+  /* padding: 2rem;  */
   text-align: center;
 }
 
+.video-hero-section{
+  padding: 0 !important;
+  margin: 0 auto;
+}
 
 .logo {
   height: 6em;

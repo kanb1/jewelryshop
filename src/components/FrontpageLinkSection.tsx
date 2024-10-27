@@ -54,7 +54,7 @@ const FrontpageLinkSection = () => {
         </Box>
       </Grid>
     </Flex> */}
-      <Grid templateColumns="repeat(2, 1fr)" gap={10} width="60%" position="relative">
+      {/* <Grid templateColumns="repeat(2, 1fr)" gap={10} width="60%" position="relative">
         <Box w="380px" h="350px" pos="relative" overflow="hidden" borderRadius="md" boxShadow="xl" alignSelf="end" justifySelf="end" >
           <Image src="/images/linksection_img1.jpg" alt="Image 1" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
         </Box>
@@ -67,7 +67,7 @@ const FrontpageLinkSection = () => {
         <Box w="380px" h="350px" pos="relative" overflow="hidden" borderRadius="md" boxShadow="xl">
           <Image src="/images/linksection_img4.jpg" alt="Image 4" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
         </Box>
-      </Grid>
+      </Grid> */}
     </Flex>
   );
 };

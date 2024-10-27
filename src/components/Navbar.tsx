@@ -31,7 +31,7 @@ const Navbar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
-    <Box bg="white" px={4} boxShadow="sm">
+    <Box bg="white" px={10} boxShadow="sm">
       <Flex h={28} alignItems="center" justifyContent="space-between">
 
 
