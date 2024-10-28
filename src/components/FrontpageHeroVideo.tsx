@@ -1,4 +1,4 @@
-import { Box, Button, Text, AspectRatio } from "@chakra-ui/react";
+import { Box, Button, Text, AspectRatio, Heading } from "@chakra-ui/react";
 
 const FrontpageHeroVideo = () => {
   return (
@@ -29,9 +29,9 @@ const FrontpageHeroVideo = () => {
         textAlign="center"
       >
         <Box>
-          <Text fontSize={{base: "xl", lg:"4xl"}}fontWeight="bold" mb={4}>
-          Crafted with Passion, Worn with Pride</Text>
-          <Button colorScheme="teal" size="lg">
+          <Heading fontSize={{base: "lg", lg:"4xl"}} fontWeight="bold" mb={4}>
+          Crafted with Passion, Worn with Pride</Heading>
+          <Button colorScheme="teal" size="lg" fontFamily="'Afacad', serif">
             Explore Now
           </Button>
         </Box>

@@ -1,3 +1,4 @@
+
 #root {
   width: 100%;
   max-width: 100%; /* Allow it to go full width */
@@ -5,6 +6,8 @@
   /* padding: 2rem;  */
   text-align: center;
 }
+
+
 
 .video-hero-section{
   padding: 0 !important;
