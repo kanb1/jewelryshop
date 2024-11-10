@@ -6,6 +6,23 @@ const theme = extendTheme({
     body: "Asar, serif",       // Default font for body text
   },
 
+  colors:{
+    primary_color:{
+      black: "#020402",
+      white: "#FFFFFF",
+      green: "#796D3E",
+      darkgrey: "#5a5a5a",
+    },
+    secondary_color:{
+      grey:"#D9D9D9",
+    },
+    accent_color:{
+      red:"#7B0828",
+      offwhite:"#F1E7D6",
+    },
+
+  },
+
   
   components: {
     Heading: {
@@ -13,8 +30,9 @@ const theme = extendTheme({
         fontFamily: "Cinzel, serif",
       },
       sizes: {
-        xl: { fontSize: { base: "32px", sm: "36px", md: "40px", lg: "48px", xl: "56px" } },
-        lg: { fontSize: { base: "24px", sm: "28px", md: "32px", lg: "36px", xl: "40px" } },
+        main_heading:{
+          fontSize: { base: "20px", sm: "20px", md: "30px", lg: "45px"},
+        },
       },
       variants: {
         subheader: {

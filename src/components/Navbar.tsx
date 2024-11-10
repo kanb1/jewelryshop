@@ -21,9 +21,10 @@ import {
   Button, 
   InputGroup, 
   Input, 
+  InputLeftElement
 } from "@chakra-ui/react";
 
-import { ChevronDownIcon, StarIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon, StarIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
 import { AiOutlineShoppingCart } from 'react-icons/ai'; // Shopping Cart icon
 import { FaUser } from 'react-icons/fa'; // User icon
 
@@ -96,10 +97,20 @@ const Navbar = () => {
         </Flex>
 
         {/* Center: Search Bar */}
-        <Box display={{ base: "none", lg: "block" }} flex={1}>
-          <InputGroup maxWidth="400px" mx="auto">
-            <Input placeholder="Search jewelry, brands, etc..." />
-          </InputGroup>
+        <Box display={{ base: "none", lg: "block" }} mr={10}>
+          
+        <InputGroup width="350px">
+          <InputLeftElement pointerEvents="none">
+            <SearchIcon color="gray.500" />
+          </InputLeftElement>
+          <Input
+            type="text"
+            placeholder="Search for products, brands etc.."
+            variant="filled"
+            bg="gray.50"
+            _placeholder={{ color: "gray.400" }}
+          />
+        </InputGroup>
         </Box>
 
         {/* Right: Icons for Profile, Favourites, Search, Basket */}
