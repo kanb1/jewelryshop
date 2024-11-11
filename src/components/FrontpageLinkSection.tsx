@@ -2,7 +2,7 @@ import { Box, Heading, Link, Image, Grid, Text } from "@chakra-ui/react";
 
 const FrontpageLinkSection = () => {
   return (
-    <Box p={10} textAlign="center">
+    <Box py={{base:"16", md:"20",lg:"32"}} px={{base:"10"}} textAlign="center">
       {/* Centered Collection Title */}
       <Heading as="h2" size="main_heading" variant="subhead" mb={2} color="primary_color.darkgrey" fontWeight="extrabold">
         Our Latest Collection:
