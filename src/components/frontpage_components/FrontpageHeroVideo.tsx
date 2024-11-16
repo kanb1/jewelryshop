@@ -1,4 +1,5 @@
 import { Box, Button, AspectRatio, Heading } from "@chakra-ui/react";
+import ButtonComponent from "../shared/ButtonComponent";
 
 const FrontpageHeroVideo = () => {
   return (
@@ -52,9 +53,14 @@ const FrontpageHeroVideo = () => {
           <Heading size="main_heading"fontWeight="bold" mb={4}>
             Crafted with Passion, Worn with Pride
           </Heading>
-          <Button bg="primary_color.green" size="lg" fontFamily="'Afacad'" color="primary_color.white">
-            Explore Now
-          </Button>
+          <ButtonComponent
+            text="Explore Now"
+            variant="primaryGreenBtn"
+            size={{ base: "md", sm: "lg" }}
+            fontFamily="'Afacad'"
+            onClick={() => console.log("Explore button clicked!")}
+            hoverStyle={{ bg: "primary_color.greenHover", color: "primary_color.white" }}
+          />
         </Box>
       </Box>
     </Box>

@@ -4,6 +4,7 @@ import FrontpageLinkSection from '../components/frontpage_components/FrontpageLi
 import FrontpageEcofriendly from '../components/frontpage_components/FrontpageEcofriendly';
 import FrontpageImageSection from '../components/frontpage_components/FrontpageImageSection';
 import FrontpageTrustpilot from '../components/frontpage_components/FrontpageTrustpilot';
+import ExampleUsage from '../components/frontpage_components/ExampleUsage';
 
 const Frontpage: React.FC = () => {
   return (
@@ -13,6 +14,8 @@ const Frontpage: React.FC = () => {
       <FrontpageEcofriendly />
       <FrontpageImageSection />
       <FrontpageTrustpilot />
+      {/* Til test af shared components. Udkommentér når det er færdigtestet */}
+      {/* <ExampleUsage/> */}
     </>
   );
 };

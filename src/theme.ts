@@ -9,8 +9,10 @@ const theme = extendTheme({
   colors:{
     primary_color:{
       black: "#020402",
+      blackHover: "#46433A",
       white: "#FFFFFF",
       green: "#796D3E",
+      greenHover: "#9F9671",
       darkgrey: "#5a5a5a",
     },
     secondary_color:{
@@ -18,6 +20,7 @@ const theme = extendTheme({
     },
     accent_color:{
       red:"#7B0828",
+      redHover:"#853E52",
       offwhite:"#F1E7D6",
     },
 
