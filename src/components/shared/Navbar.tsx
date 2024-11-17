@@ -74,7 +74,7 @@ const Navbar = () => {
                   Earrings
                 </MenuItem>
                 <MenuItem as={Link} to="/products/bangles">
-                  Bracelets
+                  Bangles
                 </MenuItem>
               </MenuList>
             </Menu>
@@ -148,7 +148,7 @@ const Navbar = () => {
                   <Link to="/products/necklaces">Necklaces</Link>
                   <Link to="/products/rings">Rings</Link>
                   <Link to="/products/earrings">Earrings</Link>
-                  <Link to="/products/bangles">Bracelets</Link>
+                  <Link to="/products/bangles">Brangles</Link>
                 </VStack>
               </Menu>
               <Link to="/popular">Popular</Link>

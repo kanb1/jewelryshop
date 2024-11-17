@@ -10,16 +10,19 @@ import {
   Stack,
   Divider,
   Button,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
 } from "@chakra-ui/react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 
 const Products: React.FC = () => {
-  const { category } = useParams<{ category: string }>(); // Category from the navbar
+  const { category } = useParams<{ category: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [sortOption, setSortOption] = useState(searchParams.get("sort") || "recommended");
+  const [sortOption, setSortOption] = useState(searchParams.get("sort") || "priceHighToLow");
   const [selectedCollections, setSelectedCollections] = useState<string[]>(searchParams.getAll("collection"));
   const [selectedJewelryTypes, setSelectedJewelryTypes] = useState<string[]>(
-    category ? [category] : searchParams.getAll("type")
+    category === "all" || !category ? [] : [category]
   );
 
   const dummyProducts = [
@@ -54,7 +57,7 @@ const Products: React.FC = () => {
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (sortOption === "priceHighToLow") return b.price - a.price;
     if (sortOption === "priceLowToHigh") return a.price - b.price;
-    return 0; // Recommended (default sorting)
+    return 0;
   });
 
   // Update the URL search parameters whenever filters change
@@ -66,27 +69,79 @@ const Products: React.FC = () => {
     setSearchParams(params);
   }, [sortOption, selectedCollections, selectedJewelryTypes, setSearchParams]);
 
-  // Reset jewelry type filter whenever category changes from the navbar
+  // Reset jewelry type filter whenever category changes from the navbar or breadcrumb
   useEffect(() => {
-    if (category) {
-      setSelectedJewelryTypes([category]); // Set only the selected category
+    if (category === "all" || !category) {
+      setSelectedJewelryTypes([]); // Reset to all products
+      setSelectedCollections([]); // Clear collection filters
+      setSearchParams({}); // Clear all search params
+    } else {
+      setSelectedJewelryTypes([category]); // Reset to only the selected category
+      setSelectedCollections([]); // Clear collection filters
+      setSearchParams({ type: category }); // Update URL to reflect category change
     }
   }, [category]);
 
   const handleJewelryTypeChange = (type: string) => {
     if (type === "all jewelries") {
-      setSelectedJewelryTypes(["all jewelries"]); // Clear other selections
+      setSelectedJewelryTypes(["all jewelries"]);
     } else {
       setSelectedJewelryTypes((prev) =>
         prev.includes(type)
-          ? prev.filter((t) => t !== type) // Deselect type
-          : [...prev.filter((t) => t !== "all jewelries"), type] // Add type and remove "all jewelries"
+          ? prev.filter((t) => t !== type)
+          : [...prev.filter((t) => t !== "all jewelries"), type]
       );
     }
   };
 
   return (
     <Box p={10}>
+      {/* Breadcrumb */}
+      <Breadcrumb fontSize="md" spacing="8px" separator="/">
+        <BreadcrumbItem>
+          <BreadcrumbLink as={Link} to="/" fontWeight="medium" color="blue.500">
+            Home
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem>
+          <BreadcrumbLink
+            as={Link}
+            to="/products/all"
+            fontWeight="medium"
+            color="blue.500"
+            onClick={() => {
+              setSelectedCollections([]);
+              setSelectedJewelryTypes([]);
+              setSearchParams({});
+            }}
+          >
+            All products
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        {category && category !== "all" && (
+          <BreadcrumbItem isCurrentPage>
+            <Text fontWeight="bold" color="gray.700">
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </Text>
+          </BreadcrumbItem>
+        )}
+      </Breadcrumb>
+
+      {/* Filter Summary */}
+      <Box mb={6} p={4} bg="gray.50" borderRadius="md" boxShadow="sm">
+        <Heading as="h3" size="sm" mb={2} color="gray.600">
+          Active Filters
+        </Heading>
+        <Text fontSize="sm" color="gray.600">
+          <strong>Jewelry Types:</strong>{" "}
+          {selectedJewelryTypes.length > 0 ? selectedJewelryTypes.join(", ") : "None"}
+        </Text>
+        <Text fontSize="sm" color="gray.600">
+          <strong>Collections:</strong>{" "}
+          {selectedCollections.length > 0 ? selectedCollections.join(", ") : "None"}
+        </Text>
+      </Box>
+
       {/* Header */}
       <Heading as="h1" size="lg" mb={4}>
         {category ? category.charAt(0).toUpperCase() + category.slice(1) : "All Products"}
@@ -110,7 +165,6 @@ const Products: React.FC = () => {
             </Heading>
             <RadioGroup value={sortOption} onChange={(value) => setSortOption(value)}>
               <Stack direction="column">
-                <Radio value="recommended">Recommended</Radio>
                 <Radio value="priceHighToLow">Price High to Low</Radio>
                 <Radio value="priceLowToHigh">Price Low to High</Radio>
               </Stack>
