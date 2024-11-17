@@ -73,7 +73,7 @@ const Navbar = () => {
                 <MenuItem as={Link} to="/products/earrings">
                   Earrings
                 </MenuItem>
-                <MenuItem as={Link} to="/products/bracelets">
+                <MenuItem as={Link} to="/products/bangles">
                   Bracelets
                 </MenuItem>
               </MenuList>
@@ -148,7 +148,7 @@ const Navbar = () => {
                   <Link to="/products/necklaces">Necklaces</Link>
                   <Link to="/products/rings">Rings</Link>
                   <Link to="/products/earrings">Earrings</Link>
-                  <Link to="/products/bracelets">Bracelets</Link>
+                  <Link to="/products/bangles">Bracelets</Link>
                 </VStack>
               </Menu>
               <Link to="/popular">Popular</Link>
