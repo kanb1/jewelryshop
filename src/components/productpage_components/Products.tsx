@@ -16,72 +16,88 @@ import {
 } from "@chakra-ui/react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 
+interface Product {
+  _id: string;
+  name: string;
+  type: string;
+  productCollection: string;
+  price: number;
+}
+
 const Products: React.FC = () => {
-  const { category } = useParams<{ category: string }>();
+  const { category } = useParams<{ category: string }>(); // Current category from URL
   const [searchParams, setSearchParams] = useSearchParams();
   const [sortOption, setSortOption] = useState(searchParams.get("sort") || "priceHighToLow");
-  const [selectedCollections, setSelectedCollections] = useState<string[]>(searchParams.getAll("collection"));
+  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedJewelryTypes, setSelectedJewelryTypes] = useState<string[]>(
     category === "all" || !category ? [] : [category]
   );
+  const [products, setProducts] = useState<Product[]>([]);
+  const [allCollections, setAllCollections] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const dummyProducts = [
-    { id: 1, name: "Gold Necklace", type: "necklaces", collection: "Love", price: 200 },
-    { id: 2, name: "Silver Ring", type: "rings", collection: "Flower", price: 150 },
-    { id: 3, name: "Diamond Earring", type: "earrings", collection: "Greece", price: 300 },
-    { id: 4, name: "Gold Bangle", type: "bangles", collection: "Gold", price: 250 },
-    { id: 5, name: "Ruby Ring", type: "rings", collection: "Love", price: 400 },
-    { id: 6, name: "Pearl Necklace", type: "necklaces", collection: "Flower", price: 180 },
-    { id: 7, name: "Sapphire Earrings", type: "earrings", collection: "Greece", price: 350 },
-    { id: 8, name: "Platinum Ring", type: "rings", collection: "Gold", price: 500 },
-    { id: 9, name: "Emerald Necklace", type: "necklaces", collection: "Greece", price: 220 },
-    { id: 10, name: "Silver Bangle", type: "bangles", collection: "Flower", price: 120 },
-    { id: 11, name: "Gold Earrings", type: "earrings", collection: "Love", price: 280 },
-    { id: 12, name: "Diamond Ring", type: "rings", collection: "Gold", price: 600 },
-  ];
-
-  // Filter products based on category, collections, and filters
-  const filteredProducts = dummyProducts.filter((product) => {
-    const matchesCollection =
-      selectedCollections.length > 0 ? selectedCollections.includes(product.collection) : true;
-
-    const matchesJewelryType =
-      selectedJewelryTypes.includes("all jewelries") ||
-      selectedJewelryTypes.length === 0 ||
-      selectedJewelryTypes.includes(product.type);
-
-    return matchesCollection && matchesJewelryType;
-  });
-
-  // Sort the filtered products
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortOption === "priceHighToLow") return b.price - a.price;
-    if (sortOption === "priceLowToHigh") return a.price - b.price;
-    return 0;
-  });
-
-  // Update the URL search parameters whenever filters change
+  // Fetch all products and collections initially
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (sortOption) params.set("sort", sortOption);
-    if (selectedCollections.length) selectedCollections.forEach((col) => params.append("collection", col));
-    if (selectedJewelryTypes.length) selectedJewelryTypes.forEach((type) => params.append("type", type));
-    setSearchParams(params);
-  }, [sortOption, selectedCollections, selectedJewelryTypes, setSearchParams]);
+    const fetchInitialData = async () => {
+      try {
+        const response = await fetch(`http://localhost:5001/api/products`);
+        const data: Product[] = await response.json();
+        setProducts(data);
 
-  // Reset jewelry type filter whenever category changes from the navbar or breadcrumb
+        // Extract unique collections
+        const uniqueCollections = Array.from(new Set(data.map((product) => product.productCollection)));
+        setAllCollections(uniqueCollections);
+      } catch (err) {
+        console.error("Error fetching initial data:", err);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  // Reset filters whenever the category changes
   useEffect(() => {
     if (category === "all" || !category) {
-      setSelectedJewelryTypes([]); // Reset to all products
-      setSelectedCollections([]); // Clear collection filters
+      setSelectedJewelryTypes([]);
+      setSelectedCollections([]);
       setSearchParams({}); // Clear all search params
     } else {
-      setSelectedJewelryTypes([category]); // Reset to only the selected category
+      setSelectedJewelryTypes([category]);
       setSelectedCollections([]); // Clear collection filters
-      setSearchParams({ type: category }); // Update URL to reflect category change
+      setSearchParams({ type: category }); // Reflect category in URL
     }
-  }, [category]);
+  }, [category, setSearchParams]);
 
+  // Fetch filtered products based on user selection
+  useEffect(() => {
+    const fetchFilteredProducts = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (selectedJewelryTypes.length && !selectedJewelryTypes.includes("all jewelries")) {
+          selectedJewelryTypes.forEach((type) => params.append("type", type));
+        }
+        if (selectedCollections.length) {
+          selectedCollections.forEach((collection) => params.append("collection", collection));
+        }
+        if (sortOption) {
+          params.append("sort", sortOption === "priceHighToLow" ? "-price" : "price");
+        }
+
+        const response = await fetch(`http://localhost:5001/api/products?${params.toString()}`);
+        const data = await response.json();
+        setProducts(data);
+      } catch (err) {
+        console.error("Error fetching filtered products:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFilteredProducts();
+  }, [selectedJewelryTypes, selectedCollections, sortOption]);
+
+  // Handle Jewelry Type Filter Change
   const handleJewelryTypeChange = (type: string) => {
     if (type === "all jewelries") {
       setSelectedJewelryTypes(["all jewelries"]);
@@ -179,26 +195,23 @@ const Products: React.FC = () => {
               Collections
             </Heading>
             <Stack direction="column">
-              {["Love", "Flower", "Greece", "Gold"].map((collection) => (
+              {allCollections.map((collection) => (
                 <Checkbox
                   key={collection}
                   value={collection}
                   isChecked={selectedCollections.includes(collection)}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const value = e.target.value;
                     setSelectedCollections((prev) =>
-                      e.target.checked
-                        ? [...prev, collection]
-                        : prev.filter((c) => c !== collection)
-                    )
-                  }
+                      e.target.checked ? [...prev, value] : prev.filter((c) => c !== value)
+                    );
+                  }}
                 >
                   {collection}
                 </Checkbox>
               ))}
             </Stack>
           </Box>
-
-          <Divider my={4} />
 
           {/* Jewelry Types */}
           <Box>
@@ -213,14 +226,14 @@ const Products: React.FC = () => {
               >
                 All Jewelries
               </Checkbox>
-              {["Necklaces", "Earrings", "Bangles", "Rings"].map((type) => (
+              {["necklaces", "earrings", "bracelets", "rings"].map((type) => (
                 <Checkbox
                   key={type}
                   value={type}
-                  isChecked={selectedJewelryTypes.includes(type.toLowerCase())}
-                  onChange={() => handleJewelryTypeChange(type.toLowerCase())}
+                  isChecked={selectedJewelryTypes.includes(type)}
+                  onChange={() => handleJewelryTypeChange(type)}
                 >
-                  {type}
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
                 </Checkbox>
               ))}
             </Stack>
@@ -229,34 +242,45 @@ const Products: React.FC = () => {
 
         {/* Product Grid */}
         <Box as="section">
-          <Text mb={4}>Showing {sortedProducts.length} products</Text>
-          <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
-            {sortedProducts.map((product) => (
-              <Box
-                key={product.id}
-                p={4}
-                bg="white"
-                borderRadius="md"
-                boxShadow="md"
-                textAlign="center"
-                transition="transform 0.2s"
-                _hover={{ transform: "scale(1.05)" }}
-              >
-                <Box height="200px" bg="gray.300" mb={4}></Box>
-                <Text fontWeight="bold">{product.name}</Text>
-                <Text fontSize="sm" color="gray.500" mb={2}>
-                  {product.type} | {product.collection}
-                </Text>
-                <Text color="green.500" mb={4}>
-                  ${product.price}
-                </Text>
-                <Button size="sm" colorScheme="teal">
-                  Add to Cart
-                </Button>
-              </Box>
-            ))}
-          </Grid>
+          <Text mb={4}>Showing {products.length} products</Text>
+          {loading ? (
+            <Text>Loading products...</Text>
+          ) : (
+            <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
+              {[...products]
+               .sort((a, b) => {
+                  if (sortOption === "priceHighToLow") return b.price - a.price;
+                  if (sortOption === "priceLowToHigh") return a.price - b.price;
+                  return 0;
+               })
+                .map((product) => (
+                 <Box
+                   key={product._id}
+                   p={4}
+                    bg="white"
+                    borderRadius="md"
+                    boxShadow="md"
+                    textAlign="center"
+                    transition="transform 0.2s"
+                    _hover={{ transform: "scale(1.05)" }}
+                  >
+                    <Box height="200px" bg="gray.300" mb={4}></Box>
+                    <Text fontWeight="bold">{product.name}</Text>
+                    <Text fontSize="sm" color="gray.500" mb={2}>
+                     {product.type} | {product.productCollection}
+                    </Text>
+                    <Text color="green.500" mb={4}>
+                     ${product.price}
+                    </Text>
+                    <Button size="sm" colorScheme="teal">
+                     Add to Cart
+                    </Button>
+                  </Box>
+               ))}
+           </Grid>
+          )}
         </Box>
+
       </Grid>
     </Box>
   );

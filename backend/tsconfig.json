@@ -7,8 +7,15 @@
     "strict": true,                       // Enable all strict type-checking options
     "esModuleInterop": true,              // Allow default imports from CommonJS
     "skipLibCheck": true,                 // Skip type checking of declaration files
+    "resolveJsonModule": true,
+    "moduleResolution": "Node",
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node", "express"],
     "forceConsistentCasingInFileNames": true // Enforce case-sensitive module imports
   },
   "include": ["src", "routes"],                     // Include source files for compilation
   "exclude": ["node_modules", "dist"]     // Exclude unnecessary directories
 }
+
+
+

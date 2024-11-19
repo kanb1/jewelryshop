@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Flex,
@@ -27,9 +28,31 @@ import { ChevronDownIcon, StarIcon, HamburgerIcon, SearchIcon } from "@chakra-ui
 import { AiOutlineShoppingCart } from "react-icons/ai"; // Shopping Cart icon
 import { FaUser } from "react-icons/fa"; // User icon
 import { Link } from "react-router-dom"; // Import React Router's Link
+import axios from "axios"; // Import Axios for API calls
+
+interface Category {
+  _id: string;
+  name: string;
+}
 
 const Navbar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [categories, setCategories] = useState<Category[]>([]); // Add type annotation here
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get<Category[]>("http://localhost:5001/api/categories"); // Specify type
+        setCategories(response.data); // TypeScript now knows this is an array of Category
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    };
+  
+    fetchCategories();
+  }, []);
+  
 
   return (
     <Box bg="white" px={10} boxShadow="sm">
@@ -64,18 +87,11 @@ const Navbar = () => {
                 Jewelries
               </MenuButton>
               <MenuList>
-                <MenuItem as={Link} to="/products/necklaces">
-                  Necklaces
-                </MenuItem>
-                <MenuItem as={Link} to="/products/rings">
-                  Rings
-                </MenuItem>
-                <MenuItem as={Link} to="/products/earrings">
-                  Earrings
-                </MenuItem>
-                <MenuItem as={Link} to="/products/bangles">
-                  Bangles
-                </MenuItem>
+              {categories.map((category) => (
+                  <MenuItem key={category._id} as={Link} to={`/products/${category.name.toLowerCase()}`}>
+                    {category.name}
+                  </MenuItem>
+                ))}
               </MenuList>
             </Menu>
             <Link to="/popular" style={{ fontWeight: "medium" }}>
@@ -145,10 +161,11 @@ const Navbar = () => {
                   Jewelries
                 </MenuButton>
                 <VStack align="start" spacing={2} ml={4}>
-                  <Link to="/products/necklaces">Necklaces</Link>
-                  <Link to="/products/rings">Rings</Link>
-                  <Link to="/products/earrings">Earrings</Link>
-                  <Link to="/products/bangles">Brangles</Link>
+                {categories.map((category) => (
+                    <Link key={category._id} to={`/products/${category.name.toLowerCase()}`}>
+                      {category.name}
+                    </Link>
+                  ))}
                 </VStack>
               </Menu>
               <Link to="/popular">Popular</Link>
