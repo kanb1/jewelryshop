@@ -10,30 +10,41 @@ import { isValidObjectId } from "mongoose";
 const router = express.Router(); // Opret en ny router
 
 // GET route for at hente produkterne fra databasen. Denne rute vil understøtte filtrering baseret på forespørgselsparametre.
+// GET route for fetching products with pagination
+// GET route for fetching products with pagination
 router.get('/', async (req, res) => {
   try {
-    // Læs forespørgselsparametre fra URL'en
-    const { type, collection, minPrice, maxPrice } = req.query;
+    // Get query parameters (type, collection, price range, page, limit)
+    const { type, collection, minPrice, maxPrice, page = 1, limit = 10 } = req.query;
 
-    // Byg et dynamisk filter baseret på de angivne parametre
+    // Build the filter object
     const filter: any = {};
-    if (type) filter.type = type; // Filtrer efter type (fx "rings")
+    if (type) filter.type = type;
     if (collection) {
       filter.productCollection = { $in: Array.isArray(collection) ? collection : [collection] };
-    }    
-    if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice as string) }; // Minimumpris
-    if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice as string) }; // Maksimumpris
+    }
+    if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice as string) };
+    if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice as string) };
 
-    // Hent produkter fra databasen baseret på filteret
-    const products = await Product.find(filter);
+    // Pagination: Calculate skip and limit
+    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+    const products = await Product.find(filter).skip(skip).limit(parseInt(limit as string));
 
-    // Send produkterne som JSON-respons
-    res.status(200).json(products);
+    // Count total products to determine number of pages
+    const totalProducts = await Product.countDocuments(filter);
+
+    // Send the products and total count as response
+    res.status(200).json({
+      products,
+      totalProducts,
+      totalPages: Math.ceil(totalProducts / parseInt(limit as string)),
+      currentPage: parseInt(page as string),
+    });
   } catch (err) {
-    // Håndter fejl og send en fejlbesked
     res.status(500).json({ error: 'Failed to fetch products', details: err });
   }
 });
+
 
 // DELETE
 // By adding any to both req and res, TypeScript is no longer enforcing strict type checks, which is why the error disappears. This approach bypasses TypeScript's type validation but is not recommended for production code because it sacrifices the type safety TypeScript offers.
@@ -94,6 +105,38 @@ router.post('/', async (req, res) => {
 
 
 
+// PUT
+// PUT /api/products/:id - Update a product by its ID
+router.put('/:id', async (Request, Response) => {
+  try {
+    const { id } = Request.params; // Get product ID from URL parameter
+    const updatedData = Request.body; // Get updated product data from request body
+
+    // Validate if the provided ID is a valid MongoDB ObjectId
+    if (!mongoose.isValidObjectId(id)) {
+       Response.status(400).json({ error: 'Invalid Product ID' });
+       return;
+    }
+
+    // Find the product by its ID and update it
+    const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, {
+      new: true, // Return the updated document
+      runValidators: true, // Ensure the updated data passes validation
+    });
+
+    // If the product was not found
+    if (!updatedProduct) {
+       Response.status(404).json({ error: 'Product not found' });
+       return;
+    }
+
+    // Return the updated product in the response
+    Response.status(200).json(updatedProduct);
+  } catch (err) {
+    console.error('Error updating product:', err);
+    Response.status(500).json({ error: 'Failed to update the product', details: err });
+  }
+});
 
 
 
