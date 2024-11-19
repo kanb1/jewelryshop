@@ -66,49 +66,97 @@ const Products: React.FC = () => {
       setSelectedCollections([]); // Clear collection filters
       setSearchParams({ type: category }); // Reflect category in URL
     }
-  }, [category, setSearchParams]);
+  }, [category]);
 
   // Fetch filtered products based on user selection
   useEffect(() => {
     const fetchFilteredProducts = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (selectedJewelryTypes.length && !selectedJewelryTypes.includes("all jewelries")) {
-          selectedJewelryTypes.forEach((type) => params.append("type", type));
-        }
-        if (selectedCollections.length) {
-          selectedCollections.forEach((collection) => params.append("collection", collection));
-        }
-        if (sortOption) {
-          params.append("sort", sortOption === "priceHighToLow" ? "-price" : "price");
-        }
+        setLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (selectedJewelryTypes.length && !selectedJewelryTypes.includes("all jewelries")) {
+                selectedJewelryTypes.forEach((type) => params.append("type", type));
+            }
+            if (selectedCollections.length) {
+                selectedCollections.forEach((collection) => params.append("collection", collection));
+            }
+            if (sortOption) {
+                params.append("sort", sortOption === "priceHighToLow" ? "priceHighToLow" : "priceLowToHigh");
+            }
 
-        const response = await fetch(`http://localhost:5001/api/products?${params.toString()}`);
-        const data = await response.json();
-        setProducts(data);
-      } catch (err) {
-        console.error("Error fetching filtered products:", err);
-      } finally {
-        setLoading(false);
-      }
+            const response = await fetch(`http://localhost:5001/api/products?${params.toString()}`);
+            const data = await response.json();
+
+            // Sorting based on price
+            const sortedData = data.sort((a: Product, b: Product) => {
+                if (sortOption === "priceHighToLow") {
+                    return b.price - a.price; // Sort descending (High to Low)
+                }
+                if (sortOption === "priceLowToHigh") {
+                    return a.price - b.price; // Sort ascending (Low to High)
+                }
+                return 0; // No sorting if no sortOption
+            });
+
+            setProducts(sortedData);
+        } catch (err) {
+            console.error("Error fetching filtered products:", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     fetchFilteredProducts();
-  }, [selectedJewelryTypes, selectedCollections, sortOption]);
+}, [selectedJewelryTypes, selectedCollections, sortOption]);
+
 
   // Handle Jewelry Type Filter Change
   const handleJewelryTypeChange = (type: string) => {
     if (type === "all jewelries") {
-      setSelectedJewelryTypes(["all jewelries"]);
+      // If "All Jewelries" is selected, reset other selections
+      setSelectedJewelryTypes(["all jewelries"]);  // Only keep "all jewelries"
     } else {
+      // If another type is selected, handle toggling the selection
       setSelectedJewelryTypes((prev) =>
         prev.includes(type)
-          ? prev.filter((t) => t !== type)
-          : [...prev.filter((t) => t !== "all jewelries"), type]
+          ? prev.filter((t) => t !== type)  // Remove if already selected
+          : [...prev.filter((t) => t !== "all jewelries"), type]  // Add type if not already selected
       );
     }
+  
+    // Update URL parameters
+    const params = new URLSearchParams(searchParams);
+    params.delete("type"); // Clear the existing 'type' param
+    selectedJewelryTypes.forEach((t) => params.append("type", t)); // Append the updated jewelry types
+    setSearchParams(params); // Sync URL
   };
+  
+
+  // Handle Collection Change
+  const handleCollectionChange = (collection: string, isChecked: boolean) => {
+    const updatedCollections = isChecked
+      ? [...selectedCollections, collection] 
+      : selectedCollections.filter((c) => c !== collection);
+  
+    setSelectedCollections(updatedCollections);
+  };
+
+  // Sync URL with Filter Selection
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    if (selectedJewelryTypes.length) {
+      selectedJewelryTypes.forEach((type) => params.append("type", type));
+    }
+    if (selectedCollections.length) {
+      selectedCollections.forEach((collection) => params.append("collection", collection));
+    }
+    if (sortOption) {
+      params.append("sort", sortOption === "priceHighToLow" ? "priceHighToLow" : "priceLowToHigh");
+    }
+
+    setSearchParams(params); // Only update the URL when there are changes
+  }, [selectedJewelryTypes, selectedCollections, sortOption]); // Sync URL with filter state
 
   return (
     <Box p={10}>
@@ -200,12 +248,7 @@ const Products: React.FC = () => {
                   key={collection}
                   value={collection}
                   isChecked={selectedCollections.includes(collection)}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSelectedCollections((prev) =>
-                      e.target.checked ? [...prev, value] : prev.filter((c) => c !== value)
-                    );
-                  }}
+                  onChange={(e) => handleCollectionChange(collection, e.target.checked)}
                 >
                   {collection}
                 </Checkbox>
@@ -216,74 +259,67 @@ const Products: React.FC = () => {
           {/* Jewelry Types */}
           <Box>
             <Heading as="h3" size="sm" mb={2}>
-              Jewelry Types
-            </Heading>
-            <Stack direction="column">
+            Jewelry Types
+          </Heading>
+          <Stack direction="column">
+            <Checkbox
+              value="all jewelries"
+              isChecked={selectedJewelryTypes.includes("all jewelries")}
+              onChange={() => handleJewelryTypeChange("all jewelries")}
+            >
+              All Jewelries
+            </Checkbox>
+            {["necklaces", "earrings", "bracelets", "rings"].map((type) => (
               <Checkbox
-                value="all jewelries"
-                isChecked={selectedJewelryTypes.includes("all jewelries")}
-                onChange={() => handleJewelryTypeChange("all jewelries")}
+                key={type}
+                value={type}
+                isChecked={selectedJewelryTypes.includes(type)}
+                onChange={() => handleJewelryTypeChange(type)}
               >
-                All Jewelries
+                {type.charAt(0).toUpperCase() + type.slice(1)}
               </Checkbox>
-              {["necklaces", "earrings", "bracelets", "rings"].map((type) => (
-                <Checkbox
-                  key={type}
-                  value={type}
-                  isChecked={selectedJewelryTypes.includes(type)}
-                  onChange={() => handleJewelryTypeChange(type)}
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </Checkbox>
-              ))}
-            </Stack>
-          </Box>
+            ))}
+          </Stack>
         </Box>
+      </Box>
 
-        {/* Product Grid */}
-        <Box as="section">
-          <Text mb={4}>Showing {products.length} products</Text>
-          {loading ? (
-            <Text>Loading products...</Text>
-          ) : (
-            <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
-              {[...products]
-               .sort((a, b) => {
-                  if (sortOption === "priceHighToLow") return b.price - a.price;
-                  if (sortOption === "priceLowToHigh") return a.price - b.price;
-                  return 0;
-               })
-                .map((product) => (
-                 <Box
-                   key={product._id}
-                   p={4}
-                    bg="white"
-                    borderRadius="md"
-                    boxShadow="md"
-                    textAlign="center"
-                    transition="transform 0.2s"
-                    _hover={{ transform: "scale(1.05)" }}
-                  >
-                    <Box height="200px" bg="gray.300" mb={4}></Box>
-                    <Text fontWeight="bold">{product.name}</Text>
-                    <Text fontSize="sm" color="gray.500" mb={2}>
-                     {product.type} | {product.productCollection}
-                    </Text>
-                    <Text color="green.500" mb={4}>
-                     ${product.price}
-                    </Text>
-                    <Button size="sm" colorScheme="teal">
-                     Add to Cart
-                    </Button>
-                  </Box>
-               ))}
-           </Grid>
-          )}
-        </Box>
-
-      </Grid>
-    </Box>
-  );
+      {/* Product Grid */}
+      <Box as="section">
+        <Text mb={4}>Showing {products.length} products</Text>
+        {loading ? (
+          <Text>Loading products...</Text>
+        ) : (
+          <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
+            {products.map((product) => (
+              <Box
+                key={product._id}
+                p={4}
+                bg="white"
+                borderRadius="md"
+                boxShadow="md"
+                textAlign="center"
+                transition="transform 0.2s"
+                _hover={{ transform: "scale(1.05)" }}
+              >
+                <Box height="200px" bg="gray.300" mb={4}></Box>
+                <Text fontWeight="bold">{product.name}</Text>
+                <Text fontSize="sm" color="gray.500" mb={2}>
+                  {product.type} | {product.productCollection}
+                </Text>
+                <Text color="green.500" mb={4}>
+                  ${product.price}
+                </Text>
+                <Button size="sm" colorScheme="teal">
+                  Add to Cart
+                </Button>
+              </Box>
+            ))}
+          </Grid>
+        )}
+      </Box>
+    </Grid>
+  </Box>
+);
 };
 
 export default Products;

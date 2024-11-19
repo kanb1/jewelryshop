@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Box,
   Flex,
@@ -28,31 +28,12 @@ import { ChevronDownIcon, StarIcon, HamburgerIcon, SearchIcon } from "@chakra-ui
 import { AiOutlineShoppingCart } from "react-icons/ai"; // Shopping Cart icon
 import { FaUser } from "react-icons/fa"; // User icon
 import { Link } from "react-router-dom"; // Import React Router's Link
-import axios from "axios"; // Import Axios for API calls
-
-interface Category {
-  _id: string;
-  name: string;
-}
 
 const Navbar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [categories, setCategories] = useState<Category[]>([]); // Add type annotation here
 
-  // Fetch categories from API
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get<Category[]>("http://localhost:5001/api/categories"); // Specify type
-        setCategories(response.data); // TypeScript now knows this is an array of Category
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-      }
-    };
-  
-    fetchCategories();
-  }, []);
-  
+  // Define static categories
+  const categories = ["Rings", "Necklaces", "Bracelets", "Earrings"];
 
   return (
     <Box bg="white" px={10} boxShadow="sm">
@@ -83,13 +64,19 @@ const Navbar = () => {
           </Box>
           <HStack spacing={8}>
             <Menu>
-              <MenuButton as={Button} rightIcon={<ChevronDownIcon />} variant="link" _hover={{ textDecoration: "none", color: "#7B0828" }} p={1}>
+              <MenuButton
+                as={Button}
+                rightIcon={<ChevronDownIcon />}
+                variant="link"
+                _hover={{ textDecoration: "none", color: "#7B0828" }}
+                p={1}
+              >
                 Jewelries
               </MenuButton>
               <MenuList>
-              {categories.map((category) => (
-                  <MenuItem key={category._id} as={Link} to={`/products/${category.name.toLowerCase()}`}>
-                    {category.name}
+                {categories.map((category) => (
+                  <MenuItem key={category} as={Link} to={`/products/${category.toLowerCase()}`}>
+                    {category}
                   </MenuItem>
                 ))}
               </MenuList>
@@ -161,9 +148,9 @@ const Navbar = () => {
                   Jewelries
                 </MenuButton>
                 <VStack align="start" spacing={2} ml={4}>
-                {categories.map((category) => (
-                    <Link key={category._id} to={`/products/${category.name.toLowerCase()}`}>
-                      {category.name}
+                  {categories.map((category) => (
+                    <Link key={category} to={`/products/${category.toLowerCase()}`}>
+                      {category}
                     </Link>
                   ))}
                 </VStack>

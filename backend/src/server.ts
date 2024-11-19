@@ -4,7 +4,7 @@ import mongoose from 'mongoose'; // Import mongoose
 import cors from 'cors'; // Import cors
 // Routes
 import productsRouter from './routes/products'; // Use ES6 imports for routes
-import categoriesRouter from './routes/categories';
+// import categoriesRouter from './routes/categories';
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -26,7 +26,9 @@ mongoose
 
 // Adding the routes to the server:
 app.use('/api/products', productsRouter); // Attach products router
-app.use('/api/categories', categoriesRouter);
+
+// API's not used so far
+// app.use('/api/categories', categoriesRouter);
 
 // Start the server
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
