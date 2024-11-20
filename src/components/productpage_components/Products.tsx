@@ -15,6 +15,7 @@ import {
   BreadcrumbLink,
 } from "@chakra-ui/react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
+import ProductCard from "../shared/ProductCard";
 
 const Products: React.FC = () => {
   const { category } = useParams<{ category: string }>();
@@ -255,15 +256,12 @@ const handleSortChange = (sortOption: string) => {
           {loading ? (
             <Text>Loading products...</Text>
           ) : (
-            <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
-              {products.map((product) => (
-                <Box key={product._id} p={4} bg="white" borderRadius="md" boxShadow="md">
-                  <Text fontWeight="bold">{product.name}</Text>
-                  <Text>{product.type} | {product.productCollection}</Text>
-                  <Text>${product.price}</Text>
-                </Box>
-              ))}
-            </Grid>
+<Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
+  {products.map((product) => (
+    <ProductCard key={product._id} product={product} />
+  ))}
+</Grid>
+
           )}
         </Box>
       </Grid>

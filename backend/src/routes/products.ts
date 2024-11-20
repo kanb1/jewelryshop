@@ -167,6 +167,35 @@ router.get('/collections', async (req, res) => {
 });
 
 
+// GET /products/:id - Fetch single product by ID
+router.get('/:id', async (Request, Response) => {
+  try {
+    const { id } = Request.params;
+
+    // Validate ID
+    if (!mongoose.isValidObjectId(id)) {
+       Response.status(400).json({ error: 'Invalid product ID' });
+       return;
+    }
+
+    // Fetch product
+    const product = await Product.findById(id);
+    if (!product) {
+       Response.status(404).json({ error: 'Product not found' });
+       return;
+
+    }
+
+    Response.status(200).json(product);
+  } catch (err) {
+    console.error('Error fetching product:', err);
+    Response.status(500).json({ error: 'Failed to fetch product', details: err });
+  }
+});
+
+
+
+
 
 
 
