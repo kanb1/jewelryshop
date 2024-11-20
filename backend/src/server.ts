@@ -4,6 +4,7 @@ import mongoose from 'mongoose'; // Import mongoose
 import cors from 'cors'; // Import cors
 // Routes
 import productsRouter from './routes/products'; // Use ES6 imports for routes
+
 // import categoriesRouter from './routes/categories';
 
 dotenv.config(); // Load environment variables from .env file

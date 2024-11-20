@@ -16,147 +16,131 @@ import {
 } from "@chakra-ui/react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 
-interface Product {
-  _id: string;
-  name: string;
-  type: string;
-  productCollection: string;
-  price: number;
-}
-
 const Products: React.FC = () => {
-  const { category } = useParams<{ category: string }>(); // Current category from URL
+  const { category } = useParams<{ category: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [sortOption, setSortOption] = useState(searchParams.get("sort") || "priceHighToLow");
+  const [sortOption, setSortOption] = useState(searchParams.get("sort") || "priceLowToHigh");
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedJewelryTypes, setSelectedJewelryTypes] = useState<string[]>(
     category === "all" || !category ? [] : [category]
   );
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState([]);
   const [allCollections, setAllCollections] = useState<string[]>([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Fetch all products and collections initially
+  // Fetch products based on filters and pagination
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const response = await fetch(`http://localhost:5001/api/products`);
-        const data: Product[] = await response.json();
-        setProducts(data);
+    const fetchProducts = async () => {
+      setLoading(true);
 
-        // Extract unique collections
-        const uniqueCollections = Array.from(new Set(data.map((product) => product.productCollection)));
-        setAllCollections(uniqueCollections);
+      try {
+        const page = searchParams.get("page") || "1";
+        const limit = 6;
+
+        const response = await fetch(
+          `http://localhost:5001/api/products?page=${page}&limit=${limit}&${searchParams.toString()}`
+        );
+        const data = await response.json();
+
+        setProducts(data.products);
+        setTotalProducts(data.totalProducts);
+        setTotalPages(data.totalPages);
+        setCurrentPage(parseInt(page));
       } catch (err) {
-        console.error("Error fetching initial data:", err);
+        console.error("Error fetching products:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchInitialData();
-  }, []);
+    fetchProducts();
+  }, [searchParams, sortOption]); // Fetch products whenever searchParams change
 
-  // Reset filters whenever the category changes
-  useEffect(() => {
-    if (category === "all" || !category) {
+ // Reset filters whenever the category changes
+useEffect(() => {
+  if (category) {
+    if (category === "all") {
       setSelectedJewelryTypes([]);
       setSelectedCollections([]);
-      setSearchParams({}); // Clear all search params
+      setSearchParams({});
     } else {
+      // Set the selected category as the jewelry type filter
       setSelectedJewelryTypes([category]);
-      setSelectedCollections([]); // Clear collection filters
-      setSearchParams({ type: category }); // Reflect category in URL
+      setSelectedCollections([]);
+      setSearchParams({ type: category }); // Set the type in the URL search params
+      setCurrentPage(1); // Reset to page 1
     }
-  }, [category]);
+  }
+}, [category]);
 
-  // Fetch filtered products based on user selection
+
+  // Fetch collections independently
   useEffect(() => {
-    const fetchFilteredProducts = async () => {
-        setLoading(true);
-        try {
-            const params = new URLSearchParams();
-            if (selectedJewelryTypes.length && !selectedJewelryTypes.includes("all jewelries")) {
-                selectedJewelryTypes.forEach((type) => params.append("type", type));
-            }
-            if (selectedCollections.length) {
-                selectedCollections.forEach((collection) => params.append("collection", collection));
-            }
-            if (sortOption) {
-                params.append("sort", sortOption === "priceHighToLow" ? "priceHighToLow" : "priceLowToHigh");
-            }
-
-            const response = await fetch(`http://localhost:5001/api/products?${params.toString()}`);
-            const data = await response.json();
-
-            // Sorting based on price
-            const sortedData = data.sort((a: Product, b: Product) => {
-                if (sortOption === "priceHighToLow") {
-                    return b.price - a.price; // Sort descending (High to Low)
-                }
-                if (sortOption === "priceLowToHigh") {
-                    return a.price - b.price; // Sort ascending (Low to High)
-                }
-                return 0; // No sorting if no sortOption
-            });
-
-            setProducts(sortedData);
-        } catch (err) {
-            console.error("Error fetching filtered products:", err);
-        } finally {
-            setLoading(false);
-        }
+    const fetchCollections = async () => {
+      try {
+        const response = await fetch(`http://localhost:5001/api/products/collections`);
+        const data = await response.json();
+        setAllCollections(data.collections || []);
+      } catch (err) {
+        console.error("Error fetching collections:", err);
+      }
     };
 
-    fetchFilteredProducts();
-}, [selectedJewelryTypes, selectedCollections, sortOption]);
-
-
-  // Handle Jewelry Type Filter Change
-  const handleJewelryTypeChange = (type: string) => {
-    if (type === "all jewelries") {
-      // If "All Jewelries" is selected, reset other selections
-      setSelectedJewelryTypes(["all jewelries"]);  // Only keep "all jewelries"
-    } else {
-      // If another type is selected, handle toggling the selection
-      setSelectedJewelryTypes((prev) =>
-        prev.includes(type)
-          ? prev.filter((t) => t !== type)  // Remove if already selected
-          : [...prev.filter((t) => t !== "all jewelries"), type]  // Add type if not already selected
-      );
-    }
-  
-    // Update URL parameters
-    const params = new URLSearchParams(searchParams);
-    params.delete("type"); // Clear the existing 'type' param
-    selectedJewelryTypes.forEach((t) => params.append("type", t)); // Append the updated jewelry types
-    setSearchParams(params); // Sync URL
-  };
-  
+    fetchCollections();
+  }, []);
 
   // Handle Collection Change
   const handleCollectionChange = (collection: string, isChecked: boolean) => {
     const updatedCollections = isChecked
-      ? [...selectedCollections, collection] 
+      ? [...selectedCollections, collection]
       : selectedCollections.filter((c) => c !== collection);
-  
+
     setSelectedCollections(updatedCollections);
+
+    const params = new URLSearchParams(searchParams);
+    params.delete("collection");
+    updatedCollections.forEach((col) => params.append("collection", col));
+    params.set("page", "1"); // Reset page to 1
+    setSearchParams(params);
   };
 
-  // Sync URL with Filter Selection
-  useEffect(() => {
-    const params = new URLSearchParams();
-    
-    if (selectedJewelryTypes.length) {
-      selectedJewelryTypes.forEach((type) => params.append("type", type));
-    }
-    if (selectedCollections.length) {
-      selectedCollections.forEach((collection) => params.append("collection", collection));
-    }
-    if (sortOption) {
-      params.append("sort", sortOption === "priceHighToLow" ? "priceHighToLow" : "priceLowToHigh");
-    }
+ // Handle Jewelry Type Filter Change
+const handleJewelryTypeChange = (type: string, isChecked: boolean) => {
+  const updatedJewelryTypes = isChecked
+    ? [...selectedJewelryTypes, type]
+    : selectedJewelryTypes.filter((t) => t !== type);
 
-    setSearchParams(params); // Only update the URL when there are changes
-  }, [selectedJewelryTypes, selectedCollections, sortOption]); // Sync URL with filter state
+  setSelectedJewelryTypes(updatedJewelryTypes);
+
+  const params = new URLSearchParams(searchParams);
+  params.delete("type"); // Clear existing 'type' params
+  updatedJewelryTypes.forEach((t) => params.append("type", t)); // Add updated types
+  params.set("page", "1"); // Reset to page 1 when the filter changes
+  setSearchParams(params); // Sync URL
+};
+
+  // Handle Sort Change
+const handleSortChange = (sortOption: string) => {
+  setSortOption(sortOption); // Update the state for the selected sort option
+
+  const params = new URLSearchParams(searchParams);
+  params.set("sort", sortOption); // Set the sort parameter
+  params.set("page", "1"); // Reset to page 1 when sort changes
+  setSearchParams(params);
+};
+
+  // Handle Page Change
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      const params = new URLSearchParams(searchParams);
+      params.set("page", page.toString());
+      setSearchParams(params);
+    }
+  };
 
   return (
     <Box p={10}>
@@ -197,22 +181,12 @@ const Products: React.FC = () => {
           Active Filters
         </Heading>
         <Text fontSize="sm" color="gray.600">
-          <strong>Jewelry Types:</strong>{" "}
-          {selectedJewelryTypes.length > 0 ? selectedJewelryTypes.join(", ") : "None"}
+          <strong>Jewelry Types:</strong> {selectedJewelryTypes.length > 0 ? selectedJewelryTypes.join(", ") : "None"}
         </Text>
         <Text fontSize="sm" color="gray.600">
-          <strong>Collections:</strong>{" "}
-          {selectedCollections.length > 0 ? selectedCollections.join(", ") : "None"}
+          <strong>Collections:</strong> {selectedCollections.length > 0 ? selectedCollections.join(", ") : "None"}
         </Text>
       </Box>
-
-      {/* Header */}
-      <Heading as="h1" size="lg" mb={4}>
-        {category ? category.charAt(0).toUpperCase() + category.slice(1) : "All Products"}
-      </Heading>
-      <Text mb={6}>
-        Browse our exclusive {category || "products"} collection and find your perfect match!
-      </Text>
 
       {/* Layout: Sidebar + Product Grid */}
       <Grid templateColumns={{ base: "1fr", lg: "1fr 3fr" }} gap={10}>
@@ -221,23 +195,19 @@ const Products: React.FC = () => {
           <Heading as="h2" size="md" mb={4}>
             Filter
           </Heading>
-
-          {/* Sort By */}
           <Box mb={6}>
-            <Heading as="h3" size="sm" mb={2}>
-              Sort By
-            </Heading>
-            <RadioGroup value={sortOption} onChange={(value) => setSortOption(value)}>
-              <Stack direction="column">
-                <Radio value="priceHighToLow">Price High to Low</Radio>
-                <Radio value="priceLowToHigh">Price Low to High</Radio>
-              </Stack>
-            </RadioGroup>
-          </Box>
+  <Heading as="h3" size="sm" mb={2}>
+    Sort By
+  </Heading>
+  <RadioGroup value={sortOption} onChange={handleSortChange}>
+    <Stack direction="column">
+      <Radio value="priceHighToLow">Price High to Low</Radio>
+      <Radio value="priceLowToHigh">Price Low to High</Radio>
+    </Stack>
+  </RadioGroup>
+</Box>
 
           <Divider my={4} />
-
-          {/* Collections */}
           <Box mb={6}>
             <Heading as="h3" size="sm" mb={2}>
               Collections
@@ -255,71 +225,67 @@ const Products: React.FC = () => {
               ))}
             </Stack>
           </Box>
-
-          {/* Jewelry Types */}
           <Box>
-            <Heading as="h3" size="sm" mb={2}>
-            Jewelry Types
-          </Heading>
-          <Stack direction="column">
-            <Checkbox
-              value="all jewelries"
-              isChecked={selectedJewelryTypes.includes("all jewelries")}
-              onChange={() => handleJewelryTypeChange("all jewelries")}
-            >
-              All Jewelries
-            </Checkbox>
-            {["necklaces", "earrings", "bracelets", "rings"].map((type) => (
-              <Checkbox
-                key={type}
-                value={type}
-                isChecked={selectedJewelryTypes.includes(type)}
-                onChange={() => handleJewelryTypeChange(type)}
-              >
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </Checkbox>
-            ))}
-          </Stack>
+  <Heading as="h3" size="sm" mb={2}>
+    Jewelry Types
+  </Heading>
+  <Stack direction="column">
+    {["necklaces", "earrings", "bracelets", "rings"].map((type) => (
+      <Checkbox
+        key={type}
+        value={type}
+        isChecked={selectedJewelryTypes.includes(type)}
+        onChange={(e) => handleJewelryTypeChange(type, e.target.checked)}
+      >
+        {type.charAt(0).toUpperCase() + type.slice(1)}
+      </Checkbox>
+    ))}
+  </Stack>
+</Box>;
         </Box>
-      </Box>
 
-      {/* Product Grid */}
-      <Box as="section">
-        <Text mb={4}>Showing {products.length} products</Text>
-        {loading ? (
-          <Text>Loading products...</Text>
-        ) : (
-          <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
-            {products.map((product) => (
-              <Box
-                key={product._id}
-                p={4}
-                bg="white"
-                borderRadius="md"
-                boxShadow="md"
-                textAlign="center"
-                transition="transform 0.2s"
-                _hover={{ transform: "scale(1.05)" }}
-              >
-                <Box height="200px" bg="gray.300" mb={4}></Box>
-                <Text fontWeight="bold">{product.name}</Text>
-                <Text fontSize="sm" color="gray.500" mb={2}>
-                  {product.type} | {product.productCollection}
-                </Text>
-                <Text color="green.500" mb={4}>
-                  ${product.price}
-                </Text>
-                <Button size="sm" colorScheme="teal">
-                  Add to Cart
-                </Button>
-              </Box>
-            ))}
-          </Grid>
-        )}
-      </Box>
-    </Grid>
-  </Box>
-);
+        {/* Product Grid */}
+        <Box as="section">
+        <Text mb={4}>
+  {totalProducts > 0 
+    ? `${totalProducts} products in total` 
+    : "No products found"}
+</Text>
+
+          {loading ? (
+            <Text>Loading products...</Text>
+          ) : (
+            <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
+              {products.map((product) => (
+                <Box key={product._id} p={4} bg="white" borderRadius="md" boxShadow="md">
+                  <Text fontWeight="bold">{product.name}</Text>
+                  <Text>{product.type} | {product.productCollection}</Text>
+                  <Text>${product.price}</Text>
+                </Box>
+              ))}
+            </Grid>
+          )}
+        </Box>
+      </Grid>
+
+           {/* Pagination Controls */}
+           <Stack direction="row" spacing={4} mt={6} justify="center">
+        <Button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        <Text>{`${currentPage} of ${totalPages}`}</Text>
+        <Button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </Button>
+      </Stack>
+    </Box>
+  );
 };
 
 export default Products;

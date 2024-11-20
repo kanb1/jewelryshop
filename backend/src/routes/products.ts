@@ -11,11 +11,10 @@ const router = express.Router(); // Opret en ny router
 
 // GET route for at hente produkterne fra databasen. Denne rute vil understøtte filtrering baseret på forespørgselsparametre.
 // GET route for fetching products with pagination
-// GET route for fetching products with pagination
 router.get('/', async (req, res) => {
   try {
     // Get query parameters (type, collection, price range, page, limit)
-    const { type, collection, minPrice, maxPrice, page = 1, limit = 10 } = req.query;
+    const { type, collection, minPrice, maxPrice, page = 1, limit = 6, sort } = req.query;
 
     // Build the filter object
     const filter: any = {};
@@ -25,10 +24,23 @@ router.get('/', async (req, res) => {
     }
     if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice as string) };
     if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice as string) };
+    
+     // Determine sort order
+     const sortOptions: any = {};
+     if (sort === 'priceHighToLow') {
+       sortOptions.price = -1; // Descending order
+     } else if (sort === 'priceLowToHigh') {
+       sortOptions.price = 1; // Ascending order
+     }
 
     // Pagination: Calculate skip and limit
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-    const products = await Product.find(filter).skip(skip).limit(parseInt(limit as string));
+    const products = await Product.find(filter)
+    .sort(sortOptions) // Apply sorting
+    .skip(skip)
+    .limit(parseInt(limit as string));
+
+    
 
     // Count total products to determine number of pages
     const totalProducts = await Product.countDocuments(filter);
@@ -135,6 +147,22 @@ router.put('/:id', async (Request, Response) => {
   } catch (err) {
     console.error('Error updating product:', err);
     Response.status(500).json({ error: 'Failed to update the product', details: err });
+  }
+});
+
+
+// New route to fetch all collections independently from the products
+router.get('/collections', async (req, res) => {
+  try {
+    // Get all unique collections from the products
+    const collections = await Product.distinct('productCollection');
+    
+    // Send the collections back as a response
+    res.status(200).json({
+      collections,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch collections', details: err });
   }
 });
 
