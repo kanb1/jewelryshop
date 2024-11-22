@@ -40,11 +40,11 @@ mongoose
 // utf8 er filens indhold som skal læses som en streng i UTF-8 kodning, så den privat enøgle returneres som almindelig tekst
 // Resultatet er den private nøgle for SSL certifikatet som er nødvendig for at kryptere/dekryptere den sikre kommunikation mellem serveren og klienten
 
-// const privateKey = fs.readFileSync('./private.key', 'utf8');
+// const privateKey = fs.readFileSync('./new-private.key', 'utf8');
 
 // Det samme som den første, men læses ikke den private nøgle men derimod den offentlige del af SSL certifiktatet. Den beviser serverens ægthed og gør det mulgit at oprette krypteret kommunikationen
 
-// const certificate = fs.readFileSync('./certificate.crt', 'utf8');
+// const certificate = fs.readFileSync('./new-certificate.crt', 'utf8');
 // const passphrase = process.env.PRIVATE_KEY_PASSPHRASE || ''; // Retrieve passphrase from .env file
 
 // objekt med private nøgle og cerifiktatet
