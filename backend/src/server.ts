@@ -24,7 +24,8 @@ const PORT = process.env.PORT || 5001;
 const mongoUri = process.env.MONGO_URI || '';
 
 // Middleware
-app.use(cors());
+// Ensureing the backend has CORS enabled to accept requests from my frontend's origin (http://localhost:5173).
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json()); // Parse JSON from requests
 
 // MongoDB connection
@@ -58,29 +59,9 @@ mongoose
 app.use('/api/products', productsRouter); // Attach products router
 app.use('/api/auth', authRouter); // Attach auth router for authentication
 
-// ***************************************************************Protected route that requires authentication
-app.get('/profile', authenticateJWT, (req: Request & { user?: any }, res: Response) => {
-  if (!req.user) {
-    res.status(401).json({ error: 'Unauthorized: No user data found' });
-    return;
-  }
 
-  res.json({
-    message: 'This is a protected profile route',
-    user: req.user, // Access the user data directly
-  });
-});
 
-app.get('/test-middleware', authenticateJWT, (req: Request & { user?: any }, res: Response) => {
-  if (!req.user) {
-    res.status(401).json({ error: 'Unauthorized: No user found' });
-    return;
-  }
-  res.json({
-    message: 'Middleware is working!',
-    user: req.user, // Display the decoded JWT payload here
-  });
-});
+
 
 
 
@@ -88,6 +69,18 @@ app.get('/test-middleware', authenticateJWT, (req: Request & { user?: any }, res
 
 // ***********************************************************API's not used so far
 // app.use('/api/categories', categoriesRouter);
+
+// Testing the middleware
+// app.get('/test-middleware', authenticateJWT, (req: Request & { user?: any }, res: Response) => {
+//   if (!req.user) {
+//     res.status(401).json({ error: 'Unauthorized: No user found' });
+//     return;
+//   }
+//   res.json({
+//     message: 'Middleware is working!',
+//     user: req.user, // Display the decoded JWT payload here
+//   });
+// });
 
 
 

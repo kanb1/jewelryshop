@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Flex,
@@ -23,22 +24,34 @@ import {
   Input,
   InputLeftElement,
 } from "@chakra-ui/react";
+import { ChevronDownIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
+import { AiOutlineShoppingCart } from "react-icons/ai";
+import { FaUser } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
-import { ChevronDownIcon, StarIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
-import { AiOutlineShoppingCart } from "react-icons/ai"; // Shopping Cart icon
-import { FaUser } from "react-icons/fa"; // User icon
-import { Link } from "react-router-dom"; // Import React Router's Link
+interface NavbarProps {
+  isLoggedIn: boolean;
+  setIsLoggedIn: (value: boolean) => void;
+}
 
-const Navbar = () => {
+const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
 
-  // Define static categories
+
+  const handleLogout = () => {
+    localStorage.removeItem("jwt");
+    setIsLoggedIn(false);
+    navigate("/login"); // Redirect to login page
+  };
+  
+
   const categories = ["Rings", "Necklaces", "Bracelets", "Earrings"];
 
   return (
     <Box bg="white" px={10} boxShadow="sm">
       <Flex h={28} alignItems="center" justifyContent="space-between">
-        {/* MOBILE UP TO TABLET */}
+        {/* MOBILE/TABLET MENU */}
         <IconButton
           size="md"
           icon={<HamburgerIcon />}
@@ -47,50 +60,12 @@ const Navbar = () => {
           onClick={onOpen}
         />
 
-        {/* Right: Profile and Basket for mobile/tablet */}
-        <HStack spacing={2} display={{ base: "flex", lg: "none" }}>
-          <Link to="/profile">
-            <IconButton icon={<FaUser />} aria-label="My Profile" variant="ghost" />
-          </Link>
-          <Link to="/cart">
-            <IconButton icon={<AiOutlineShoppingCart />} aria-label="Basket" variant="ghost" />
-          </Link>
-        </HStack>
+        {/* LOGO */}
+        <Box fontSize="2xl" fontWeight="bold">
+          LOGO
+        </Box>
 
-        {/* DESKTOP */}
-        <Flex direction="column" alignItems="flex-start" flex={1} display={{ base: "none", lg: "flex" }}>
-          <Box fontSize="2xl" fontWeight="bold">
-            LOGO
-          </Box>
-          <HStack spacing={8}>
-            <Menu>
-              <MenuButton
-                as={Button}
-                rightIcon={<ChevronDownIcon />}
-                variant="link"
-                _hover={{ textDecoration: "none", color: "#7B0828" }}
-                p={1}
-              >
-                Jewelries
-              </MenuButton>
-              <MenuList>
-                {categories.map((category) => (
-                  <MenuItem key={category} as={Link} to={`/products/${category.toLowerCase()}`}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </MenuList>
-            </Menu>
-            <Link to="/popular" style={{ fontWeight: "medium" }}>
-              Popular
-            </Link>
-            <Link to="/collections" style={{ fontWeight: "medium" }}>
-              Collections
-            </Link>
-          </HStack>
-        </Flex>
-
-        {/* Search Bar */}
+        {/* SEARCH BAR */}
         <Box display={{ base: "none", lg: "block" }} mr={10}>
           <InputGroup width="350px">
             <InputLeftElement pointerEvents="none">
@@ -98,7 +73,7 @@ const Navbar = () => {
             </InputLeftElement>
             <Input
               type="text"
-              placeholder="Search for products, brands etc.."
+              placeholder="Search for products, brands, etc.."
               variant="filled"
               bg="gray.50"
               _placeholder={{ color: "gray.400" }}
@@ -106,36 +81,64 @@ const Navbar = () => {
           </InputGroup>
         </Box>
 
-        {/* Right: Icons for Profile, Favourites, Basket */}
-        <HStack spacing={6} display={{ base: "none", lg: "flex" }}>
-          <Box textAlign="center">
-            <Link to="/profile">
-              <IconButton icon={<FaUser />} aria-label="My Profile" variant="ghost" />
-              <Text mt={2} fontSize="sm" color="black">
-                Profile
-              </Text>
-            </Link>
-          </Box>
-          <Box textAlign="center">
-            <Link to="/likes">
-              <IconButton icon={<StarIcon />} aria-label="Likes" variant="ghost" />
-              <Text mt={2} fontSize="sm" color="black">
-                Favourites
-              </Text>
-            </Link>
-          </Box>
-          <Box textAlign="center">
-            <Link to="/cart">
-              <IconButton icon={<AiOutlineShoppingCart />} aria-label="Basket" variant="ghost" />
-              <Text mt={2} fontSize="sm" color="black">
-                Basket
-              </Text>
-            </Link>
-          </Box>
+        {/* DESKTOP MENU */}
+        <HStack spacing={8} display={{ base: "none", lg: "flex" }}>
+          <Menu>
+            <MenuButton
+              as={Button}
+              rightIcon={<ChevronDownIcon />}
+              variant="link"
+              _hover={{ textDecoration: "none", color: "#7B0828" }}
+            >
+              Jewelries
+            </MenuButton>
+            <MenuList>
+              {categories.map((category) => (
+                <MenuItem key={category} as={Link} to={`/products/${category.toLowerCase()}`}>
+                  {category}
+                </MenuItem>
+              ))}
+            </MenuList>
+          </Menu>
+          <Link to="/popular" style={{ fontWeight: "medium" }}>
+            Popular
+          </Link>
+          <Link to="/collections" style={{ fontWeight: "medium" }}>
+            Collections
+          </Link>
+        </HStack>
+
+        {/* LOGIN/LOGOUT AND CART */}
+        <HStack spacing={6}>
+          {isLoggedIn ? (
+            <>
+              <Link to="/profile">
+                <Button variant="ghost">
+                  <FaUser />
+                  <Text ml={2}>Profile</Text>
+                </Button>
+              </Link>
+              <Button variant="ghost" onClick={handleLogout}>
+                Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="ghost">Login</Button>
+              </Link>
+              <Link to="/signup">
+                <Button variant="outline">Signup</Button>
+              </Link>
+            </>
+          )}
+          <Link to="/cart">
+            <IconButton icon={<AiOutlineShoppingCart />} aria-label="Basket" variant="ghost" />
+          </Link>
         </HStack>
       </Flex>
 
-      {/* Drawer for mobile menu */}
+      {/* MOBILE MENU DRAWER */}
       <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
         <DrawerOverlay />
         <DrawerContent>
@@ -158,9 +161,21 @@ const Navbar = () => {
               <Link to="/popular">Popular</Link>
               <Link to="/collections">Collections</Link>
               <Divider my={6} />
-              <Link to="/profile">My Profile</Link>
-              <Link to="/likes">Favourites</Link>
-              <Link to="/search">Search</Link>
+              {isLoggedIn ? (
+                <>
+                  <Link to="/profile">My Profile</Link>
+                  <Button onClick={handleLogout} variant="link">
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login">
+                    Login
+                  </Link>
+                  <Link to="/signup">Signup</Link>
+                </>
+              )}
               <Link to="/cart">Basket</Link>
             </VStack>
           </DrawerBody>

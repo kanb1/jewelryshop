@@ -3,6 +3,7 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 // A library for creating and verifying JSON Web Tokens. This is used for authentication and session management.
 import jwt from 'jsonwebtoken';
+import authenticateJWT from './authMiddleware';
 import User from '../models/User'; // Importer din produktmodel
 import { Request, Response } from 'express';
 
@@ -11,34 +12,36 @@ import { Request, Response } from 'express';
 const router = express.Router();
 
 // POST /users - Register a new user
-router.post('/users', async (Request, Response) => {
-  const { username, password } = Request.body;
+router.post('/users', async (req: Request, res: Response) => {
+  const { username, email, password, name, surname } = req.body;
 
-  // Check if user already exists
-  const existingUser = await User.findOne({ username });
+  // Check if the user or email already exists
+  const existingUser = await User.findOne({ $or: [{ username }, { email }] });
   if (existingUser) {
-     Response.status(400).json({ error: 'User already exists' });
-     return;
+    res.status(400).json({ error: 'User or email already exists' });
+    return;
   }
 
-  // If it doesn't exist, proceeds with the registration process:  
-
   // Hash password
-  // the 10 is the salt rounds, like how many times the password will be hashed. The higher hhe number the more secure but slower it becomes  
   const hashedPassword = await bcrypt.hash(password, 10);
 
   // Save the new user to the database
-  // We create a new User instance with the created username and the hashedpassword
-  // It is then saved to the database using await newUser.save() 
-  const newUser = new User({ username, password: hashedPassword });
+  const newUser = new User({
+    username,
+    email,
+    password: hashedPassword,
+    name,
+    surname,
+  });
   await newUser.save();
-  
-  Response.status(201).json({ message: 'User created successfully' });
+
+  res.status(201).json({ message: 'User created successfully' });
 });
+
 
 // POST /auth/login - User login
 // Route for userlogin, it listens for POST request at /auth/login, and it's used for logging in an existing user
-router.post('/auth/login', async (Request, Response) => {
+router.post('/login', async (Request, Response) => {
     // the username and password are extracted from the request body
   const { username, password } = Request.body;
 
@@ -69,5 +72,31 @@ router.post('/auth/login', async (Request, Response) => {
   
   Response.status(200).json({ message: 'Login successful', token });
 });
+
+
+// GET /auth/profile - Protected profile route
+router.get('/profile', authenticateJWT, async (req: Request & { user?: any }, res: Response) => {
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized: No user data found' });
+    return;
+  }
+
+  try {
+    const user = await User.findById(req.user.userId).select('username email name surname');
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'This is a protected profile route',
+      user,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'An error occurred while fetching user data' });
+  }
+});
+
 
 export default router;

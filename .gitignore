@@ -13,6 +13,11 @@ dist-ssr
 *.local
 .env
 
+# Sensitive files
+new-private.key
+new-certificate.crt
+certificate.csr
+.env
 
 # Editor directories and files
 .vscode/*
