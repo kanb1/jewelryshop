@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Box,
   Flex,
@@ -23,11 +23,12 @@ import {
   InputGroup,
   Input,
   InputLeftElement,
+  Badge,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import { FaUser } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
 
 interface NavbarProps {
   isLoggedIn: boolean;
@@ -35,16 +36,16 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
+  const { cartCount, setCartCount } = useCart(); // Access cart count from CartContext
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
-
 
   const handleLogout = () => {
     localStorage.removeItem("jwt");
     setIsLoggedIn(false);
+    setCartCount(0); // Reset cart count
     navigate("/login"); // Redirect to login page
   };
-  
 
   const categories = ["Rings", "Necklaces", "Bracelets", "Earrings"];
 
@@ -132,8 +133,26 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
               </Link>
             </>
           )}
+          {/* Cart Icon with Badge */}
           <Link to="/cart">
-            <IconButton icon={<AiOutlineShoppingCart />} aria-label="Basket" variant="ghost" />
+            <IconButton
+              icon={<AiOutlineShoppingCart />}
+              aria-label="Cart"
+              variant="ghost"
+              size="lg"
+              position="relative"
+            />
+            {cartCount > 0 && (
+              <Badge
+                colorScheme="red"
+                borderRadius="full"
+                position="absolute"
+                top="10px"
+                right="10px"
+              >
+                {cartCount}
+              </Badge>
+            )}
           </Link>
         </HStack>
       </Flex>

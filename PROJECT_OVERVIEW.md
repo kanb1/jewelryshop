@@ -23,6 +23,12 @@ JewelryShop is an e-commerce web application for showcasing and selling jewelry.
   - Drawer-based navigation for mobile users.
   - Search functionality for products.
 
+- **Cart and Checkout**:
+  - Users can dynamically add, remove, and update product quantities in the cart.
+  - Cart badge reflects the total quantity of items dynamically.
+  - Backend PUT API supports quantity updates.
+  - Real-time UI updates without requiring page refreshes.
+
 - **Backend**:
   - Built using Node.js and Express.
   - MongoDB as the database for user and product management.
@@ -44,23 +50,25 @@ JewelryShop is an e-commerce web application for showcasing and selling jewelry.
      - Signup Page
      - Profile Page
      - Product Pages (dynamic categories)
+     - Cart Page with interactive quantity updates
    - Fully responsive design using Chakra UI.
 
 3. **Backend**:
    - Connected to MongoDB Atlas.
-   - API endpoints implemented for users, authentication, and products.
+   - API endpoints implemented for users, authentication, products, and cart.
    - Middleware for JWT token validation.
+   - Dynamic cart handling with PUT and DELETE routes.
 
 ---
 
 ### **Next Steps**
 1. **Product Features**:
-   - Complete product listing and detail pages.
-   - Add filtering and sorting for products.
+   - Finalize filtering and sorting for products.
+   - Add user reviews and ratings.
 
 2. **Cart and Checkout**:
-   - Implement cart functionality.
    - Integrate payment gateway.
+   - Add cart persistence for logged-in users.
 
 3. **Testing**:
    - Add more robust error handling.
@@ -76,9 +84,3 @@ JewelryShop is an e-commerce web application for showcasing and selling jewelry.
 - **Frontend**: React.js, TypeScript, Chakra UI
 - **Backend**: Node.js, Express.js, MongoDB
 - **Others**: Postman, Axios, JWT, bcrypt
-
----
-
-### **Git Commit History**:
-See commit messages for specific changes.
-

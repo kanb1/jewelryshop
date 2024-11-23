@@ -12,6 +12,7 @@ import { Request, Response, NextFunction } from 'express';
 import productsRouter from './routes/products'; // Use ES6 imports for routes
 import authRouter from './routes/auth'; // Import the new authentication routes
 import authenticateJWT from './routes/authMiddleware';  // Import the middleware
+import cartRoutes from './routes/cart';
 
 
 
@@ -56,8 +57,10 @@ mongoose
 
 
 // **********************************************************************Adding the routes to the server:
-app.use('/api/products', productsRouter); // Attach products router
-app.use('/api/auth', authRouter); // Attach auth router for authentication
+app.use('/api/products', productsRouter); //  products router
+app.use('/api/auth', authRouter); //  auth router for authentication
+app.use('/api', cartRoutes); // Cart routes
+
 
 
 

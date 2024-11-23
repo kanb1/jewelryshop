@@ -6,11 +6,11 @@ import mongoose, { Schema, Document } from 'mongoose';
 // Opretter en ts interface ved navn IProduct
 // Udvider mongooses Document, så den sikrer at typen matcher det som mongoose forventer for dokumenter
 export interface IProduct extends Document {
-    // Obligatoriske felter af dokumentet
   name: string;
   type: string;
   productCollection: string;
   price: number;
+  sizes?: string[]; // Optional array of sizes (e.g., ["5", "6", "7"] for rings)
 }
 
 // Opretter en mongoose schema, der beskriver strukturen af dokumentet
@@ -20,6 +20,7 @@ const ProductSchema: Schema = new Schema({
   type: { type: String, required: true },
   productCollection: { type: String, required: true },
   price: { type: Number, required: true },
+  sizes: { type: [String], default: [] }, // Add the `sizes` field here
 });
 
 // Opretter en mongoose model der hedder PRdouct based on ProductSchema
