@@ -12,11 +12,14 @@ import {
 } from "@chakra-ui/react";
 import { useCart } from "../../context/CartContext";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
+import { useNavigate } from "react-router-dom";
 
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { setCartCount } = useCart();
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchCartItems = async () => {
@@ -123,6 +126,10 @@ const Cart: React.FC = () => {
     return <Text>Your cart is empty.</Text>;
   }
 
+  const handleProceedToCheckout = () => {
+    navigate("/checkout");
+  };
+
   return (
     <Box p={10}>
       <Heading as="h1" mb={6}>
@@ -183,7 +190,11 @@ const Cart: React.FC = () => {
             Summary
           </Heading>
           <Text mb={2}>Total: ${calculateTotal()}</Text>
-          <Button colorScheme="blue" width="full">
+          <Button
+            colorScheme="blue"
+            width="full"
+            onClick={handleProceedToCheckout} // Navigate to checkout
+          >
             Proceed to Checkout
           </Button>
         </Box>

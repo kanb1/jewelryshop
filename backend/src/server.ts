@@ -11,8 +11,11 @@ import { Request, Response, NextFunction } from 'express';
 // Routes
 import productsRouter from './routes/products'; // Use ES6 imports for routes
 import authRouter from './routes/auth'; // Import the new authentication routes
-import authenticateJWT from './routes/authMiddleware';  // Import the middleware
+import authenticateJWT from './routes/authMiddleware';  // Importing the middleware
 import cartRoutes from './routes/cart';
+import ordersRoutes from "./routes/checkout/orders"; 
+import deliveryRoutes from "./routes/checkout/delivery";
+
 
 
 
@@ -60,6 +63,10 @@ mongoose
 app.use('/api/products', productsRouter); //  products router
 app.use('/api/auth', authRouter); //  auth router for authentication
 app.use('/api', cartRoutes); // Cart routes
+app.use("/api/orders", ordersRoutes); // All order routes will now be prefixed with `/api/orders`
+app.use("/api/delivery", deliveryRoutes);
+
+
 
 
 

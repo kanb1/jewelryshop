@@ -12,6 +12,7 @@ import SignupPage from './pages/Authorization/Signup';
 import Profile from "./pages/Profile";
 import Cartpage from './pages/Cartpage';
 import ProductDetailPage from './pages/Productdetailpage';
+import Checkoutpage from './pages/Checkoutpage';
 import theme from './theme';
 
 import { CartProvider, useCart } from './context/CartContext';
@@ -36,8 +37,7 @@ const App: React.FC = () => {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/cart" element={<Cartpage/>} />
-
-
+          <Route path="/checkout" element={<Checkoutpage />} />
         </Routes>
         <Footer />
       </Router>
