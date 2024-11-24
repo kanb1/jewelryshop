@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { Box, Heading, VStack, Input, Select, Button } from "@chakra-ui/react";
+import {
+  Box,
+  Heading,
+  VStack,
+  Input,
+  Select,
+  Button,
+  Text,
+  Stack,
+} from "@chakra-ui/react";
 
 interface DeliveryInfoProps {
   deliveryInfo: {
@@ -14,42 +23,55 @@ interface DeliveryInfoProps {
     postalCode: string;
     country: string;
   }) => void;
+  setCurrentStep: (step: "cart" | "delivery" | "billing" | "confirmation") => void;
 }
 
 const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
   deliveryInfo,
   setDeliveryInfo,
+  setCurrentStep,
 }) => {
   const [parcelShops, setParcelShops] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [selectedParcelShop, setSelectedParcelShop] = useState<any>(null);
 
   const fetchParcelShops = async () => {
     try {
-      setLoading(true); // Start loading state
-      const queryParams = new URLSearchParams({
-        address: `${deliveryInfo.address || deliveryInfo.city}`,
-        radius: "10000", // Set the radius (10 km)
-      });
-
       const response = await fetch(
-        `http://localhost:5001/api/delivery/parcel-shops?${queryParams.toString()}`
+        `http://localhost:5001/api/delivery/parcel-shops?address=${deliveryInfo.address}&radius=10000`
       );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch parcel shops");
-      }
-
       const data = await response.json();
-      setParcelShops(data); // Update parcel shops
+      setParcelShops(data.slice(0, 3)); // Limit to 3 parcel shops
     } catch (error) {
       console.error("Error fetching parcel shops:", error);
-    } finally {
-      setLoading(false); // Stop loading state
+    }
+  };
+
+  const handleSelectParcelShop = (shop: any) => {
+    setSelectedParcelShop(shop);
+    setDeliveryInfo({
+      address: shop.address,
+      city: shop.city,
+      postalCode: shop.postcode,
+      country: shop.country,
+    });
+  };
+
+  const saveAndPay = () => {
+    if (
+      deliveryInfo.address &&
+      deliveryInfo.city &&
+      deliveryInfo.postalCode &&
+      deliveryInfo.country
+    ) {
+      setCurrentStep("billing"); // Move to billing step
+    } else {
+      alert("Please fill in all delivery information!");
     }
   };
 
   return (
     <Box>
+      <Text>Cart &gt; Delivery &gt; Billing &gt; Confirmation</Text>
       <Heading size="md" mb={4}>
         Delivery Information
       </Heading>
@@ -86,22 +108,38 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
           <option value="Sweden">Sweden</option>
           <option value="Norway">Norway</option>
         </Select>
-        <Button
-          colorScheme="blue"
-          onClick={fetchParcelShops}
-          isLoading={loading}
-        >
+        <Button colorScheme="blue" onClick={fetchParcelShops}>
           Find Parcel Shops
         </Button>
+
         {parcelShops.length > 0 && (
-          <Select placeholder="Select Parcel Shop">
+          <Stack spacing={4} mt={4}>
             {parcelShops.map((shop, index) => (
-              <option key={index} value={shop.name}>
-                {shop.name}, {shop.address}, {shop.city}
-              </option>
+              <Box key={index} border="1px" borderColor="gray.200" p={4}>
+                <Text>{shop.address}</Text>
+                <Text>{shop.city}, {shop.postcode}</Text>
+                <Button
+                  colorScheme="green"
+                  onClick={() => handleSelectParcelShop(shop)}
+                >
+                  Deliver here
+                </Button>
+              </Box>
             ))}
-          </Select>
+          </Stack>
         )}
+
+        {selectedParcelShop && (
+          <Box mt={4} border="1px" borderColor="green.200" p={4}>
+            <Text>Selected Parcel Shop:</Text>
+            <Text>{selectedParcelShop.name}</Text>
+            <Text>{selectedParcelShop.address}</Text>
+          </Box>
+        )}
+
+        <Button colorScheme="green" onClick={saveAndPay}>
+          Save and Continue to Billing
+        </Button>
       </VStack>
     </Box>
   );

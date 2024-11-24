@@ -1,23 +1,57 @@
-import React from 'react'; 
-import Checkout from '../components/checkoutpage_components/Checkout';
-import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
+import React, { useState } from "react";
+import DeliveryInformation from "../components/checkoutpage_components/DeliveryInformation";
+import BillingInformation from "../components/checkoutpage_components/BillingInformation";
+import Confirmation from "../components/checkoutpage_components/Confirmation";
+import ProgressTimeline from "../components/checkoutpage_components/ProgressTimeline";
+import { Box, VStack, Heading } from "@chakra-ui/react";
 
-// Load the publishable key from environment variables
-const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-console.log("Stripe Public Key:", stripePublicKey);
+const CheckoutPage: React.FC = () => {
+  const [deliveryInfo, setDeliveryInfo] = useState({
+    address: "",
+    city: "",
+    postalCode: "",
+    country: "",
+  });
+  const [currentStep, setCurrentStep] = useState<"cart" | "delivery" | "billing" | "confirmation">(
+    "delivery"
+  );
+  const totalAmount = 1397; // Example total price
 
+  const handlePaymentSuccess = () => {
+    setCurrentStep("confirmation");
+  };
 
-// Initialize Stripe with the public key
-const stripePromise = loadStripe(stripePublicKey!);
-
-const Checkoutpage: React.FC = () => {
   return (
-    <Elements stripe={stripePromise}>
-    <Checkout/>
-    </Elements>
+    <Box>
+      <VStack spacing={8} align="stretch">
+        <Heading>Checkout</Heading>
+        {/* Progress Timeline */}
+        <ProgressTimeline currentStep={currentStep} />
 
+        {/* Step 1: Delivery Information */}
+        {currentStep === "delivery" && (
+          <DeliveryInformation
+            deliveryInfo={deliveryInfo}
+            setDeliveryInfo={setDeliveryInfo}
+            setCurrentStep={setCurrentStep}
+          />
+        )}
+
+        {/* Step 2: Billing Information */}
+        {currentStep === "billing" && (
+          <BillingInformation
+            total={totalAmount}
+            onPaymentSuccess={handlePaymentSuccess}
+          />
+        )}
+
+        {/* Step 3: Confirmation */}
+        {currentStep === "confirmation" && (
+          <Confirmation deliveryInfo={deliveryInfo} total={totalAmount} />
+        )}
+      </VStack>
+    </Box>
   );
 };
 
-export default Checkoutpage;
+export default CheckoutPage;

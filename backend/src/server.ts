@@ -15,6 +15,8 @@ import authenticateJWT from './routes/authMiddleware';  // Importing the middlew
 import cartRoutes from './routes/cart';
 import ordersRoutes from "./routes/checkout/orders"; 
 import deliveryRoutes from "./routes/checkout/delivery";
+import paymentRoute from './routes/checkout/payment';
+
 
 
 
@@ -22,6 +24,8 @@ import deliveryRoutes from "./routes/checkout/delivery";
 // import categoriesRouter from './routes/categories';
 
 dotenv.config(); // Load environment variables from .env file
+console.log("Stripe Secret Key:", process.env.STRIPE_SECRET_KEY);
+
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -65,6 +69,9 @@ app.use('/api/auth', authRouter); //  auth router for authentication
 app.use('/api', cartRoutes); // Cart routes
 app.use("/api/orders", ordersRoutes); // All order routes will now be prefixed with `/api/orders`
 app.use("/api/delivery", deliveryRoutes);
+app.use('/api/payment', paymentRoute);
+
+
 
 
 

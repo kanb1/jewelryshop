@@ -1,6 +1,8 @@
 import React from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { Box, Heading, VStack, Button } from "@chakra-ui/react";
+import { Box, Heading, VStack, Button, Text } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
+
 
 interface BillingProps {
   total: number;
@@ -14,26 +16,47 @@ const BillingInformation: React.FC<BillingProps> = ({ total, onPaymentSuccess })
   const handlePayment = async () => {
     if (!stripe || !elements) return;
 
-    const cardElement = elements.getElement(CardElement);
+    // Fetch client secret from backend
+    const response = await fetch('http://localhost:5001/api/payment/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 139700, currency: 'usd' }),
+    });
+    const { clientSecret } = await response.json();
 
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: "card",
-      card: cardElement!,
+    // Confirm payment
+    const cardElement = elements.getElement(CardElement);
+    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+            card: cardElement!,
+        },
     });
 
     if (error) {
-      console.error("Payment error:", error);
-    } else {
-      console.log("Payment successful:", paymentMethod);
-      onPaymentSuccess();
+        console.error('Payment error:', error);
+        alert('Payment failed. Please try again.');
+    } else if (paymentIntent?.status === 'succeeded') {
+        console.log('Payment successful:', paymentIntent);
+        onPaymentSuccess(); // Call your success handler
     }
-  };
+};
+
+
+  const navigate = useNavigate();
+
+  const goBackToDelivery = () => navigate("/checkout");
 
   return (
     <Box>
-      <Heading size="md" mb={4}>
-        Billing Information
-      </Heading>
+      {/* Progress timeline */}
+      <Box>
+        <Text>Cart  Delivery  Billing  Confirmation</Text>
+      </Box>
+
+      <Button colorScheme="gray" onClick={goBackToDelivery}>
+        Back to Delivery Information
+      </Button>
+
       <VStack spacing={4} align="stretch">
         <CardElement />
         <Button colorScheme="blue" onClick={handlePayment}>

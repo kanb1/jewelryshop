@@ -16,6 +16,12 @@ import Checkoutpage from './pages/Checkoutpage';
 import theme from './theme';
 
 import { CartProvider, useCart } from './context/CartContext';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+// Initialize Stripe with your public key
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+console.log("Stripe Key:", import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 
 const App: React.FC = () => {
@@ -37,8 +43,15 @@ const App: React.FC = () => {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/cart" element={<Cartpage/>} />
-          <Route path="/checkout" element={<Checkoutpage />} />
-        </Routes>
+{/* Wrap CheckoutPage with the Elements provider */}
+<Route
+              path="/checkout"
+              element={
+                <Elements stripe={stripePromise}>
+                  <Checkoutpage />
+                </Elements>
+              }
+            />        </Routes>
         <Footer />
       </Router>
     </ChakraProvider>
