@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DeliveryInformation from "../components/checkoutpage_components/DeliveryInformation";
 import BillingInformation from "../components/checkoutpage_components/BillingInformation";
 import Confirmation from "../components/checkoutpage_components/Confirmation";
@@ -12,40 +12,58 @@ const CheckoutPage: React.FC = () => {
     postalCode: "",
     country: "",
   });
-  const [cartItems, setCartItems] = useState([
-    // Example cart items
-    {
-      productId: { _id: "1", name: "Ring", price: 500 },
-      quantity: 2,
-      size: "M",
-    },
-    {
-      productId: { _id: "2", name: "Necklace", price: 300 },
-      quantity: 1,
-      size: "L",
-    },
-  ]);
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [currentStep, setCurrentStep] = useState<
     "cart" | "delivery" | "billing" | "confirmation"
   >("delivery");
-  const [orderNumber, setOrderNumber] = useState<string | null>(null); // Track order number
+  const [orderNumber, setOrderNumber] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      setLoading(true);
+      const token = localStorage.getItem("jwt");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:5001/api/cart", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        setCartItems(data);
+      } catch (error) {
+        console.error("Error fetching cart items:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCartItems();
+  }, []);
 
   const calculateTotal = () =>
-    cartItems.reduce((total, item) => total + item.productId.price * item.quantity, 0);
+    cartItems.reduce(
+      (total, item) => total + item.productId.price * item.quantity,
+      0
+    );
 
   const handlePaymentSuccess = (orderNumber: string) => {
-    setOrderNumber(orderNumber); // Save the order number
+    setOrderNumber(orderNumber);
     setCurrentStep("confirmation");
   };
+
+  if (loading) return <p>Loading your cart...</p>;
+  if (cartItems.length === 0) return <p>Your cart is empty.</p>;
 
   return (
     <Box>
       <VStack spacing={8} align="stretch">
         <Heading>Checkout</Heading>
-        {/* Progress Timeline */}
         <ProgressTimeline currentStep={currentStep} />
 
-        {/* Step 1: Delivery Information */}
         {currentStep === "delivery" && (
           <DeliveryInformation
             deliveryInfo={deliveryInfo}
@@ -54,17 +72,15 @@ const CheckoutPage: React.FC = () => {
           />
         )}
 
-        {/* Step 2: Billing Information */}
         {currentStep === "billing" && (
           <BillingInformation
             total={calculateTotal()}
-            cartItems={cartItems} // Pass cart items here
-            deliveryInfo={deliveryInfo} // Pass delivery information here
+            cartItems={cartItems} // Use fetched cart items here
+            deliveryInfo={deliveryInfo}
             onPaymentSuccess={handlePaymentSuccess}
           />
         )}
 
-        {/* Step 3: Confirmation */}
         {currentStep === "confirmation" && (
           <Confirmation
             deliveryInfo={deliveryInfo}

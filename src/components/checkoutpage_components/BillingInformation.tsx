@@ -29,49 +29,49 @@ const BillingInformation: React.FC<BillingProps> = ({
   const stripe = useStripe();
   const elements = useElements();
 
+  const calculateTotalPrice = () => {
+    // Calculate the total price based on cart items
+    return cartItems.reduce(
+      (sum, item) => sum + item.productId.price * item.quantity,
+      0
+    );
+  };
+
   const handlePayment = async () => {
-    console.log("Cart Items being sent:", cartItems); // Debug cart items
-  
-    const token = localStorage.getItem("jwt");
-    if (!token) {
-      alert("Please log in to complete the checkout.");
-      return;
-    }
-  
+    console.log("Cart items being sent:", cartItems); // Log cart items before processing
+    const orderItems = cartItems.map((item) => ({
+      productId: item.productId._id, // Use productId._id as the actual ID
+      size: item.size,
+      quantity: item.quantity,
+    }));
+    console.log("Mapped order items:", orderItems); // Validate here
+
     try {
       const response = await fetch("http://localhost:5001/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          items: cartItems.map((item) => ({
-            productId: item.productId._id, // Ensure this is the ObjectId
-            size: item.size,
-            quantity: item.quantity,
-          })),
-          totalPrice: total, // Total price for the order
-          deliveryInfo, // Delivery information from the user
+          items: orderItems, // Correctly formatted items
+          totalPrice: calculateTotalPrice(), // Calculate total price here
+          deliveryInfo,
         }),
       });
-  
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Order created successfully:", data);
-        onPaymentSuccess(data.order.orderNumber);
-      } else {
+
+      if (!response.ok) {
         const errorData = await response.json();
         console.error("Error response from server:", errorData);
-        alert("Order creation failed.");
+        return;
       }
-    } catch (error) {
-      console.error("Error creating order:", error);
-      alert("Something went wrong. Please try again.");
+
+      const result = await response.json();
+      console.log("Order created successfully:", result);
+      onPaymentSuccess(result.orderNumber); // Trigger success callback
+    } catch (err) {
+      console.error("Error during payment processing:", err);
     }
   };
-  
-  
 
   return (
     <Box>
@@ -81,7 +81,7 @@ const BillingInformation: React.FC<BillingProps> = ({
         <CardExpiryElement />
         <CardCvcElement />
         <Button colorScheme="blue" onClick={handlePayment}>
-          Pay ${total}
+          Pay ${calculateTotalPrice()}
         </Button>
       </VStack>
     </Box>

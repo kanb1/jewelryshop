@@ -17,6 +17,7 @@ router.get("/cart", authenticateJWT, async (req: AuthenticatedRequest, Response)
 
   try {
     const cartItems = await Cart.find({ userId }).populate("productId"); // Ensure `productId` is populated
+    console.log("Populated cart items yess:", JSON.stringify(cartItems, null, 2)); // Add this line to debug
     Response.status(200).json(cartItems);
   } catch (error) {
     console.error("Error fetching cart items:", error);

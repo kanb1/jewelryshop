@@ -36,7 +36,7 @@ const Cart: React.FC = () => {
           },
         });
         const data = await response.json();
-        console.log("Fetched cart items:", data);
+        console.log("Fetched cart items in frontend:", data); // Debug cart items
         setCartItems(data);
       } catch (error) {
         console.error("Error fetching cart items:", error);
@@ -110,6 +110,7 @@ const Cart: React.FC = () => {
       <Grid templateColumns={{ base: "1fr", lg: "3fr 1fr" }} gap={6}>
         <Box>
           {cartItems.map((item) => (
+            
             <Flex key={item._id} justify="space-between" mb={4}>
               <Image
                 src="https://via.placeholder.com/100"
