@@ -17,13 +17,17 @@ interface DeliveryInfoProps {
     postalCode: string;
     country: string;
   };
-  setDeliveryInfo: (info: {
-    address: string;
-    city: string;
-    postalCode: string;
-    country: string;
-  }) => void;
-  setCurrentStep: (step: "cart" | "delivery" | "billing" | "confirmation") => void;
+  setDeliveryInfo: React.Dispatch<
+    React.SetStateAction<{
+      address: string;
+      city: string;
+      postalCode: string;
+      country: string;
+    }>
+  >;
+  setCurrentStep: React.Dispatch<
+    React.SetStateAction<"cart" | "delivery" | "billing" | "confirmation">
+  >; // Ensure this is included
 }
 
 const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
@@ -33,16 +37,26 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
 }) => {
   const [parcelShops, setParcelShops] = useState<any[]>([]);
   const [selectedParcelShop, setSelectedParcelShop] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchParcelShops = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch(
         `http://localhost:5001/api/delivery/parcel-shops?address=${deliveryInfo.address}&radius=10000`
       );
       const data = await response.json();
-      setParcelShops(data.slice(0, 3)); // Limit to 3 parcel shops
+
+      if (data.length === 0) {
+        alert("No parcel shops found near this address!");
+      } else {
+        setParcelShops(data.slice(0, 3));
+      }
     } catch (error) {
       console.error("Error fetching parcel shops:", error);
+      alert("Failed to fetch parcel shops. Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,6 +68,7 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
       postalCode: shop.postcode,
       country: shop.country,
     });
+    alert(`Delivery address updated to parcel shop: ${shop.address}`);
   };
 
   const saveAndPay = () => {
@@ -63,7 +78,7 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
       deliveryInfo.postalCode &&
       deliveryInfo.country
     ) {
-      setCurrentStep("billing"); // Move to billing step
+      setCurrentStep("billing"); // Correct usage
     } else {
       alert("Please fill in all delivery information!");
     }
@@ -108,7 +123,7 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
           <option value="Sweden">Sweden</option>
           <option value="Norway">Norway</option>
         </Select>
-        <Button colorScheme="blue" onClick={fetchParcelShops}>
+        <Button colorScheme="blue" onClick={fetchParcelShops} isLoading={isLoading}>
           Find Parcel Shops
         </Button>
 
@@ -117,7 +132,9 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
             {parcelShops.map((shop, index) => (
               <Box key={index} border="1px" borderColor="gray.200" p={4}>
                 <Text>{shop.address}</Text>
-                <Text>{shop.city}, {shop.postcode}</Text>
+                <Text>
+                  {shop.city}, {shop.postcode}
+                </Text>
                 <Button
                   colorScheme="green"
                   onClick={() => handleSelectParcelShop(shop)}

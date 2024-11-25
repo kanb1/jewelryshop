@@ -23,16 +23,15 @@ interface ProductDetailProps {
   updateCartCount: () => void;
 }
 
-const ProductDetail: React.FC<ProductDetailProps> = ({ updateCartCount }) => {
+const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCartCount }) => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null); // State to track selected size
-  const [quantity, setQuantity] = useState<number>(1); // Default quantity
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState<number>(1);
   const toast = useToast();
 
   useEffect(() => {
-    // Fetch the product details
     const fetchProduct = async () => {
       try {
         const response = await fetch(`http://localhost:5001/api/products/${id}`);
@@ -48,62 +47,73 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ updateCartCount }) => {
   }, [id]);
 
   const handleAddToBag = async () => {
-    const token = localStorage.getItem('jwt');
+    // Debugging the product and payload being sent
+    console.log("Product being added:", product);
+    console.log("Payload being sent to backend:", {
+      productId: product._id, // Ensure this is the ObjectId
+      size: selectedSize,
+      quantity,
+    });
+  
+    // Retrieve the JWT from localStorage
+    const token = localStorage.getItem("jwt");
     if (!token) {
       toast({
-        title: 'Login Required',
-        description: 'Please log in to add items to the bag.',
-        status: 'warning',
+        title: "Login Required",
+        description: "Please log in to add items to the bag.",
+        status: "warning",
         duration: 3000,
         isClosable: true,
       });
-      return;
+      return; // Stop execution if no token is found
     }
-
-    if (!selectedSize) {
-      toast({
-        title: 'Select Size',
-        description: 'Please select a size before adding to the bag.',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
+  
     try {
-      const response = await fetch('http://localhost:5001/api/cart', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5001/api/cart", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Attach the token
         },
-        body: JSON.stringify({ productId: product._id, size: selectedSize, quantity }),
+        body: JSON.stringify({
+          productId: product._id, // Make sure this is the ObjectId
+          size: selectedSize,
+          quantity,
+        }),
       });
-
+  
       if (response.ok) {
         updateCartCount(); // Refresh the cart count
         toast({
-          title: 'Added to Bag',
+          title: "Added to Bag",
           description: `${product.name} has been added to your bag.`,
-          status: 'success',
+          status: "success",
           duration: 3000,
           isClosable: true,
         });
       } else {
-        throw new Error('Failed to add product to bag');
+        const errorData = await response.json();
+        console.error("Error response from server:", errorData);
+        toast({
+          title: "Error",
+          description: "Failed to add product to the cart.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       }
     } catch (error) {
-      console.error('Error adding to bag:', error);
+      console.error("Error adding to cart:", error);
       toast({
-        title: 'Error',
-        description: 'Something went wrong while adding the product to your bag.',
-        status: 'error',
+        title: "Error",
+        description: "Something went wrong while adding the product to your bag.",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
     }
   };
+  
 
   if (loading || !product) {
     return <Text>Loading...</Text>;

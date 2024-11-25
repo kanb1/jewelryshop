@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Heading, Text } from "@chakra-ui/react";
+import { Box, Heading, Text, Button } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 
 interface ConfirmationProps {
   deliveryInfo: {
@@ -9,25 +10,37 @@ interface ConfirmationProps {
     country: string;
   };
   total: number;
+  orderNumber: string | null;
 }
 
-const Confirmation: React.FC<ConfirmationProps> = ({ deliveryInfo, total }) => {
+const Confirmation: React.FC<ConfirmationProps> = ({
+  deliveryInfo,
+  total,
+  orderNumber,
+}) => {
+  const navigate = useNavigate();
+
+  const goToHomePage = () => navigate("/");
+
   return (
-    <Box>
-      <Heading size="lg">Order Confirmed!</Heading>
-      <Text>Thank you for your order!</Text>
-      <Box mt={4}>
-        <Heading size="md">Delivery Information:</Heading>
-        <Text>{deliveryInfo.address}</Text>
-        <Text>
-          {deliveryInfo.city}, {deliveryInfo.postalCode}
-        </Text>
-        <Text>{deliveryInfo.country}</Text>
-      </Box>
-      <Box mt={4}>
-        <Heading size="md">Total Amount:</Heading>
-        <Text>${total}</Text>
-      </Box>
+    <Box p={6} maxW="500px" mx="auto" bg="white" boxShadow="md" borderRadius="md">
+      <Heading size="lg" textAlign="center" mb={4}>
+        Payment Successful!
+      </Heading>
+      <Text textAlign="center" mb={4}>
+        Thank you for your purchase! Your order #
+        <strong>{orderNumber || "N/A"}</strong> has been placed successfully.
+      </Text>
+      <Text textAlign="center" mb={4}>
+        Delivery Address: {deliveryInfo.address}, {deliveryInfo.city},{" "}
+        {deliveryInfo.postalCode}, {deliveryInfo.country}
+      </Text>
+      <Text textAlign="center" mb={4}>
+        Total Paid: ${total}
+      </Text>
+      <Button colorScheme="blue" size="lg" onClick={goToHomePage} w="100%">
+        Go to Home
+      </Button>
     </Box>
   );
 };

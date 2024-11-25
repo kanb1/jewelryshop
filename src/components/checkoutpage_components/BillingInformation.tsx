@@ -1,64 +1,85 @@
 import React from "react";
-import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { Box, Heading, VStack, Button, Text } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
-
+import {
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
+import { Box, VStack, Button, Text } from "@chakra-ui/react";
 
 interface BillingProps {
   total: number;
-  onPaymentSuccess: () => void;
+  onPaymentSuccess: (orderNumber: string) => void;
+  cartItems: any[]; // Include the cart items as a prop
+  deliveryInfo: {
+    address: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  }; // Include delivery info as a prop
 }
 
-const BillingInformation: React.FC<BillingProps> = ({ total, onPaymentSuccess }) => {
+const BillingInformation: React.FC<BillingProps> = ({
+  total,
+  onPaymentSuccess,
+  cartItems,
+  deliveryInfo,
+}) => {
   const stripe = useStripe();
   const elements = useElements();
 
   const handlePayment = async () => {
-    if (!stripe || !elements) return;
-
-    // Fetch client secret from backend
-    const response = await fetch('http://localhost:5001/api/payment/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: 139700, currency: 'usd' }),
-    });
-    const { clientSecret } = await response.json();
-
-    // Confirm payment
-    const cardElement = elements.getElement(CardElement);
-    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-            card: cardElement!,
-        },
-    });
-
-    if (error) {
-        console.error('Payment error:', error);
-        alert('Payment failed. Please try again.');
-    } else if (paymentIntent?.status === 'succeeded') {
-        console.log('Payment successful:', paymentIntent);
-        onPaymentSuccess(); // Call your success handler
+    console.log("Cart Items being sent:", cartItems); // Debug cart items
+  
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      alert("Please log in to complete the checkout.");
+      return;
     }
-};
-
-
-  const navigate = useNavigate();
-
-  const goBackToDelivery = () => navigate("/checkout");
+  
+    try {
+      const response = await fetch("http://localhost:5001/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          items: cartItems.map((item) => ({
+            productId: item.productId._id, // Ensure this is the ObjectId
+            size: item.size,
+            quantity: item.quantity,
+          })),
+          totalPrice: total, // Total price for the order
+          deliveryInfo, // Delivery information from the user
+        }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Order created successfully:", data);
+        onPaymentSuccess(data.order.orderNumber);
+      } else {
+        const errorData = await response.json();
+        console.error("Error response from server:", errorData);
+        alert("Order creation failed.");
+      }
+    } catch (error) {
+      console.error("Error creating order:", error);
+      alert("Something went wrong. Please try again.");
+    }
+  };
+  
+  
 
   return (
     <Box>
-      {/* Progress timeline */}
-      <Box>
-        <Text>Cart  Delivery  Billing  Confirmation</Text>
-      </Box>
-
-      <Button colorScheme="gray" onClick={goBackToDelivery}>
-        Back to Delivery Information
-      </Button>
-
       <VStack spacing={4} align="stretch">
-        <CardElement />
+        <Text>Billing Information</Text>
+        <CardNumberElement />
+        <CardExpiryElement />
+        <CardCvcElement />
         <Button colorScheme="blue" onClick={handlePayment}>
           Pay ${total}
         </Button>

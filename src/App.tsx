@@ -20,8 +20,13 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
 // Initialize Stripe with your public key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-console.log("Stripe Key:", import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe("pk_test_51QOfWI2NXuSUDNPpoB5ApMoesVZEDQIkFh3vZICP1JMwbv1IV5S1OX8m7LKBZ5TurvNb94eRfkHEVBxvGghE6cMa00P9IM9drn");
+
+
+
+// console.log("Stripe Key:", import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
 
 
 const App: React.FC = () => {
@@ -32,6 +37,7 @@ const App: React.FC = () => {
   return (
     <CartProvider>
     <ChakraProvider theme={theme}>
+    <Elements stripe={stripePromise}>
       <Router>
         <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
         <Routes>
@@ -47,13 +53,13 @@ const App: React.FC = () => {
 <Route
               path="/checkout"
               element={
-                <Elements stripe={stripePromise}>
                   <Checkoutpage />
-                </Elements>
               }
             />        </Routes>
         <Footer />
       </Router>
+      </Elements>
+
     </ChakraProvider>
     </CartProvider>
 

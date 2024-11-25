@@ -15,24 +15,10 @@ const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 }); // stdTTL = cach
 
 // GET route for at hente produkterne fra databasen. Denne rute vil understøtte filtrering baseret på forespørgselsparametre.
 // GET route for fetching products with pagination
-router.get('/', async (Request, Response) => {
+router.get("/", async (Request, Response) => {
   try {
-    // Get query parameters (type, collection, price range, page, limit)
     const { type, collection, minPrice, maxPrice, page = 1, limit = 6, sort } = Request.query;
 
-    // Create a cache key based on the query parameters to uniquely identify this request
-    const cacheKey = `${type}-${collection}-${minPrice}-${maxPrice}-${page}-${limit}-${sort}`;
-
-    // Check if the data is already in the cache
-    const cachedData = cache.get(cacheKey);
-    if (cachedData) {
-      // Return cached data if it exists
-      console.log("Returning cached data...");
-      Response.status(200).json(cachedData);
-      return; 
-    }
-
-    // Build the filter object
     const filter: any = {};
     if (type) filter.type = type;
     if (collection) {
@@ -40,46 +26,29 @@ router.get('/', async (Request, Response) => {
     }
     if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice as string) };
     if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice as string) };
-    
-     // Determine sort order
-     const sortOptions: any = {};
-     if (sort === 'priceHighToLow') {
-       sortOptions.price = -1; // Descending order
-     } else if (sort === 'priceLowToHigh') {
-       sortOptions.price = 1; // Ascending order
-     }
 
-    // Pagination: Calculate skip and limit
+    const sortOptions: any = {};
+    if (sort === "priceHighToLow") sortOptions.price = -1;
+    else if (sort === "priceLowToHigh") sortOptions.price = 1;
+
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
     const products = await Product.find(filter)
-    .sort(sortOptions) // Apply sorting
-    .skip(skip)
-    .limit(parseInt(limit as string));
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit as string));
 
-    
-
-    // Count total products to determine number of pages
     const totalProducts = await Product.countDocuments(filter);
-    // Prepare data to send as response
+
     const result = {
-        products,
-        totalProducts,
-        totalPages: Math.ceil(totalProducts / parseInt(limit as string)),
-        currentPage: parseInt(page as string),
-    };
-
-    // Store the data in cache
-    cache.set(cacheKey, result);
-
-    // Send the products and total count as response
-    Response.status(200).json({
       products,
       totalProducts,
       totalPages: Math.ceil(totalProducts / parseInt(limit as string)),
       currentPage: parseInt(page as string),
-    });
+    };
+
+    Response.status(200).json(result);
   } catch (err) {
-    Response.status(500).json({ error: 'Failed to fetch products', details: err });
+    Response.status(500).json({ error: "Failed to fetch products", details: err });
   }
 });
 

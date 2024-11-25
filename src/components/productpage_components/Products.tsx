@@ -17,6 +17,16 @@ import {
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import ProductCard from "../shared/ProductCard";
 
+// Define the Product interface to match the backend structure
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  type: string;
+  productCollection: string;
+  sizes?: string[];
+}
+
 const Products: React.FC = () => {
   const { category } = useParams<{ category: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,7 +35,7 @@ const Products: React.FC = () => {
   const [selectedJewelryTypes, setSelectedJewelryTypes] = useState<string[]>(
     category === "all" || !category ? [] : [category]
   );
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]); // Add type annotation here
   const [allCollections, setAllCollections] = useState<string[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,6 +56,8 @@ const Products: React.FC = () => {
         );
         const data = await response.json();
 
+        console.log("Fetched products:", data.products); // Debug response here
+
         setProducts(data.products);
         setTotalProducts(data.totalProducts);
         setTotalPages(data.totalPages);
@@ -58,7 +70,7 @@ const Products: React.FC = () => {
     };
 
     fetchProducts();
-  }, [searchParams, sortOption]); // Fetch products whenever searchParams change
+  }, [searchParams, sortOption]);
 
  // Reset filters whenever the category changes
 useEffect(() => {

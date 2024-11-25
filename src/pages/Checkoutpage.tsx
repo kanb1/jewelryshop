@@ -12,12 +12,29 @@ const CheckoutPage: React.FC = () => {
     postalCode: "",
     country: "",
   });
-  const [currentStep, setCurrentStep] = useState<"cart" | "delivery" | "billing" | "confirmation">(
-    "delivery"
-  );
-  const totalAmount = 1397; // Example total price
+  const [cartItems, setCartItems] = useState([
+    // Example cart items
+    {
+      productId: { _id: "1", name: "Ring", price: 500 },
+      quantity: 2,
+      size: "M",
+    },
+    {
+      productId: { _id: "2", name: "Necklace", price: 300 },
+      quantity: 1,
+      size: "L",
+    },
+  ]);
+  const [currentStep, setCurrentStep] = useState<
+    "cart" | "delivery" | "billing" | "confirmation"
+  >("delivery");
+  const [orderNumber, setOrderNumber] = useState<string | null>(null); // Track order number
 
-  const handlePaymentSuccess = () => {
+  const calculateTotal = () =>
+    cartItems.reduce((total, item) => total + item.productId.price * item.quantity, 0);
+
+  const handlePaymentSuccess = (orderNumber: string) => {
+    setOrderNumber(orderNumber); // Save the order number
     setCurrentStep("confirmation");
   };
 
@@ -40,14 +57,20 @@ const CheckoutPage: React.FC = () => {
         {/* Step 2: Billing Information */}
         {currentStep === "billing" && (
           <BillingInformation
-            total={totalAmount}
+            total={calculateTotal()}
+            cartItems={cartItems} // Pass cart items here
+            deliveryInfo={deliveryInfo} // Pass delivery information here
             onPaymentSuccess={handlePaymentSuccess}
           />
         )}
 
         {/* Step 3: Confirmation */}
         {currentStep === "confirmation" && (
-          <Confirmation deliveryInfo={deliveryInfo} total={totalAmount} />
+          <Confirmation
+            deliveryInfo={deliveryInfo}
+            total={calculateTotal()}
+            orderNumber={orderNumber}
+          />
         )}
       </VStack>
     </Box>
