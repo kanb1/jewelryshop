@@ -38,6 +38,8 @@ const BillingInformation: React.FC<BillingProps> = ({
   };
 
   const handlePayment = async () => {
+    const token = localStorage.getItem("jwt");
+  console.log("Token retrieved in BillingInformation:", token); // Debug token retrieval
     console.log("Cart items being sent:", cartItems); // Log cart items before processing
     const orderItems = cartItems.map((item) => ({
       productId: item.productId._id, // Use productId._id as the actual ID
@@ -51,6 +53,8 @@ const BillingInformation: React.FC<BillingProps> = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Attach token in Authorization header
+
         },
         body: JSON.stringify({
           items: orderItems, // Correctly formatted items
@@ -67,7 +71,7 @@ const BillingInformation: React.FC<BillingProps> = ({
 
       const result = await response.json();
       console.log("Order created successfully:", result);
-      onPaymentSuccess(result.orderNumber); // Trigger success callback
+      onPaymentSuccess(result.order.orderNumber); // Trigger success callback
     } catch (err) {
       console.error("Error during payment processing:", err);
     }
