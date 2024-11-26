@@ -1,8 +1,14 @@
+import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import Order from "../../models/Order";
 import authenticateJWT from "../authMiddleware"; // Ensure the user is authenticated
 import mongoose from "mongoose";
 import Products from "../../models/Products";
+import User from "../../models/User"; // Import the User model
+import transporter from "../../helpers/emailConfig";
+
+// Load environment variables
+dotenv.config();
 
 const router = express.Router();
 
@@ -65,10 +71,55 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
     const order = new Order(orderPayload);
     await order.save();
 
+    
+
+    // Send the confirmation email
+    const emailBody = `
+      <h1>Order Confirmation</h1>
+      <p>Thank you for your purchase!</p>
+      <p><strong>Order Number:</strong> ${orderNumber}</p>
+      <p><strong>Delivery Address:</strong></p>
+      <p>${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.postalCode}, ${deliveryInfo.country}</p>
+      <p><strong>Items:</strong></p>
+      <ul>
+        ${items
+          .map(
+            (item: any) =>
+              `<li>${item.quantity} x ${item.size} - ${item.productId} (ID: ${item.productId})</li>`
+          )
+          .join("")}
+      </ul>
+      <p><strong>Total:</strong> $${totalPrice}</p>
+    `;
+
+    console.log("Email body prepared:", emailBody);
+
+
+    // Find the user who placed the order
+      const user = await User.findById(order.userId); // Replace `order.userId` with the actual field holding the user ID
+      if (!user || !user.email) {
+        console.error("User or email not found for the order");
+         res.status(404).json({ error: "User or email not found" });
+         return;
+      }
+
+      console.log("User details fetched for email:", { email: user.email });
+
+
+      await transporter.sendMail({
+        from: "kanzafullstackexam@gmail.com",
+        to: user.email, // Use the user's email address dynamically
+        subject: "Order Confirmation",
+        html: emailBody, // Replace this with your formatted email body
+      });
+
+    console.log("Order confirmation email sent successfully");
+
+
     console.log("Order created successfully:", order);
     res.status(201).json({ message: "Order created successfully", order });
   } catch (error) {
-    console.error("Error creating order:", error);
+    console.error("Error during order processing:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

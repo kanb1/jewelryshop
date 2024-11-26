@@ -24,7 +24,6 @@ import paymentRoute from './routes/checkout/payment';
 // import categoriesRouter from './routes/categories';
 
 dotenv.config(); // Load environment variables from .env file
-console.log("Stripe Secret Key:", process.env.STRIPE_SECRET_KEY);
 
 
 const app = express();

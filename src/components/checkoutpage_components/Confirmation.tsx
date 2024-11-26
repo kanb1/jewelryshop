@@ -38,6 +38,9 @@ const Confirmation: React.FC<ConfirmationProps> = ({
       <Text textAlign="center" mb={4}>
         Total Paid: ${total}
       </Text>
+      <Text textAlign="center" mb={4}>
+        We have sent a confirmation to your email!
+      </Text>
       <Button colorScheme="blue" size="lg" onClick={goToHomePage} w="100%">
         Go to Home
       </Button>

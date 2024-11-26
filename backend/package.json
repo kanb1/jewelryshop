@@ -30,11 +30,13 @@
     "mongodb": "^6.10.0",
     "mongoose": "^8.8.1",
     "node-cache": "^5.1.2",
+    "nodemailer": "^6.9.16",
     "stripe": "^17.4.0",
     "typescript": "^5.6.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
+    "@types/nodemailer": "^6.4.17",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2"
   }
