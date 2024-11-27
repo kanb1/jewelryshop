@@ -16,6 +16,8 @@ import cartRoutes from './routes/cart';
 import ordersRoutes from "./routes/checkout/orders"; 
 import deliveryRoutes from "./routes/checkout/delivery";
 import paymentRoute from './routes/checkout/payment';
+import favouritesRouter from "./routes/favorites";
+
 
 
 
@@ -69,6 +71,8 @@ app.use('/api', cartRoutes); // Cart routes
 app.use("/api/orders", ordersRoutes); // All order routes will now be prefixed with `/api/orders`
 app.use("/api/delivery", deliveryRoutes);
 app.use('/api/payment', paymentRoute);
+app.use("/api/favourites", favouritesRouter);
+
 
 
 

@@ -10,12 +10,64 @@ import transporter from "../../helpers/emailConfig";
 // Load environment variables
 dotenv.config();
 
-const router = express.Router();
 
 // Extend the Express Request type to include `user`
 interface AuthenticatedRequest extends Request {
   user?: { userId: string }; // Adjust the structure of `user` if needed
 }
+const router = express.Router();
+
+
+// Helper function to check if an order is eligible for return
+const isEligibleForReturn = (orderDate: Date): boolean => {
+  const now = new Date();
+  const diffInDays = Math.floor(
+    (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  return diffInDays <= 30;
+};
+
+// GET /orders
+
+router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user?.userId;
+  const { status } = req.query;
+
+  if (!userId || !mongoose.isValidObjectId(userId)) {
+      res.status(400).json({ error: "Valid user ID is required" });
+      return;
+  }
+
+  try {
+      const query: any = { userId };
+
+      if (status) {
+          query.status = new RegExp(`^${status}$`, "i"); // Case-insensitive
+      }
+
+      console.log("Query to MongoDB:", query);
+
+      const orders = await Order.find(query).sort({ createdAt: -1 });
+
+      const mappedOrders = orders.map((order) => ({
+          orderId: order._id,
+          status: order.status,
+          createdAt: order.createdAt,
+          products: order.items.map((item: any) => ({
+              size: item.size,
+              quantity: item.quantity,
+          })),
+          isReturnable: isEligibleForReturn(order.createdAt),
+      }));
+
+      res.status(200).json(mappedOrders);
+  } catch (err) {
+      console.error("Error fetching orders:", err);
+      res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
+
+
 
 // POST /orders - Create a new order
 router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {

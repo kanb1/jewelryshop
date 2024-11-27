@@ -23,6 +23,20 @@ const orderSchema = new mongoose.Schema({
   },
   orderNumber: { type: String, required: true },
   paymentStatus: { type: String, default: "Pending" },
+  status: {
+    type: String,
+    enum: ["In Progress", "Completed", "Return"], // Add status field for orders
+    default: "In Progress", // Default status for a new order
+  },
+  returnInitiated: {
+    type: Boolean,
+    default: false, // Flag to track if a return is initiated
+  },
+  returnInitiatedAt: {
+    type: Date, // Track the date when the return was initiated
+    default: null,
+  },
+  createdAt: { type: Date, default: Date.now }, // Automatically set creation date
 });
 
 const Order = mongoose.model("Order", orderSchema);

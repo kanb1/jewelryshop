@@ -9,7 +9,7 @@ import Productpage from './pages/Productpage';
 import ProductDetail from './components/productdetailpage_components/ProductDetail';
 import LoginPage from './pages/Authorization/Login';
 import SignupPage from './pages/Authorization/Signup';
-import Profile from "./pages/Profile";
+import Profile from "./pages/Profilepage";
 import Cartpage from './pages/Cartpage';
 import ProductDetailPage from './pages/Productdetailpage';
 import Checkoutpage from './pages/Checkoutpage';

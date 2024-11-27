@@ -113,6 +113,64 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
       });
     }
   };
+
+  const handleAddToFavourites = async () => {
+    const token = localStorage.getItem("jwt");
+  
+    if (!token) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add items to favourites.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+  
+    try {
+      const response = await fetch("http://localhost:5001/api/favourites", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Send JWT token
+        },
+        body: JSON.stringify({
+          productId: product._id, // Send the product ID to favourites
+        }),
+      });
+  
+      if (response.ok) {
+        toast({
+          title: "Added to Favourites",
+          description: `${product.name} has been added to your favourites.`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        const errorData = await response.json();
+        console.error("Error response from server:", errorData);
+        toast({
+          title: "Error",
+          description: "Failed to add product to favourites.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error adding to favourites:", error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while adding the product to your favourites.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+  
   
 
   if (loading || !product) {
@@ -186,9 +244,10 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
           <Button colorScheme="blue" size="lg" mb={2} width="full" onClick={handleAddToBag}>
             Add to Bag
           </Button>
-          <Button colorScheme="red" size="lg" mb={2} width="full">
+          <Button colorScheme="red" size="lg" mb={2} width="full" onClick={handleAddToFavourites}>
             Add to Favourites
           </Button>
+
 
           {/* Accordion for Description and Materials & Care */}
           <Accordion defaultIndex={[0]} allowMultiple>
