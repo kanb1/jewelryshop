@@ -16,6 +16,11 @@ const orderSchema = new mongoose.Schema({
     postalCode: { type: String, required: true },
     country: { type: String, required: true },
   },
+  deliveryMethod: {
+    type: String,
+    enum: ["home", "parcel-shop"], // Restrict to valid options
+    required: true,
+  },
   orderNumber: { type: String, required: true },
   paymentStatus: { type: String, default: "Pending" },
 });

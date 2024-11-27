@@ -11,6 +11,7 @@ const CheckoutPage: React.FC = () => {
     city: "",
     postalCode: "",
     country: "",
+    deliveryMethod: "home" as "home" | "parcel-shop", // Default to "home"
   });
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -51,6 +52,7 @@ const CheckoutPage: React.FC = () => {
     );
 
   const handlePaymentSuccess = (orderNumber: string) => {
+    console.log("Payment successful. Moving to confirmation step."); // Debug
     setOrderNumber(orderNumber);
     setCurrentStep("confirmation");
   };

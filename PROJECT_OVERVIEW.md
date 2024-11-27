@@ -28,11 +28,16 @@ JewelryShop is an e-commerce web application for showcasing and selling jewelry.
   - Cart badge reflects the total quantity of items dynamically.
   - Backend PUT API supports quantity updates.
   - Real-time UI updates without requiring page refreshes.
+  - Complete checkout flow:
+    - Select between home delivery or parcel shop pickup.
+    - Integration with Stripe for payment.
+    - Order confirmation email sent after successful checkout.
 
 - **Backend**:
   - Built using Node.js and Express.
-  - MongoDB as the database for user and product management.
+  - MongoDB as the database for user, product, and order management.
   - API endpoints tested via Postman.
+  - Email confirmation using Nodemailer.
 
 ---
 
@@ -51,13 +56,18 @@ JewelryShop is an e-commerce web application for showcasing and selling jewelry.
      - Profile Page
      - Product Pages (dynamic categories)
      - Cart Page with interactive quantity updates
+     - Checkout Pages (Delivery, Billing, and Confirmation)
    - Fully responsive design using Chakra UI.
 
 3. **Backend**:
    - Connected to MongoDB Atlas.
-   - API endpoints implemented for users, authentication, products, and cart.
+   - API endpoints implemented for users, authentication, products, cart, and orders.
    - Middleware for JWT token validation.
    - Dynamic cart handling with PUT and DELETE routes.
+   - Backend logic for delivery options (home and parcel shop).
+   - Integrated Stripe for payment.
+   - Nodemailer for email confirmations.
+   - Tested endpoints with Postman and verified full API integration.
 
 ---
 
@@ -67,20 +77,21 @@ JewelryShop is an e-commerce web application for showcasing and selling jewelry.
    - Add user reviews and ratings.
 
 2. **Cart and Checkout**:
-   - Integrate payment gateway.
    - Add cart persistence for logged-in users.
+   - Improve UX for the checkout process with better error handling.
 
 3. **Testing**:
-   - Add more robust error handling.
-   - Write tests for critical components and backend routes.
+   - Add robust error handling for edge cases.
+   - Write unit and integration tests for frontend and backend.
 
 4. **Deployment**:
    - Deploy backend to a hosting provider.
-   - Connect the frontend with the deployed backend.
+   - Deploy the frontend to a service like Vercel or Netlify.
+   - Connect the deployed backend with the frontend.
 
 ---
 
 ### **Technologies Used**
 - **Frontend**: React.js, TypeScript, Chakra UI
 - **Backend**: Node.js, Express.js, MongoDB
-- **Others**: Postman, Axios, JWT, bcrypt
+- **Others**: Postman, Axios, JWT, bcrypt, Stripe, Nodemailer

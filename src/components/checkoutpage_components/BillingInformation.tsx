@@ -17,7 +17,9 @@ interface BillingProps {
     city: string;
     postalCode: string;
     country: string;
-  }; // Include delivery info as a prop
+    deliveryMethod: "home" | "parcel-shop"; // Add this line
+
+  };
 }
 
 const BillingInformation: React.FC<BillingProps> = ({
@@ -39,43 +41,71 @@ const BillingInformation: React.FC<BillingProps> = ({
 
   const handlePayment = async () => {
     const token = localStorage.getItem("jwt");
-  console.log("Token retrieved in BillingInformation:", token); // Debug token retrieval
-    console.log("Cart items being sent:", cartItems); // Log cart items before processing
+  
+    // Debugging: Log token and initial cart items
+    console.log("Token retrieved in BillingInformation:", token); // Check if JWT is retrieved correctly
+    console.log("Cart items being sent:", cartItems); // Validate cart items before processing
+  
     const orderItems = cartItems.map((item) => ({
-      productId: item.productId._id, // Use productId._id as the actual ID
+      productId: item.productId._id, // Validate product ID mapping
       size: item.size,
       quantity: item.quantity,
     }));
-    console.log("Mapped order items:", orderItems); // Validate here
-
+  
+    // Debugging: Log orderItems to ensure proper mapping
+    console.log("Mapped order items:", orderItems); 
+  
+    // Debugging: Log delivery information
+    console.log("Delivery Info:", deliveryInfo); 
+  
+    // Debugging: Log calculated total price
+    console.log("Total price being sent:", calculateTotalPrice());
+  
     try {
+      // Debugging: Log API request payload
+      const requestBody = {
+        items: orderItems,
+        totalPrice: calculateTotalPrice(),
+        deliveryInfo,
+        deliveryMethod: deliveryInfo.deliveryMethod,
+      };
+      console.log("Request payload to API:", requestBody);
+  
+      // Make the API call
       const response = await fetch("http://localhost:5001/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Attach token in Authorization header
-
+          Authorization: `Bearer ${token}`, // Debug: Ensure token is passed
         },
-        body: JSON.stringify({
-          items: orderItems, // Correctly formatted items
-          totalPrice: calculateTotalPrice(), // Calculate total price here
-          deliveryInfo,
-        }),
+        body: JSON.stringify(requestBody),
       });
-
+  
+      // Debugging: Log the raw response
+      console.log("Raw response from API:", response);
+  
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error response from server:", errorData);
+        alert(`Order creation failed: ${errorData.error || "Unknown error"}`); // Inform user about the error
         return;
       }
-
+  
+      // Parse the successful response
       const result = await response.json();
+  
+      // Debugging: Log successful result
       console.log("Order created successfully:", result);
-      onPaymentSuccess(result.order.orderNumber); // Trigger success callback
+  
+      // Trigger success callback
+      onPaymentSuccess(result.order.orderNumber);
     } catch (err) {
+      // Debugging: Log any unexpected errors
       console.error("Error during payment processing:", err);
+      alert("Something went wrong during payment. Please try again.");
     }
   };
+  
 
   return (
     <Box>

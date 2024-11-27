@@ -8,6 +8,8 @@ import {
   Button,
   Text,
   Stack,
+  RadioGroup,
+  Radio,
 } from "@chakra-ui/react";
 
 interface DeliveryInfoProps {
@@ -16,6 +18,7 @@ interface DeliveryInfoProps {
     city: string;
     postalCode: string;
     country: string;
+    deliveryMethod: "home" | "parcel-shop";
   };
   setDeliveryInfo: React.Dispatch<
     React.SetStateAction<{
@@ -23,11 +26,12 @@ interface DeliveryInfoProps {
       city: string;
       postalCode: string;
       country: string;
+      deliveryMethod: "home" | "parcel-shop";
     }>
   >;
   setCurrentStep: React.Dispatch<
     React.SetStateAction<"cart" | "delivery" | "billing" | "confirmation">
-  >; // Ensure this is included
+  >;
 }
 
 const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
@@ -39,14 +43,21 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
   const [selectedParcelShop, setSelectedParcelShop] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDeliveryInfo({ ...deliveryInfo, [e.target.name]: e.target.value });
+  };
+
   const fetchParcelShops = async () => {
+    if (!deliveryInfo.address) {
+      alert("Please enter an address to find parcel shops!");
+      return;
+    }
     setIsLoading(true);
     try {
       const response = await fetch(
         `http://localhost:5001/api/delivery/parcel-shops?address=${deliveryInfo.address}&radius=10000`
       );
       const data = await response.json();
-
       if (data.length === 0) {
         alert("No parcel shops found near this address!");
       } else {
@@ -63,25 +74,33 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
   const handleSelectParcelShop = (shop: any) => {
     setSelectedParcelShop(shop);
     setDeliveryInfo({
+      ...deliveryInfo,
       address: shop.address,
       city: shop.city,
       postalCode: shop.postcode,
       country: shop.country,
+      deliveryMethod: "parcel-shop", // Update delivery method
     });
     alert(`Delivery address updated to parcel shop: ${shop.address}`);
   };
 
   const saveAndPay = () => {
-    if (
-      deliveryInfo.address &&
-      deliveryInfo.city &&
-      deliveryInfo.postalCode &&
-      deliveryInfo.country
-    ) {
-      setCurrentStep("billing"); // Correct usage
-    } else {
-      alert("Please fill in all delivery information!");
+    if (deliveryInfo.deliveryMethod === "home") {
+      if (
+        !deliveryInfo.address ||
+        !deliveryInfo.city ||
+        !deliveryInfo.postalCode ||
+        !deliveryInfo.country
+      ) {
+        alert("Please fill in all home delivery information!");
+        return;
+      }
+    } else if (!selectedParcelShop) {
+      alert("Please select a parcel shop for delivery!");
+      return;
     }
+
+    setCurrentStep("billing"); // Proceed to billing
   };
 
   return (
@@ -91,29 +110,28 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
         Delivery Information
       </Heading>
       <VStack spacing={4}>
+        {/* Address Input Fields */}
         <Input
           placeholder="Address"
+          name="address"
           value={deliveryInfo.address}
-          onChange={(e) =>
-            setDeliveryInfo({ ...deliveryInfo, address: e.target.value })
-          }
+          onChange={handleInputChange}
         />
         <Input
           placeholder="City"
+          name="city"
           value={deliveryInfo.city}
-          onChange={(e) =>
-            setDeliveryInfo({ ...deliveryInfo, city: e.target.value })
-          }
+          onChange={handleInputChange}
         />
         <Input
           placeholder="Postal Code"
+          name="postalCode"
           value={deliveryInfo.postalCode}
-          onChange={(e) =>
-            setDeliveryInfo({ ...deliveryInfo, postalCode: e.target.value })
-          }
+          onChange={handleInputChange}
         />
         <Select
           placeholder="Country"
+          name="country"
           value={deliveryInfo.country}
           onChange={(e) =>
             setDeliveryInfo({ ...deliveryInfo, country: e.target.value })
@@ -123,35 +141,70 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
           <option value="Sweden">Sweden</option>
           <option value="Norway">Norway</option>
         </Select>
-        <Button colorScheme="blue" onClick={fetchParcelShops} isLoading={isLoading}>
-          Find Parcel Shops
-        </Button>
 
-        {parcelShops.length > 0 && (
-          <Stack spacing={4} mt={4}>
-            {parcelShops.map((shop, index) => (
-              <Box key={index} border="1px" borderColor="gray.200" p={4}>
-                <Text>{shop.address}</Text>
-                <Text>
-                  {shop.city}, {shop.postcode}
-                </Text>
+        {/* Delivery Method Selection */}
+        {deliveryInfo.address && deliveryInfo.city && deliveryInfo.postalCode && (
+          <>
+            <RadioGroup
+              onChange={(value: "home" | "parcel-shop") =>
+                setDeliveryInfo({ ...deliveryInfo, deliveryMethod: value })
+              }
+              value={deliveryInfo.deliveryMethod}
+            >
+              <Stack direction="row" spacing={5}>
+                <Radio value="home">Home Delivery</Radio>
+                <Radio value="parcel-shop">Parcel Shop Delivery</Radio>
+              </Stack>
+            </RadioGroup>
+
+            {/* Parcel Shop Logic */}
+            {deliveryInfo.deliveryMethod === "parcel-shop" && (
+              <>
                 <Button
-                  colorScheme="green"
-                  onClick={() => handleSelectParcelShop(shop)}
+                  colorScheme="blue"
+                  onClick={fetchParcelShops}
+                  isLoading={isLoading}
                 >
-                  Deliver here
+                  Find Parcel Shops
                 </Button>
-              </Box>
-            ))}
-          </Stack>
-        )}
 
-        {selectedParcelShop && (
-          <Box mt={4} border="1px" borderColor="green.200" p={4}>
-            <Text>Selected Parcel Shop:</Text>
-            <Text>{selectedParcelShop.name}</Text>
-            <Text>{selectedParcelShop.address}</Text>
-          </Box>
+                {parcelShops.length > 0 && (
+                  <Stack spacing={4} mt={4}>
+                    {parcelShops.map((shop, index) => (
+                      <Box key={index} border="1px" borderColor="gray.200" p={4}>
+                        <Text>{shop.address}</Text>
+                        <Text>
+                          {shop.city}, {shop.postcode}
+                        </Text>
+                        <Button
+                          colorScheme="green"
+                          onClick={() => handleSelectParcelShop(shop)}
+                        >
+                          Deliver here
+                        </Button>
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+
+                {selectedParcelShop && (
+                  <Box mt={4} border="1px" borderColor="green.200" p={4}>
+                    <Text>Selected Parcel Shop:</Text>
+                    <Text>{selectedParcelShop.name}</Text>
+                    <Text>{selectedParcelShop.address}</Text>
+                  </Box>
+                )}
+              </>
+            )}
+
+            {/* Home Delivery Logic */}
+            {deliveryInfo.deliveryMethod === "home" && (
+              <Text mt={4}>
+                You have selected home delivery. Please ensure your address is
+                correct before proceeding.
+              </Text>
+            )}
+          </>
         )}
 
         <Button colorScheme="green" onClick={saveAndPay}>

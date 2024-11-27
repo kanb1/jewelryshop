@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Heading, Text, Button } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,6 +21,11 @@ const Confirmation: React.FC<ConfirmationProps> = ({
   const navigate = useNavigate();
 
   const goToHomePage = () => navigate("/");
+
+  useEffect(() => {
+    console.log("Confirmation Props:", { deliveryInfo, total, orderNumber });
+  }, [deliveryInfo, total, orderNumber]);
+  
 
   return (
     <Box p={6} maxW="500px" mx="auto" bg="white" boxShadow="md" borderRadius="md">

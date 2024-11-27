@@ -18,111 +18,117 @@ interface AuthenticatedRequest extends Request {
 }
 
 // POST /orders - Create a new order
-
 router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
-  const { items, totalPrice, deliveryInfo } = req.body;
+  const { items, totalPrice, deliveryInfo, deliveryMethod } = req.body;
   const userId = req.user?.userId;
 
   try {
-     // Log the received items to ensure correct payload structure
-     console.log("Items received in request:", items);
+    console.log("Step 1: Starting order creation...");
+    console.log("Received items:", items);
+    console.log("Delivery method:", deliveryMethod);
+    console.log("Delivery info:", deliveryInfo);
 
-    // Validate all productIds
-    const invalidItems = items.filter((item: any) => !mongoose.isValidObjectId(item.productId));
-    if (invalidItems.length > 0) {
-      console.log("Invalid product IDs found:", invalidItems);
-       res.status(400).json({
-        error: "Invalid productId(s) found",
-        invalidItems,
-      });
+    // Validate delivery method
+    if (!deliveryMethod || !["home", "parcel-shop"].includes(deliveryMethod)) {
+      console.error("Validation failed: Invalid delivery method", { deliveryMethod });
+      res.status(400).json({ error: "Invalid delivery method" });
       return;
     }
 
-    // Ensure all productIds exist in the database
+    // Validate all product IDs
+    const invalidItems = items.filter((item: any) => !mongoose.isValidObjectId(item.productId));
+    if (invalidItems.length > 0) {
+      console.error("Validation failed: Invalid product IDs", { invalidItems });
+      res.status(400).json({ error: "Invalid productId(s)", invalidItems });
+      return;
+    }
+
+    console.log("Step 2: All product IDs are valid. Proceeding...");
+
+    // Check product existence
     for (const item of items) {
-      console.log(`Checking existence of product ID: ${item.productId}`);
       const productExists = await Products.exists({ _id: item.productId });
-      console.log(`Product exists for ID ${item.productId}:`, productExists);
+      console.log(`Product existence check for ID ${item.productId}:`, productExists);
       if (!productExists) {
-         res.status(404).json({
-          error: `Product with ID ${item.productId} not found`,
-        });
+        console.error("Product not found in database:", { productId: item.productId });
+        res.status(404).json({ error: `Product with ID ${item.productId} not found` });
         return;
       }
     }
+
+    console.log("Step 3: Products exist. Validating delivery info...");
+
+    // Validate delivery info
+    if (
+      deliveryMethod === "home" &&
+      (!deliveryInfo.address || !deliveryInfo.city || !deliveryInfo.postalCode || !deliveryInfo.country)
+    ) {
+      console.error("Validation failed: Incomplete home delivery address", { deliveryInfo });
+      res.status(400).json({ error: "Incomplete home delivery address" });
+      return;
+    }
+    if (deliveryMethod === "parcel-shop" && !deliveryInfo.address) {
+      console.error("Validation failed: Parcel shop address is missing", { deliveryInfo });
+      res.status(400).json({ error: "Parcel shop address is missing" });
+      return;
+    }
+
+    console.log("Step 4: Delivery info validated. Proceeding to create order...");
 
     // Generate unique order number
     const orderNumber = `EP${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 1000)}`;
     console.log("Generated order number:", orderNumber);
 
-    // Log full order payload before saving
+    // Prepare order payload
     const orderPayload = {
       userId,
       items,
       totalPrice,
       deliveryInfo,
+      deliveryMethod,
       orderNumber,
       paymentStatus: "Pending",
       createdAt: new Date(),
     };
-    console.log("Order payload to be saved:", orderPayload);
 
-    // Create and save order
+    console.log("Step 5: Saving order to database...");
     const order = new Order(orderPayload);
     await order.save();
+    console.log("Order successfully saved:", order);
 
-    
+    console.log("Step 6: Sending confirmation email...");
 
-    // Send the confirmation email
+    // Fetch user's email
+    const user = await User.findById(order.userId);
+    if (!user || !user.email) {
+      console.error("User or email not found:", { userId: order.userId });
+      res.status(404).json({ error: "User or email not found" });
+      return;
+    }
+
+    console.log("User email found:", user.email);
+
     const emailBody = `
       <h1>Order Confirmation</h1>
-      <p>Thank you for your purchase!</p>
-      <p><strong>Order Number:</strong> ${orderNumber}</p>
-      <p><strong>Delivery Address:</strong></p>
-      <p>${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.postalCode}, ${deliveryInfo.country}</p>
-      <p><strong>Items:</strong></p>
-      <ul>
-        ${items
-          .map(
-            (item: any) =>
-              `<li>${item.quantity} x ${item.size} - ${item.productId} (ID: ${item.productId})</li>`
-          )
-          .join("")}
-      </ul>
-      <p><strong>Total:</strong> $${totalPrice}</p>
+      <p>Order Number: ${orderNumber}</p>
     `;
+    await transporter.sendMail({
+      from: "kanzafullstackexam@gmail.com",
+      to: user.email,
+      subject: "Order Confirmation",
+      html: emailBody,
+    });
 
-    console.log("Email body prepared:", emailBody);
+    console.log("Step 7: Email sent successfully.");
 
-
-    // Find the user who placed the order
-      const user = await User.findById(order.userId); // Replace `order.userId` with the actual field holding the user ID
-      if (!user || !user.email) {
-        console.error("User or email not found for the order");
-         res.status(404).json({ error: "User or email not found" });
-         return;
-      }
-
-      console.log("User details fetched for email:", { email: user.email });
-
-
-      await transporter.sendMail({
-        from: "kanzafullstackexam@gmail.com",
-        to: user.email, // Use the user's email address dynamically
-        subject: "Order Confirmation",
-        html: emailBody, // Replace this with your formatted email body
-      });
-
-    console.log("Order confirmation email sent successfully");
-
-
-    console.log("Order created successfully:", order);
     res.status(201).json({ message: "Order created successfully", order });
+    console.log("Final response sent to frontend.");
   } catch (error) {
     console.error("Error during order processing:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 
 
