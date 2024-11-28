@@ -25,5 +25,14 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction): void 
   });
 };
 
+export const adminMiddleware = (req: Request & { user?: any }, res: Response, next: NextFunction) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  next();
+};
+
+
+
 
 export default authenticateJWT;

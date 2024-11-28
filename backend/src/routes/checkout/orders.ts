@@ -52,15 +52,15 @@ router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response
       const orders = await Order.find(query).sort({ createdAt: -1 });
 
       const mappedOrders = orders.map((order) => ({
-          orderId: order._id,
-          status: order.status,
-          createdAt: order.createdAt,
-          products: order.items.map((item: any) => ({
-              size: item.size,
-              quantity: item.quantity,
-          })),
-          isReturnable: isEligibleForReturn(order.createdAt),
-      }));
+        orderId: order._id,
+        status: order.status,
+        createdAt: order.createdAt,
+        returnId: order.returnId || null,
+        returnStatus: order.returnStatus || null,
+        returnInitiatedAt: order.returnInitiatedAt || null,
+        isReturnable: order.status === "In Progress" && isEligibleForReturn(order.createdAt),
+    }));
+    
 
       res.status(200).json(mappedOrders);
   } catch (err) {
@@ -163,8 +163,28 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
     console.log("User email found:", user.email);
 
     const emailBody = `
-      <h1>Order Confirmation</h1>
-      <p>Order Number: ${orderNumber}</p>
+    <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+    <h1 style="color: #6EBF8B;">Thank You for Your Order!</h1>
+    <p>Hi ${user.name || "Customer"},</p>
+    <p>We're excited to let you know that your order has been successfully placed. Below are your order details:</p>
+    <table style="border-collapse: collapse; width: 100%; margin: 20px 0;">
+      <tr>
+        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 8px;">Order Number</th>
+        <td style="padding: 8px;">${orderNumber}</td>
+      </tr>
+      <tr>
+        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 8px;">Total Amount</th>
+        <td style="padding: 8px;">$${order.totalPrice.toFixed(2)}</td>
+      </tr>
+      <tr>
+        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 8px;">Delivery Method</th>
+        <td style="padding: 8px;">${order.deliveryMethod === "home" ? "Home Delivery" : "Parcel Shop Pickup"}</td>
+      </tr>
+    </table>
+    <p>If you have any questions or need to make changes, please contact our support team at support@jewelryshop.com.</p>
+    <p>We hope you enjoy your purchase!</p>
+    <p style="margin-top: 30px;">Warm regards,<br/>The JewelryShop Team</p>
+  </div>
     `;
     await transporter.sendMail({
       from: "kanzafullstackexam@gmail.com",

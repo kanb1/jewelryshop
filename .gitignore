@@ -18,6 +18,9 @@ new-private.key
 new-certificate.crt
 certificate.csr
 .env
+seed.ts
+
+
 
 # Editor directories and files
 .vscode/*

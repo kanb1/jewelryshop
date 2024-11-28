@@ -1,11 +1,13 @@
 import express from "express";
 import User from "../../models/User";
-import isAdmin from "../authMiddleware";
+import adminMiddleware from '../authMiddleware';
 
 const router = express.Router();
+router.use(adminMiddleware); // Apply admin middleware to all routes in this file
+
 
 // GET /api/admin/users - Fetch all users
-router.get("/", isAdmin, async (Request, Response) => {
+router.get("/", adminMiddleware, async (Request, Response) => {
   try {
     const users = await User.find({}, "-password"); // Exclude sensitive data like passwords
     Response.status(200).json(users);
@@ -16,7 +18,7 @@ router.get("/", isAdmin, async (Request, Response) => {
 });
 
 // GET /api/admin/users/:id - Fetch user details
-router.get("/:id", isAdmin, async (Request, Response) => {
+router.get("/:id", adminMiddleware, async (Request, Response) => {
   const { id } = Request.params;
 
   try {
@@ -33,7 +35,7 @@ router.get("/:id", isAdmin, async (Request, Response) => {
 });
 
 // PUT /api/admin/users/:id - Update user role or details
-router.put("/:id", isAdmin, async (Request, Response) => {
+router.put("/:id", adminMiddleware, async (Request, Response) => {
   const { id } = Request.params;
   const { role, isActive } = Request.body;
 
@@ -56,7 +58,7 @@ router.put("/:id", isAdmin, async (Request, Response) => {
 });
 
 // DELETE /api/admin/users/:id - Delete a user
-router.delete("/:id", isAdmin, async (Request, Response) => {
+router.delete("/:id", adminMiddleware, async (Request, Response) => {
   const { id } = Request.params;
 
   try {

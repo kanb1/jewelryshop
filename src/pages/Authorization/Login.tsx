@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { Box, Button, Input, VStack, Text, FormControl, FormErrorMessage, useToast } from "@chakra-ui/react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-
 interface LoginProps {
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
+
 
 const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
   const [username, setUsername] = useState("");
@@ -18,7 +19,6 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
   const location = useLocation();
 
   const handleSubmit = async () => {
-    // Validate fields before submitting
     if (!username) {
       setUsernameError("Username is required.");
       return;
@@ -27,11 +27,10 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
       setPasswordError("Password is required.");
       return;
     }
-
-    // Clear field-specific errors if valid
+  
     setUsernameError("");
     setPasswordError("");
-
+  
     try {
       const response = await fetch("http://localhost:5001/api/auth/login", {
         method: "POST",
@@ -40,16 +39,20 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
         },
         body: JSON.stringify({ username, password }),
       });
-
+  
       const data = await response.json();
-
+  
       if (!response.ok) {
         throw new Error(data.message || "Login failed.");
       }
-
+  
       // Save the token to localStorage
       localStorage.setItem("jwt", data.token);
-
+  
+      // Manually decode JWT to extract the role
+      const tokenPayload = JSON.parse(atob(data.token.split(".")[1]));
+      const userRole = tokenPayload.role;
+  
       // Show success toast
       toast({
         title: "Login successful",
@@ -57,14 +60,20 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
         duration: 3000,
         isClosable: true,
       });
-
-      if (setIsLoggedIn) setIsLoggedIn(true); // Update Navbar state immediately
-      navigate("/profile"); // Redirect to profile
+  
+      if (setIsLoggedIn) setIsLoggedIn(true);
+  
+      // Redirect based on role
+      if (userRole === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/profile");
+      }
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     }
   };
-
+  
   return (
     <Box maxWidth="400px" mx="auto" mt="100px" p="6" borderWidth="1px" borderRadius="md" boxShadow="lg">
       <VStack spacing={4}>

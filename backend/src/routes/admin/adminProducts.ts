@@ -1,11 +1,13 @@
 import express from "express";
 import Product from "../../models/Products";
-import isAdmin from "../authMiddleware";
+import adminMiddleware from '../authMiddleware';
 
 const router = express.Router();
+router.use(adminMiddleware); // Apply admin middleware to all routes in this file
+
 
 // POST /api/admin/products - Add a new product
-router.post("/", isAdmin, async (Request, Response) => {
+router.post("/", adminMiddleware, async (Request, Response) => {
   const { name, type, productCollection, price, sizes } = Request.body;
 
   if (!name || !type || !price || !sizes) {
@@ -31,7 +33,7 @@ router.post("/", isAdmin, async (Request, Response) => {
 });
 
 // PUT /api/admin/products/:id - Update a product
-router.put("/:id", isAdmin, async (Request, Response) => {
+router.put("/:id", adminMiddleware, async (Request, Response) => {
   const { id } = Request.params;
   const updates = Request.body;
 
@@ -51,7 +53,7 @@ router.put("/:id", isAdmin, async (Request, Response) => {
 });
 
 // DELETE /api/admin/products/:id - Delete a product
-router.delete("/:id", isAdmin, async (Request, Response) => {
+router.delete("/:id", adminMiddleware, async (Request, Response) => {
   const { id } = Request.params;
 
   try {

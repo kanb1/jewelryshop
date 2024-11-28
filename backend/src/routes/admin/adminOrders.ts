@@ -1,26 +1,37 @@
 import express from "express";
 import Order from "../../models/Order";
-import isAdmin from "../authMiddleware";
+import adminMiddleware from '../authMiddleware';
+
 
 const router = express.Router();
+router.use(adminMiddleware); // Apply admin middleware to all routes in this file
+
+
 
 // PUT /api/admin/orders/:id/status - Update order status
-router.put("/:id/status", isAdmin, async (Request, Response) => {
+// PUT /api/admin/orders/:id/status - Update the status of an order
+router.put("/:id/status", adminMiddleware, async (Request, Response) => {
   const { id } = Request.params;
   const { status } = Request.body;
 
-  if (!["In Progress", "Completed", "Return", "Return Initiated"].includes(status)) {
-     Response.status(400).json({ error: "Invalid status." });
-    return;
-  }
-
   try {
-    const order = await Order.findByIdAndUpdate(id, { status }, { new: true });
+    const order = await Order.findById(id);
 
     if (!order) {
-       Response.status(404).json({ error: "Order not found." });
-       return;
+      Response.status(404).json({ error: "Order not found." });
+      return;
     }
+
+    if (status === "Completed") {
+      // Check if the order had a return initiated
+      if (order.returnInitiated) {
+        order.returnStatus = "Refunded";
+      }
+    }
+
+    // Update the status of the order
+    order.status = status;
+    await order.save();
 
     Response.status(200).json({ message: "Order status updated successfully.", order });
   } catch (error) {
@@ -29,8 +40,9 @@ router.put("/:id/status", isAdmin, async (Request, Response) => {
   }
 });
 
+
 // PUT /api/admin/orders/:id/return - Approve a return
-router.put("/:id/return", isAdmin, async (Request, Response) => {
+router.put("/:id/return", adminMiddleware, async (Request, Response) => {
   const { id } = Request.params;
 
   try {

@@ -27,6 +27,7 @@
     "fs": "^0.0.1-security",
     "https": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "mongodb": "^6.10.0",
     "mongoose": "^8.8.1",
     "node-cache": "^5.1.2",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
+    "@types/jwt-decode": "^3.1.0",
     "@types/nodemailer": "^6.4.17",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2"

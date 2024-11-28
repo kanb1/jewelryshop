@@ -13,6 +13,7 @@ import Profile from "./pages/Profilepage";
 import Cartpage from './pages/Cartpage';
 import ProductDetailPage from './pages/Productdetailpage';
 import Checkoutpage from './pages/Checkoutpage';
+import Adminpage from './pages/Adminpage';
 import theme from './theme';
 
 import { CartProvider, useCart } from './context/CartContext';
@@ -49,13 +50,11 @@ const App: React.FC = () => {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/cart" element={<Cartpage/>} />
-{/* Wrap CheckoutPage with the Elements provider */}
-<Route
-              path="/checkout"
-              element={
-                  <Checkoutpage />
-              }
-            />        </Routes>
+            {/* Wrap CheckoutPage with the Elements provider */}
+          <Route path="/checkout" element={<Checkoutpage />}/>   
+           {/*I set up as a nested route, with subpaths handled by the AdminPage component.  */}
+          <Route path="/admin/*" element={<Adminpage />} />
+        </Routes>
         <Footer />
       </Router>
       </Elements>

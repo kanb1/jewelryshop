@@ -123,33 +123,34 @@ const MyOrders: React.FC = () => {
             <Th>Status</Th>
             <Th>Date</Th>
             <Th>Returnable</Th>
-            <Th>Action</Th>
+            <Th>Return ID</Th>
+            <Th>Return Status</Th>
+            <Th>Return Initiated At</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {orders.map((order) => (
-            <Tr key={order.orderId}>
-              <Td>{order.orderId}</Td>
-              <Td>{order.status}</Td>
-              <Td>{new Date(order.createdAt).toLocaleDateString()}</Td>
-              <Td>{order.isReturnable ? "Yes" : "No"}</Td>
-              <Td>
-                {order.isReturnable && order.status !== "Return Initiated" ? (
-                  <Button
-                    colorScheme="teal"
-                    size="sm"
-                    onClick={() => initiateReturn(order.orderId)}
-                  >
-                    Initiate Return
-                  </Button>
-                ) : (
-                  <Text fontSize="sm" color="gray.500">
-                    {order.status === "Return Initiated" ? "Pending" : "Not Returnable"}
-                  </Text>
-                )}
-              </Td>
-            </Tr>
-          ))}
+        {orders.map((order) => (
+        <Tr key={order.orderId}>
+            <Td>{order.orderId}</Td>
+            <Td>{order.status}</Td>
+            <Td>{new Date(order.createdAt).toLocaleDateString()}</Td>
+            <Td>
+                {order.isReturnable
+                    ? "Yes"
+                    : order.status === "Return Initiated"
+                    ? "Returnlabel already sent to email"
+                    : "Return date expired"}
+            </Td>
+
+            <Td>{order.returnId || ""}</Td>
+            <Td>{order.returnStatus || ""}</Td>
+            <Td>
+                {order.returnInitiatedAt
+                    ? new Date(order.returnInitiatedAt).toLocaleDateString()
+                    : ""}
+            </Td>
+        </Tr>
+    ))}
         </Tbody>
       </Table>
     </Box>
