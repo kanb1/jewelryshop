@@ -6,6 +6,8 @@ import mongoose from "mongoose";
 import Products from "../../models/Products";
 import User from "../../models/User"; // Import the User model
 import transporter from "../../helpers/emailConfig";
+import { v4 as uuidv4 } from "uuid";
+
 
 // Load environment variables
 dotenv.config();
@@ -183,6 +185,69 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
 
 
 
+// ***************************************************************RETURNS
+// POST /orders/:id/return - Initiate a return for an order
+router.post("/:id/return", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+  const orderId = req.params.id;
+  const userId = req.user?.userId;
+
+  try {
+    // Validate the order ID
+    if (!mongoose.isValidObjectId(orderId)) {
+      res.status(400).json({ error: "Invalid order ID" });
+      return;
+    }
+
+    // Find the order
+    const order = await Order.findOne({ _id: orderId, userId });
+    if (!order) {
+      res.status(404).json({ error: "Order not found or unauthorized" });
+      return;
+    }
+
+    // Check if the order is eligible for return
+    if (!isEligibleForReturn(order.createdAt)) {
+      res.status(400).json({ error: "Return period expired" });
+      return;
+    }
+
+    // Generate a unique return ID and update the order
+    const returnId = uuidv4();
+    order.returnId = returnId;
+    order.status = "Return Initiated"; // Update order status
+    order.returnStatus = "Pending"; // Add return status (Pending by default)
+    order.returnInitiated = true; // Set return initiated flag
+    order.returnInitiatedAt = new Date(); // Set the return initiation date
+    await order.save();
+
+    // Fetch the user's email
+    const user = await User.findById(userId);
+    if (!user?.email) {
+      res.status(404).json({ error: "User email not found" });
+      return;
+    }
+
+    // Send the return label email
+    const emailBody = `
+      <h1>Return Label</h1>
+      <p>Your return ID: ${returnId}</p>
+      <p>Return address: Kanza Jewelryshop Aps, Købmagergade 62, 3. sal. 1150 København K</p>
+      <p>Ship your return by: ${new Date(new Date().setDate(new Date().getDate() + 30)).toDateString()}</p>
+    `;
+
+    await transporter.sendMail({
+      from: "noreply@yourshop.com",
+      to: user.email,
+      subject: "Return Label for Your Order",
+      html: emailBody,
+    });
+
+    res.status(200).json({ message: "Return initiated successfully", returnId });
+  } catch (err) {
+    console.error("Error initiating return:", err);
+    res.status(500).json({ error: "Failed to initiate return" });
+  }
+});
 
   
 

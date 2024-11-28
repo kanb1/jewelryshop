@@ -25,8 +25,17 @@ const orderSchema = new mongoose.Schema({
   paymentStatus: { type: String, default: "Pending" },
   status: {
     type: String,
-    enum: ["In Progress", "Completed", "Return"], // Add status field for orders
+    enum: ["In Progress", "Completed", "Return", "Return Initiated"], // Updated order status options
     default: "In Progress", // Default status for a new order
+  },
+  returnId: {
+    type: String, // Unique identifier for tracking the return process
+    default: null,
+  },
+  returnStatus: {
+    type: String,
+    enum: ["Pending", "Received", "Refunded"], // Track the return process status
+    default: null,
   },
   returnInitiated: {
     type: Boolean,
