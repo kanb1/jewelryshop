@@ -7,8 +7,20 @@ const router = express.Router();
 router.use(adminMiddleware); // Apply admin middleware to all routes in this file
 
 
+// GET /api/admin/orders - Fetch all orders
+router.get("/", adminMiddleware, async (Request, Response) => {
+  try {
+    const orders = await Order.find(); // Fetch all orders
+    Response.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    Response.status(500).json({ error: "Internal server error." });
+  }
+});
 
-// PUT /api/admin/orders/:id/status - Update order status
+
+
+
 // PUT /api/admin/orders/:id/status - Update the status of an order
 router.put("/:id/status", adminMiddleware, async (Request, Response) => {
   const { id } = Request.params;
@@ -67,5 +79,50 @@ router.put("/:id/return", adminMiddleware, async (Request, Response) => {
     Response.status(500).json({ error: "Internal server error." });
   }
 });
+
+// PUT /api/admin/orders/:id/return-status - Update return status
+router.put("/:id/return-status", adminMiddleware, async (Request, Response) => {
+  const { id } = Request.params;
+  const { returnStatus } = Request.body;
+
+  try {
+    const order = await Order.findById(id);
+
+    if (!order) {
+       Response.status(404).json({ error: "Order not found." });
+       return;
+
+    }
+
+    // Ensure the order is in a returnable state
+    if (!order.returnInitiated) {
+       Response.status(400).json({ error: "Return has not been initiated for this order." });
+       return;
+
+    }
+
+    // Update the return status
+    if (["Pending", "Received", "Refunded"].includes(returnStatus)) {
+      order.returnStatus = returnStatus;
+
+      // If the status is "Refunded," consider marking the overall order as completed
+      if (returnStatus === "Refunded") {
+        order.status = "Completed";
+      }
+
+      await order.save();
+       Response.status(200).json({ message: "Return status updated successfully.", order });
+      return;
+
+    } else {
+       Response.status(400).json({ error: "Invalid return status provided." });
+       return;
+    }
+  } catch (error) {
+    console.error("Error updating return status:", error);
+    Response.status(500).json({ error: "Internal server error." });
+  }
+});
+
 
 export default router;
