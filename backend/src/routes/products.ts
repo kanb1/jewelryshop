@@ -20,7 +20,8 @@ router.get("/", async (Request, Response) => {
     const { type, collection, minPrice, maxPrice, page = 1, limit = 6, sort } = Request.query;
 
     const filter: any = {};
-    if (type) filter.type = type;
+    // Bruger regex til case-insensitive match for type (f.eks. "Rings" vs "rings")
+    if (type) filter.type = { $regex: new RegExp(`^${type}$`, "i") };
     if (collection) {
       filter.productCollection = { $in: Array.isArray(collection) ? collection : [collection] };
     }

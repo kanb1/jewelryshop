@@ -19,7 +19,6 @@ import paymentRoute from './routes/checkout/payment';
 import favouritesRouter from "./routes/favorites";
 import adminProducts from "./routes/admin/adminProducts";
 import adminOrders from "./routes/admin/adminOrders";
-import adminUsers from "./routes/admin/adminUsers";
 
 
 
@@ -77,7 +76,6 @@ app.use('/api/payment', paymentRoute);
 app.use("/api/favourites", favouritesRouter);
 app.use("/api/admin/products", adminProducts);
 app.use("/api/admin/orders", adminOrders);
-app.use("/api/admin/users", adminUsers);
 
 
 

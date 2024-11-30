@@ -14,9 +14,6 @@ const AdminDashboard: React.FC = () => {
         <Button onClick={() => navigate("/admin/products")} colorScheme="green">
           Manage Products
         </Button>
-        <Button onClick={() => navigate("/admin/users")} colorScheme="teal">
-          Manage Users
-        </Button>
       </VStack>
     </Box>
   );

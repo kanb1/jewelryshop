@@ -1,12 +1,21 @@
-import React, { useState } from "react";
-import { Box, Button, Input, VStack, Text, FormControl, FormErrorMessage, useToast } from "@chakra-ui/react";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Button,
+  Input,
+  VStack,
+  Text,
+  FormControl,
+  FormErrorMessage,
+  useToast,
+  Alert,
+  AlertIcon,
+} from "@chakra-ui/react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 interface LoginProps {
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 }
-
-
 
 const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
   const [username, setUsername] = useState("");
@@ -18,6 +27,21 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Access the redirected message
+  const message = location.state?.message;
+
+  useEffect(() => {
+    if (message) {
+      // Show a toast message if redirected with a state message
+      toast({
+        title: message,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  }, [message, toast]);
+
   const handleSubmit = async () => {
     if (!username) {
       setUsernameError("Username is required.");
@@ -27,10 +51,10 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
       setPasswordError("Password is required.");
       return;
     }
-  
+
     setUsernameError("");
     setPasswordError("");
-  
+
     try {
       const response = await fetch("http://localhost:5001/api/auth/login", {
         method: "POST",
@@ -39,20 +63,20 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
         },
         body: JSON.stringify({ username, password }),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         throw new Error(data.message || "Login failed.");
       }
-  
+
       // Save the token to localStorage
       localStorage.setItem("jwt", data.token);
-  
+
       // Manually decode JWT to extract the role
       const tokenPayload = JSON.parse(atob(data.token.split(".")[1]));
       const userRole = tokenPayload.role;
-  
+
       // Show success toast
       toast({
         title: "Login successful",
@@ -60,9 +84,9 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
         duration: 3000,
         isClosable: true,
       });
-  
+
       if (setIsLoggedIn) setIsLoggedIn(true);
-  
+
       // Redirect based on role
       if (userRole === "admin") {
         navigate("/admin");
@@ -73,13 +97,29 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
       setError(err.message || "Something went wrong.");
     }
   };
-  
+
   return (
-    <Box maxWidth="400px" mx="auto" mt="100px" p="6" borderWidth="1px" borderRadius="md" boxShadow="lg">
+    <Box
+      maxWidth="400px"
+      mx="auto"
+      mt="100px"
+      p="6"
+      borderWidth="1px"
+      borderRadius="md"
+      boxShadow="lg"
+    >
       <VStack spacing={4}>
         <Text fontSize="2xl" fontWeight="bold">
           Login
         </Text>
+
+        {/* Display Redirect Message */}
+        {message && (
+          <Alert status="error" borderRadius="md">
+            <AlertIcon />
+            {message}
+          </Alert>
+        )}
 
         {/* Username Field */}
         <FormControl isInvalid={!!usernameError}>

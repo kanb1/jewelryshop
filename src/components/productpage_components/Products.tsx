@@ -35,7 +35,7 @@ const Products: React.FC = () => {
   const [selectedJewelryTypes, setSelectedJewelryTypes] = useState<string[]>(
     category === "all" || !category ? [] : [category]
   );
-  const [products, setProducts] = useState<Product[]>([]); // Add type annotation here
+  const [products, setProducts] = useState<Product[]>([]);
   const [allCollections, setAllCollections] = useState<string[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,8 +56,6 @@ const Products: React.FC = () => {
         );
         const data = await response.json();
 
-        console.log("Fetched products:", data.products); // Debug response here
-
         setProducts(data.products);
         setTotalProducts(data.totalProducts);
         setTotalPages(data.totalPages);
@@ -70,25 +68,23 @@ const Products: React.FC = () => {
     };
 
     fetchProducts();
-  }, [searchParams, sortOption]);
+  }, [searchParams]);
 
- // Reset filters whenever the category changes
-useEffect(() => {
-  if (category) {
-    if (category === "all") {
-      setSelectedJewelryTypes([]);
-      setSelectedCollections([]);
-      setSearchParams({});
-    } else {
-      // Set the selected category as the jewelry type filter
-      setSelectedJewelryTypes([category]);
-      setSelectedCollections([]);
-      setSearchParams({ type: category }); // Set the type in the URL search params
-      setCurrentPage(1); // Reset to page 1
+  // Reset filters whenever the category changes
+  useEffect(() => {
+    if (category) {
+      if (category === "all") {
+        setSelectedJewelryTypes([]);
+        setSelectedCollections([]);
+        setSearchParams({});
+      } else {
+        setSelectedJewelryTypes([category]);
+        setSelectedCollections([]);
+        setSearchParams({ type: category });
+        setCurrentPage(1); // Reset to page 1
+      }
     }
-  }
-}, [category]);
-
+  }, [category]);
 
   // Fetch collections independently
   useEffect(() => {
@@ -120,30 +116,29 @@ useEffect(() => {
     setSearchParams(params);
   };
 
- // Handle Jewelry Type Filter Change
-const handleJewelryTypeChange = (type: string, isChecked: boolean) => {
-  const updatedJewelryTypes = isChecked
-    ? [...selectedJewelryTypes, type]
-    : selectedJewelryTypes.filter((t) => t !== type);
+  // Handle Jewelry Type Filter Change
+  const handleJewelryTypeChange = (type: string, isChecked: boolean) => {
+    const updatedJewelryTypes = isChecked
+      ? [...selectedJewelryTypes, type]
+      : selectedJewelryTypes.filter((t) => t !== type);
 
-  setSelectedJewelryTypes(updatedJewelryTypes);
+    setSelectedJewelryTypes(updatedJewelryTypes);
 
-  const params = new URLSearchParams(searchParams);
-  params.delete("type"); // Clear existing 'type' params
-  updatedJewelryTypes.forEach((t) => params.append("type", t)); // Add updated types
-  params.set("page", "1"); // Reset to page 1 when the filter changes
-  setSearchParams(params); // Sync URL
-};
+    const params = new URLSearchParams(searchParams);
+    params.delete("type");
+    updatedJewelryTypes.forEach((t) => params.append("type", t));
+    params.set("page", "1");
+    setSearchParams(params);
+  };
 
   // Handle Sort Change
-const handleSortChange = (sortOption: string) => {
-  setSortOption(sortOption); // Update the state for the selected sort option
-
-  const params = new URLSearchParams(searchParams);
-  params.set("sort", sortOption); // Set the sort parameter
-  params.set("page", "1"); // Reset to page 1 when sort changes
-  setSearchParams(params);
-};
+  const handleSortChange = (sortOption: string) => {
+    setSortOption(sortOption);
+    const params = new URLSearchParams(searchParams);
+    params.set("sort", sortOption);
+    params.set("page", "1");
+    setSearchParams(params);
+  };
 
   // Handle Page Change
   const handlePageChange = (page: number) => {
@@ -209,16 +204,16 @@ const handleSortChange = (sortOption: string) => {
             Filter
           </Heading>
           <Box mb={6}>
-  <Heading as="h3" size="sm" mb={2}>
-    Sort By
-  </Heading>
-  <RadioGroup value={sortOption} onChange={handleSortChange}>
-    <Stack direction="column">
-      <Radio value="priceHighToLow">Price High to Low</Radio>
-      <Radio value="priceLowToHigh">Price Low to High</Radio>
-    </Stack>
-  </RadioGroup>
-</Box>
+            <Heading as="h3" size="sm" mb={2}>
+              Sort By
+            </Heading>
+            <RadioGroup value={sortOption} onChange={handleSortChange}>
+              <Stack direction="column">
+                <Radio value="priceHighToLow">Price High to Low</Radio>
+                <Radio value="priceLowToHigh">Price Low to High</Radio>
+              </Stack>
+            </RadioGroup>
+          </Box>
 
           <Divider my={4} />
           <Box mb={6}>
@@ -239,47 +234,47 @@ const handleSortChange = (sortOption: string) => {
             </Stack>
           </Box>
           <Box>
-  <Heading as="h3" size="sm" mb={2}>
-    Jewelry Types
-  </Heading>
-  <Stack direction="column">
-    {["necklaces", "earrings", "bracelets", "rings"].map((type) => (
-      <Checkbox
-        key={type}
-        value={type}
-        isChecked={selectedJewelryTypes.includes(type)}
-        onChange={(e) => handleJewelryTypeChange(type, e.target.checked)}
-      >
-        {type.charAt(0).toUpperCase() + type.slice(1)}
-      </Checkbox>
-    ))}
-  </Stack>
-</Box>;
+            <Heading as="h3" size="sm" mb={2}>
+              Jewelry Types
+            </Heading>
+            <Stack direction="column">
+              {["necklaces", "earrings", "bracelets", "rings"].map((type) => (
+                <Checkbox
+                  key={type}
+                  value={type}
+                  isChecked={selectedJewelryTypes.includes(type)}
+                  onChange={(e) => handleJewelryTypeChange(type, e.target.checked)}
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </Checkbox>
+              ))}
+            </Stack>
+          </Box>
         </Box>
 
         {/* Product Grid */}
         <Box as="section">
-        <Text mb={4}>
-  {totalProducts > 0 
-    ? `${totalProducts} products in total` 
-    : "No products found"}
-</Text>
+          <Text mb={4}>
+            {totalProducts > 0 ? `${totalProducts} products in total` : "No products found"}
+          </Text>
 
           {loading ? (
             <Text>Loading products...</Text>
           ) : (
-<Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
-  {products.map((product) => (
-    <ProductCard key={product._id} product={product} />
-  ))}
-</Grid>
-
+            <Grid
+              templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }}
+              gap={6}
+            >
+              {products.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
+            </Grid>
           )}
         </Box>
       </Grid>
 
-           {/* Pagination Controls */}
-           <Stack direction="row" spacing={4} mt={6} justify="center">
+      {/* Pagination Controls */}
+      <Stack direction="row" spacing={4} mt={6} justify="center">
         <Button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}

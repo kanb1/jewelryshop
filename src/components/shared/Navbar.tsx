@@ -40,11 +40,23 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
 
+  // Decode JWT token to check the role
+  const token = localStorage.getItem("jwt");
+  let userRole = "";
+  if (token) {
+    try {
+      const decoded: any = jwtDecode(token);
+      userRole = decoded.role; // Assuming your token has a "role" field
+    } catch (err) {
+      console.error("Failed to decode token:", err);
+    }
+  }
+
   const handleLogout = () => {
     localStorage.removeItem("jwt");
     setIsLoggedIn(false);
-    setCartCount(0); // Reset cart count
-    navigate("/login"); // Redirect to login page
+    setCartCount(0);
+    navigate("/login");
   };
 
   const categories = ["Rings", "Necklaces", "Bracelets", "Earrings"];
@@ -111,14 +123,17 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
 
         {/* LOGIN/LOGOUT AND CART */}
         <HStack spacing={6}>
-          {isLoggedIn ? (
+        {isLoggedIn ? (
             <>
-              <Link to="/profile">
-                <Button variant="ghost">
-                  <FaUser />
-                  <Text ml={2}>Profile</Text>
-                </Button>
-              </Link>
+              {userRole === "admin" ? (
+                <Link to="/admin">
+                  <Button variant="ghost">Dashboard</Button>
+                </Link>
+              ) : (
+                <Link to="/profile">
+                  <Button variant="ghost">Profile</Button>
+                </Link>
+              )}
               <Button variant="ghost" onClick={handleLogout}>
                 Logout
               </Button>
@@ -205,3 +220,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
 };
 
 export default Navbar;
+function jwtDecode(token: string): any {
+  throw new Error("Function not implemented.");
+}
+
