@@ -41,9 +41,12 @@ const Products: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [paramsReady, setParamsReady] = useState(false); // Tilføjet: Holder styr på parametre
 
   // Fetch products based on filters and pagination
   useEffect(() => {
+    if (!paramsReady) return; // Vent, indtil parametrene er klar
+
     const fetchProducts = async () => {
       setLoading(true);
 
@@ -68,21 +71,17 @@ const Products: React.FC = () => {
     };
 
     fetchProducts();
-  }, [searchParams]);
+  }, [searchParams, paramsReady]);
 
   // Reset filters whenever the category changes
   useEffect(() => {
     if (category) {
-      if (category === "all") {
-        setSelectedJewelryTypes([]);
-        setSelectedCollections([]);
-        setSearchParams({});
-      } else {
-        setSelectedJewelryTypes([category]);
-        setSelectedCollections([]);
-        setSearchParams({ type: category });
-        setCurrentPage(1); // Reset to page 1
-      }
+      const params = new URLSearchParams();
+      if (category !== "all") params.set("type", category.toLowerCase());
+      params.set("page", "1"); // Reset til første side
+      setSearchParams(params);
+      setSelectedJewelryTypes(category === "all" ? [] : [category]);
+      setParamsReady(true); // Marker parametrene som klar
     }
   }, [category]);
 
@@ -121,15 +120,16 @@ const Products: React.FC = () => {
     const updatedJewelryTypes = isChecked
       ? [...selectedJewelryTypes, type]
       : selectedJewelryTypes.filter((t) => t !== type);
-
+  
     setSelectedJewelryTypes(updatedJewelryTypes);
-
+  
     const params = new URLSearchParams(searchParams);
-    params.delete("type");
-    updatedJewelryTypes.forEach((t) => params.append("type", t));
-    params.set("page", "1");
+    params.delete("type"); // Fjern alle tidligere 'type'-parametre
+    updatedJewelryTypes.forEach((t) => params.append("type", t)); // Tilføj hver ny valgt type som en separat parameter
+    params.set("page", "1"); // Gå altid tilbage til side 1
     setSearchParams(params);
   };
+  
 
   // Handle Sort Change
   const handleSortChange = (sortOption: string) => {

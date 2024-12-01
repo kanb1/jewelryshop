@@ -21,8 +21,11 @@ router.get("/", async (Request, Response) => {
 
     const filter: any = {};
     // Bruger regex til case-insensitive match for type (f.eks. "Rings" vs "rings")
-    if (type) filter.type = { $regex: new RegExp(`^${type}$`, "i") };
-    if (collection) {
+    if (type) {
+      const types = Array.isArray(type) ? type : [type]; // Gør `type` til en array, hvis det ikke allerede er det
+      filter.type = { $in: types }; // Brug `$in` for at matche flere værdier
+    }
+        if (collection) {
       filter.productCollection = { $in: Array.isArray(collection) ? collection : [collection] };
     }
     if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice as string) };
