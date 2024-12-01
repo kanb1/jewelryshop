@@ -10,15 +10,17 @@ import { Request, Response, NextFunction } from 'express';
 
 // Routes
 import productsRouter from './routes/products'; // Use ES6 imports for routes
-import authRouter from './routes/auth'; // Import the new authentication routes
+import authRouter from './routes/auth'; 
+import forgotPasswordRoutes from "./routes/user/forgotpassword";
 import authenticateJWT from './routes/authMiddleware';  // Importing the middleware
 import cartRoutes from './routes/cart';
 import ordersRoutes from "./routes/checkout/orders"; 
 import deliveryRoutes from "./routes/checkout/delivery";
 import paymentRoute from './routes/checkout/payment';
-import favouritesRouter from "./routes/favorites";
+import favouritesRouter from "./routes/user/favorites";
 import adminProducts from "./routes/admin/adminProducts";
 import adminOrders from "./routes/admin/adminOrders";
+import userRouter from "./routes/user/userinfo";
 
 
 
@@ -69,6 +71,7 @@ mongoose
 // **********************************************************************Adding the routes to the server:
 app.use('/api/products', productsRouter); //  products router
 app.use('/api/auth', authRouter); //  auth router for authentication
+app.use("/api/forgotpassword", forgotPasswordRoutes);
 app.use('/api', cartRoutes); // Cart routes
 app.use("/api/orders", ordersRoutes); // All order routes will now be prefixed with `/api/orders`
 app.use("/api/delivery", deliveryRoutes);
@@ -76,6 +79,7 @@ app.use('/api/payment', paymentRoute);
 app.use("/api/favourites", favouritesRouter);
 app.use("/api/admin/products", adminProducts);
 app.use("/api/admin/orders", adminOrders);
+app.use('/api/users', userRouter);
 
 
 

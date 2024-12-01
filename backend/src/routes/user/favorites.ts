@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
-import Favorite from "../models/Favorites"; // Import Favourite model
-import authenticateJWT from "../routes/authMiddleware";
+import Favorite from "../../models/Favorites"; // Import Favourite model
+import authenticateJWT from "../authMiddleware";
 import mongoose from "mongoose";
 
 // Extend the Request type to include `user`

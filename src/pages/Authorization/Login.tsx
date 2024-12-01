@@ -10,6 +10,7 @@ import {
   useToast,
   Alert,
   AlertIcon,
+  Link,
 } from "@chakra-ui/react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -20,7 +21,7 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(""); // Global form error
+  const [error, setError] = useState(""); // General form error
   const [usernameError, setUsernameError] = useState(""); // Field-specific error
   const [passwordError, setPasswordError] = useState(""); // Field-specific error
   const toast = useToast();
@@ -149,6 +150,11 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
         <Button colorScheme="blue" width="100%" onClick={handleSubmit}>
           Login
         </Button>
+
+        {/* Forgot Password Link */}
+        <Text fontSize="sm" color="blue.500" mt={2}>
+          <Link onClick={() => navigate("/forgot-password")}>Forgot Password?</Link>
+        </Text>
       </VStack>
     </Box>
   );

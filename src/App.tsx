@@ -19,6 +19,8 @@ import theme from './theme';
 import { CartProvider, useCart } from './context/CartContext';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import ResetPassword from './components/authorization_components/ResetPassword';
+import ForgotPassword from './components/authorization_components/ForgotPassword';
 
 // Initialize Stripe with your public key
 // const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -47,6 +49,8 @@ const App: React.FC = () => {
           <Route path="/products/:category" element={<Productpage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/cart" element={<Cartpage/>} />
