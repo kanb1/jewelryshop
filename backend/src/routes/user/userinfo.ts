@@ -72,6 +72,43 @@ router.put("/:id", authenticateJWT, async (Request: AuthenticatedRequest, Respon
 
 
 // ****************************************************************PASSWORD CHANGE
+// PUT /users/:id/change-password - Change password
+router.put("/:id/change-password", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user?.userId; // Get user ID from the authenticated JWT
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    // Ensure the user is only updating their own password
+    if (!userId || userId !== req.params.id) {
+      res.status(403).json({ message: "Unauthorized to change password for this user" });
+      return;
+    }
+
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    // Verify the current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      res.status(400).json({ message: "Current password is incorrect" });
+      return;
+    }
+
+    // Hash and update the new password
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
   
 

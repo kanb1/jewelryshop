@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { Box, Heading, Input, Button, FormControl, FormLabel, Spinner, useToast, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Heading,
+  Input,
+  Button,
+  FormControl,
+  FormLabel,
+  Spinner,
+  useToast,
+  Text,
+  Divider,
+  VStack,
+} from "@chakra-ui/react";
 
 const UserInfo: React.FC = () => {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [updating, setUpdating] = useState<boolean>(false);
+  const [updatingInfo, setUpdatingInfo] = useState<boolean>(false);
+  const [changingPassword, setChangingPassword] = useState<boolean>(false);
+  const [currentPassword, setCurrentPassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
   const toast = useToast();
 
   useEffect(() => {
@@ -31,9 +46,9 @@ const UserInfo: React.FC = () => {
     fetchUser();
   }, []);
 
-  const handleUpdate = async () => {
+  const handleInfoUpdate = async () => {
     try {
-      setUpdating(true);
+      setUpdatingInfo(true);
       const token = localStorage.getItem("jwt");
       if (!token) throw new Error("Unauthorized");
 
@@ -67,7 +82,52 @@ const UserInfo: React.FC = () => {
         isClosable: true,
       });
     } finally {
-      setUpdating(false);
+      setUpdatingInfo(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    try {
+      setChangingPassword(true);
+      const token = localStorage.getItem("jwt");
+      if (!token) throw new Error("Unauthorized");
+
+      const response = await fetch(`http://localhost:5001/api/users/${user._id}/change-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Password Updated",
+          description: "Your password has been updated successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        // Clear password fields
+        setCurrentPassword("");
+        setNewPassword("");
+      } else {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to update password");
+      }
+    } catch (error: any) {
+      console.error("Error updating password:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update password.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -82,32 +142,84 @@ const UserInfo: React.FC = () => {
 
   return (
     <Box p={5}>
-      <Heading size="lg" mb={4}>User Info</Heading>
-      <FormControl mb={4}>
-        <FormLabel>First Name</FormLabel>
-        <Input
-          value={user?.name || ""}
-          onChange={(e) => setUser({ ...user, name: e.target.value })}
-        />
-      </FormControl>
-      <FormControl mb={4}>
-        <FormLabel>Last Name</FormLabel>
-        <Input
-          value={user?.surname || ""}
-          onChange={(e) => setUser({ ...user, surname: e.target.value })}
-        />
-      </FormControl>
-      <FormControl mb={4}>
-        <FormLabel>Email</FormLabel>
-        <Input value={user?.email || ""} isReadOnly />
-      </FormControl>
-      <Button
-        colorScheme="blue"
-        onClick={handleUpdate}
-        isLoading={updating}
+      <Heading size="lg" mb={4}>
+        User Info
+      </Heading>
+
+      {/* User Summary */}
+      <Box
+        borderWidth="1px"
+        borderRadius="md"
+        p={4}
+        mb={5}
+        bg="gray.50"
+        boxShadow="sm"
       >
-        Update Profile
-      </Button>
+        <Text fontWeight="bold">Name:</Text>
+        <Text>{user?.name} {user?.surname}</Text>
+        <Text fontWeight="bold" mt={3}>Email:</Text>
+        <Text>{user?.email}</Text>
+      </Box>
+
+      <Divider mb={5} />
+
+      {/* Update Profile Form */}
+      <VStack spacing={4} align="stretch">
+        <FormControl>
+          <FormLabel>First Name</FormLabel>
+          <Input
+            value={user?.name || ""}
+            onChange={(e) => setUser({ ...user, name: e.target.value })}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel>Last Name</FormLabel>
+          <Input
+            value={user?.surname || ""}
+            onChange={(e) => setUser({ ...user, surname: e.target.value })}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel>Email</FormLabel>
+          <Input value={user?.email || ""} isReadOnly />
+        </FormControl>
+        <Button
+          colorScheme="blue"
+          onClick={handleInfoUpdate}
+          isLoading={updatingInfo}
+        >
+          Update Profile
+        </Button>
+      </VStack>
+
+      <Divider my={5} />
+
+      {/* Change Password Form */}
+      <VStack spacing={4} align="stretch">
+        <FormControl>
+          <FormLabel>Current Password</FormLabel>
+          <Input
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel>New Password</FormLabel>
+          <Input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+        </FormControl>
+        <Button
+          colorScheme="green"
+          onClick={handlePasswordChange}
+          isLoading={changingPassword}
+        >
+          Change Password
+        </Button>
+      </VStack>
     </Box>
   );
 };
