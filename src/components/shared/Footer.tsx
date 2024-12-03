@@ -1,4 +1,15 @@
-import { Box, Stack, Link, Text, VStack, Divider } from "@chakra-ui/react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  Box,
+  Stack,
+  Text,
+  VStack,
+  Divider,
+  Image,
+  HStack,
+  IconButton,
+} from "@chakra-ui/react";
+import { FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
 
 const Footer = () => {
   return (
@@ -8,26 +19,48 @@ const Footer = () => {
 
       {/* Footer Content */}
       <VStack spacing={6} textAlign="center">
-        {/* Title */}
-        <Text fontSize="xl" fontWeight="bold" color="accent_color.red">
-          JewelryShop
-        </Text>
-
         {/* Navigation Links */}
         <Stack direction={{ base: "column", sm: "row" }} spacing={4}>
-          <Link href="#" fontSize="sm" _hover={{ color: "accent_color.red" }}>
-            Home
-          </Link>
-          <Link href="#" fontSize="sm" _hover={{ color: "accent_color.red" }}>
-            Collections
-          </Link>
-          <Link href="#" fontSize="sm" _hover={{ color: "accent_color.red" }}>
-            About Us
-          </Link>
-          <Link href="#" fontSize="sm" _hover={{ color: "accent_color.red" }}>
-            Contact
-          </Link>
+          <Link to="/">Home</Link>
+          <Link to="/about">About Us</Link>
         </Stack>
+
+        {/* Social Media Links */}
+        <HStack spacing={4} justify="center">
+          <IconButton
+            as="a"
+            href="https://www.facebook.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+            icon={<FaFacebook />}
+            variant="ghost"
+            colorScheme="blue"
+            fontSize="1.5rem" // Adjust icon size here
+          />
+          <IconButton
+            as="a"
+            href="https://www.twitter.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Twitter"
+            icon={<FaTwitter />}
+            variant="ghost"
+            colorScheme="twitter"
+            fontSize="1.5rem" // Adjust icon size here
+          />
+          <IconButton
+            as="a"
+            href="https://www.instagram.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+            icon={<FaInstagram />}
+            variant="ghost"
+            colorScheme="pink"
+            fontSize="1.5rem" // Adjust icon size here
+          />
+        </HStack>
 
         {/* Additional Information */}
         <Text fontSize="xs" color="gray.500">

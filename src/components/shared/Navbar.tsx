@@ -24,8 +24,9 @@ import {
   Input,
   InputLeftElement,
   Badge,
+  Image,
 } from "@chakra-ui/react";
-import { ChevronDownIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon, HamburgerIcon} from "@chakra-ui/icons";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import { FaUser } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
@@ -74,52 +75,35 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
         />
 
         {/* LOGO */}
-        <Box fontSize="2xl" fontWeight="bold">
-          LOGO
+        <Box display={{ base: "none", lg: "block" }}>
+          <Link to="/">
+              <Image
+                src="/images/KanzaJewelriesLogo.png" // Replace with the correct path to the new logo
+                alt="Kanza Jewelry Logo"
+                maxWidth={{ base: "120px", sm: "150px", md: "180px" }} // Adjust sizes for responsiveness
+                height="auto"
+                objectFit="contain"
+                display="inline-block" // Ensure proper alignment
+              />
+          </Link>
         </Box>
 
-        {/* SEARCH BAR */}
-        <Box display={{ base: "none", lg: "block" }} mr={10}>
-          <InputGroup width="350px">
-            <InputLeftElement pointerEvents="none">
-              <SearchIcon color="gray.500" />
-            </InputLeftElement>
-            <Input
-              type="text"
-              placeholder="Search for products, brands, etc.."
-              variant="filled"
-              bg="gray.50"
-              _placeholder={{ color: "gray.400" }}
-            />
-          </InputGroup>
-        </Box>
+
+        
 
         {/* DESKTOP MENU */}
         <HStack spacing={8} display={{ base: "none", lg: "flex" }}>
-          <Menu>
-            <MenuButton
-              as={Button}
-              rightIcon={<ChevronDownIcon />}
-              variant="link"
-              _hover={{ textDecoration: "none", color: "#7B0828" }}
+          {categories.map((category) => (
+            <Link
+              key={category}
+              to={`/products/${category.toLowerCase()}`}
+              style={{ fontWeight: "medium", textDecoration: "none" }}
             >
-              Jewelries
-            </MenuButton>
-            <MenuList>
-              {categories.map((category) => (
-                <MenuItem key={category} as={Link} to={`/products/${category.toLowerCase()}`}>
-                  {category}
-                </MenuItem>
-              ))}
-            </MenuList>
-          </Menu>
-          <Link to="/popular" style={{ fontWeight: "medium" }}>
-            Popular
-          </Link>
-          <Link to="/collections" style={{ fontWeight: "medium" }}>
-            Collections
-          </Link>
+              {category}
+            </Link>
+          ))}
         </HStack>
+
 
         {/* LOGIN/LOGOUT AND CART */}
         <HStack spacing={6}>
@@ -177,44 +161,63 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader>Menu</DrawerHeader>
+          <DrawerHeader>
+            <Link to="/" onClick={onClose}>
+              <Image
+                src="/images/KanzaJewelriesLogo.png" 
+                alt="Kanza Jewelry Logo"
+                maxWidth="120px" 
+                height="auto"
+                objectFit="contain"
+                mx="auto" // Center the logo horizontally
+              />
+            </Link>
+          </DrawerHeader>
           <DrawerBody>
             <VStack align="start" spacing={4}>
-              <Menu>
-                <MenuButton as={Link}>
-                  Jewelries
-                </MenuButton>
-                <VStack align="start" spacing={2} ml={4}>
-                  {categories.map((category) => (
-                    <Link key={category} to={`/products/${category.toLowerCase()}`}>
-                      {category}
-                    </Link>
-                  ))}
-                </VStack>
-              </Menu>
-              <Link to="/popular">Popular</Link>
-              <Link to="/collections">Collections</Link>
+              {/* Categories */}
+              {categories.map((category) => (
+                <Link
+                  key={category}
+                  to={`/products/${category.toLowerCase()}`}
+                  style={{ fontWeight: "medium", textDecoration: "none" }}
+                  onClick={onClose} // Close the menu after navigation
+                >
+                  {category}
+                </Link>
+              ))}
+
               <Divider my={6} />
+
+              {/* Profile Links */}
               {isLoggedIn ? (
                 <>
-                  <Link to="/profile">My Profile</Link>
+                  <Link to="/profile" onClick={onClose}>
+                    My Profile
+                  </Link>
                   <Button onClick={handleLogout} variant="link">
                     Logout
                   </Button>
                 </>
               ) : (
                 <>
-                  <Link to="/login">
+                  <Link to="/login" onClick={onClose}>
                     Login
                   </Link>
-                  <Link to="/signup">Signup</Link>
+                  <Link to="/signup" onClick={onClose}>
+                    Signup
+                  </Link>
                 </>
               )}
-              <Link to="/cart">Basket</Link>
+
+              <Link to="/cart" onClick={onClose}>
+                Basket
+              </Link>
             </VStack>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
+
     </Box>
   );
 };
