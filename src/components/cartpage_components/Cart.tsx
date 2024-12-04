@@ -13,6 +13,7 @@ import {
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import ButtonComponent from "../shared/ButtonComponent";
 
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
@@ -105,6 +106,7 @@ const Cart: React.FC = () => {
   if (cartItems.length === 0) return <Text>Your cart is empty.</Text>;
 
   return (
+    <Box minH="50vh">
     <Box p={10}>
       <Heading mb={6}>Your Shopping Cart</Heading>
       <Grid templateColumns={{ base: "1fr", lg: "3fr 1fr" }} gap={6}>
@@ -138,22 +140,28 @@ const Cart: React.FC = () => {
                   icon={<AddIcon />}
                   size="sm"
                   onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)} aria-label={""}                />
-                <Button
-                  colorScheme="red"
-                  ml={4}
-                  onClick={() => handleRemoveItem(item._id)}
-                >
-                  Remove
-                </Button>
+                <ButtonComponent
+                    text="Remove"
+                    onClick={() => handleRemoveItem(item._id)}
+                    variant="redBtn"
+                    styleOverride={{ marginLeft: "1rem" }}
+                  />
               </Flex>
             </Flex>
           ))}
         </Box>
         <Box>
           <Text>Total: ${calculateTotal()}</Text>
-          <Button onClick={() => navigate("/checkout")}>Proceed to Checkout</Button>
+          <ButtonComponent
+              text="Proceed to Checkout"
+              onClick={() => navigate("/checkout")}
+              variant="primaryBlackBtn"
+              styleOverride={{ marginTop: "1rem", width: "50%" }}
+            />
+
         </Box>
       </Grid>
+    </Box>
     </Box>
   );
 };

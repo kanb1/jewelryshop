@@ -10,6 +10,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import ButtonComponent from "../shared/ButtonComponent";
 
 const ResetPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -116,9 +117,12 @@ const ResetPassword: React.FC = () => {
         {error && <Text color="red.500">{error}</Text>}
 
         {/* Submit Button */}
-        <Button colorScheme="blue" width="100%" onClick={handleSubmit}>
-          Reset Password
-        </Button>
+        {/* Submit Button */}
+        <ButtonComponent
+          text="Reset Password"
+          onClick={handleSubmit}
+          variant="greenBtn"
+        />
       </VStack>
     </Box>
   );

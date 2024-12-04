@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Text, Button } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
+import ButtonComponent from "./ButtonComponent";
 
 interface ProductCardProps {
   product: {
@@ -21,9 +22,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </Text>
       <Text>${product.price}</Text>
       <Link to={`/product/${product._id}`}>
-        <Button colorScheme="blue" mt={2}>
-          View Details
-        </Button>
+      <ButtonComponent
+          text="View product"
+          variant="ctaBtn" 
+        />
       </Link>
     </Box>
   );

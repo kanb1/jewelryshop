@@ -10,6 +10,7 @@ import {
   useToast,
   Heading,
 } from "@chakra-ui/react";
+import ButtonComponent from "../shared/ButtonComponent";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -71,6 +72,7 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
+    <Box minH="50vh">
     <Box
       maxWidth="400px"
       mx="auto"
@@ -79,6 +81,7 @@ const ForgotPassword: React.FC = () => {
       borderWidth="1px"
       borderRadius="md"
       boxShadow="lg"
+      
     >
       <VStack spacing={4}>
         <Heading size="lg" textAlign="center">
@@ -100,15 +103,13 @@ const ForgotPassword: React.FC = () => {
         </FormControl>
 
         {/* Submit Button */}
-        <Button
-          colorScheme="blue"
-          width="100%"
+        <ButtonComponent
+          text="Send Reset Link"
           onClick={handleSubmit}
-          isLoading={loading}
-        >
-          Send Reset Link
-        </Button>
+          variant="greenBtn"
+        />
       </VStack>
+    </Box>
     </Box>
   );
 };

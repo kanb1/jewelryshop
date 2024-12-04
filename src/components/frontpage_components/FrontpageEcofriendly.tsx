@@ -33,7 +33,7 @@ const FrontpageEcofriendly = () => {
         {/* Right Side: Image */}
         <Box flex="1" w="100%" h={{ base: "300px", md: "400px" }} bg="gray.300" borderRadius="md" overflow="hidden">
           <Image
-            src="/images/ecofriendly_img1.jpg" // Replace with your image path
+            src="/images/frontpage/ecofriendly_img1.jpg" // Replace with your image path
             alt="Ecofriendly products"
             objectFit="cover"
             w="100%"

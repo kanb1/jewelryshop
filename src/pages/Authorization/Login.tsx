@@ -13,6 +13,7 @@ import {
   Link,
 } from "@chakra-ui/react";
 import { useNavigate, useLocation } from "react-router-dom";
+import ButtonComponent from "../../components/shared/ButtonComponent";
 
 interface LoginProps {
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
@@ -100,6 +101,7 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
   };
 
   return (
+    <Box minH="50vh">
     <Box
       maxWidth="400px"
       mx="auto"
@@ -147,15 +149,17 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
         {error && <Text color="red.500">{error}</Text>}
 
         {/* Submit Button */}
-        <Button colorScheme="blue" width="100%" onClick={handleSubmit}>
-          Login
-        </Button>
+        <ButtonComponent 
+            variant="primaryBlackBtn" text={"Login"} onClick={handleSubmit}  styleOverride={{ width: "100%"}} 
+
+        />
 
         {/* Forgot Password Link */}
         <Text fontSize="sm" color="blue.500" mt={2}>
           <Link onClick={() => navigate("/forgot-password")}>Forgot Password?</Link>
         </Text>
       </VStack>
+    </Box>
     </Box>
   );
 };

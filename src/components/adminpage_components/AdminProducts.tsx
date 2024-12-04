@@ -21,7 +21,9 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  Stack,
 } from "@chakra-ui/react";
+import ButtonComponent from "../shared/ButtonComponent";
 
 const AdminProducts: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -214,9 +216,11 @@ const AdminProducts: React.FC = () => {
           placeholder="Sizes (comma-separated)"
         />
       </FormControl>
-      <Button colorScheme="green" onClick={handleAddProduct}>
-        Add Product
-      </Button>
+      <ButtonComponent
+          text="Add Product"
+          onClick={handleAddProduct}
+          variant="greenBtn"
+        />
     </VStack>
 
     {/* Scrollable Table Container */}
@@ -242,23 +246,22 @@ const AdminProducts: React.FC = () => {
               <Td>{product.type}</Td>
               <Td>${product.price}</Td>
               <Td>
-                <Button
-                  colorScheme="blue"
-                  size="sm"
-                  onClick={() => {
-                    setEditingProduct(product);
-                    onOpen();
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  colorScheme="red"
-                  size="sm"
-                  onClick={() => handleDelete(product._id)}
-                >
-                  Delete
-                </Button>
+              <Stack direction="row" spacing={4}>
+                <ButtonComponent
+                      text="Edit"
+                      onClick={() => {
+                        setEditingProduct(product);
+                        onOpen();
+                      }}
+                      variant="greyBtn"
+                    />
+                <ButtonComponent
+                      text="Delete"
+                      onClick={() => handleDelete(product._id)}
+                      variant="redBtn"
+                />
+              </Stack>
+
               </Td>
             </Tr>
           ))}
@@ -332,12 +335,19 @@ const AdminProducts: React.FC = () => {
           )}
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={handleUpdateProduct}>
-            Save
-          </Button>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
+        <Stack direction="row" spacing={4}>
+        <ButtonComponent
+              text="Save"
+              onClick={handleUpdateProduct}
+              variant="greenBtn"
+            />
+            <ButtonComponent
+              text="Cancel"
+              onClick={onClose}
+              variant="greyBtn"
+        />
+        </Stack>
+
         </ModalFooter>
       </ModalContent>
     </Modal>

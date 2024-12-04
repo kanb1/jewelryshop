@@ -22,7 +22,7 @@ const FrontpageLinkSection = () => {
         {/* Necklace */}
         <Box textAlign="center">
           <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
-            <Image src="/images/linksection_img1.jpg" alt="Necklace" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
+            <Image src="/images/frontpage/linksection_img1.jpg" alt="Necklace" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
           </Box>
           <Link href="#" fontSize="lg" fontWeight="bold" color="primary_color.darkgrey" mt={2} display="block" _hover={{ color: "#000", textDecoration: "underline" }}>
             Necklace
@@ -32,7 +32,7 @@ const FrontpageLinkSection = () => {
         {/* Earrings */}
         <Box textAlign="center">
           <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
-            <Image src="/images/linksection_img2.jpg" alt="Earrings" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
+            <Image src="/images/frontpage/linksection_img2.jpg" alt="Earrings" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
           </Box>
           <Link href="#" fontSize="lg" fontWeight="bold" color="primary_color.darkgrey" mt={2} display="block" _hover={{ color: "#000", textDecoration: "underline" }}>
             Earrings
@@ -42,7 +42,7 @@ const FrontpageLinkSection = () => {
         {/* Bangles */}
         <Box textAlign="center">
           <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
-            <Image src="/images/linksection_img3.jpg" alt="Bangles" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
+            <Image src="/images/frontpage/linksection_img3.jpg" alt="Bangles" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
           </Box>
           <Link href="#" fontSize="lg" fontWeight="bold" color="primary_color.darkgrey" mt={2} display="block" _hover={{ color: "#000", textDecoration: "underline" }}>
             Bangles
@@ -52,7 +52,7 @@ const FrontpageLinkSection = () => {
         {/* Rings */}
         <Box textAlign="center">
           <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
-            <Image src="/images/linksection_img4.jpg" alt="Rings" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
+            <Image src="/images/frontpage/linksection_img4.jpg" alt="Rings" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
           </Box>
           <Link href="#" fontSize="lg" fontWeight="bold" color="primary_color.darkgrey" mt={2} display="block" _hover={{ color: "#000", textDecoration: "underline" }}>
             Rings

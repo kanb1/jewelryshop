@@ -12,6 +12,7 @@ import {
   Divider,
   VStack,
 } from "@chakra-ui/react";
+import ButtonComponent from "../shared/ButtonComponent";
 
 const UserInfo: React.FC = () => {
   const [user, setUser] = useState<any | null>(null);
@@ -183,13 +184,11 @@ const UserInfo: React.FC = () => {
           <FormLabel>Email</FormLabel>
           <Input value={user?.email || ""} isReadOnly />
         </FormControl>
-        <Button
-          colorScheme="blue"
+        <ButtonComponent
+          text="Update Profile"
+          variant="primaryBlackBtn"
           onClick={handleInfoUpdate}
-          isLoading={updatingInfo}
-        >
-          Update Profile
-        </Button>
+        />
       </VStack>
 
       <Divider my={5} />
@@ -212,13 +211,12 @@ const UserInfo: React.FC = () => {
             onChange={(e) => setNewPassword(e.target.value)}
           />
         </FormControl>
-        <Button
-          colorScheme="green"
+        <ButtonComponent
+          text="Change Password"
+          variant="greenBtn"
           onClick={handlePasswordChange}
-          isLoading={changingPassword}
-        >
-          Change Password
-        </Button>
+          hoverStyle={{ bg: "green.600" }}
+        />
       </VStack>
     </Box>
   );

@@ -19,7 +19,8 @@ interface ButtonComponentProps {
 // It's called an index signature in TS, when u don't know the exact names of all the keys in advance
 // The square brackets mean "for any string key", without the square brackets I have to explicitly define all possible keys ahead of time
   hoverStyle?: { [key: string]: any }; 
-
+  styleOverride?: { [key: string]: any }; // Adding this for custom styles
+  isLoading?: boolean; // Add loading state
 }
 
 // Functional react component
@@ -36,6 +37,8 @@ const ButtonComponent: React.FC<ButtonComponentProps> = ({
 //   The destructure means that instead of writing props.text, props.onClick etc we destructure the properties directly in the functions parameter list
 // We give hoverSTyle a default value of an empty object, and it ensures that no errors occur if hoverStyle is not provided by the parent component (like the file that uses the button)
   hoverStyle = {}, 
+  styleOverride = {}, // Default to an empty object
+  isLoading = false, // Default is not loading
 
 }) => {
     // Object definition named variantStyles --> Contains different style configurations for each button variant
@@ -92,6 +95,7 @@ const styles = {
     // But if we want to override or add custom hover styles without modifying the default variantStyles then we merge with "...hoverStyle"
     // it means that the button retains the default styles for primaryGreenBtn for example but the hover behavior is extended to include whatever the user wants fx color: "yellow"
     _hover: { ...variantStyles[variant]._hover, ...hoverStyle }, 
+    ...styleOverride, // Merging custom styles here
   };
 
   
@@ -105,6 +109,8 @@ const styles = {
       size={size}
       fontFamily={fontFamily} // Optional fontFamily customization
       onClick={onClick}
+      isLoading={isLoading} // Pass the loading state to the Chakra Button
+
     >
       {text}
     </Button>

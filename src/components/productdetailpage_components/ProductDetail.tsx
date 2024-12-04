@@ -16,8 +16,10 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   useToast,
+  VStack,
 } from '@chakra-ui/react';
 import { useParams, Link } from 'react-router-dom';
+import ButtonComponent from '../shared/ButtonComponent';
 
 interface ProductDetailProps {
   updateCartCount: () => void;
@@ -241,12 +243,20 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
             )}
           </Select>
 
-          <Button colorScheme="blue" size="lg" mb={2} width="full" onClick={handleAddToBag}>
-            Add to Bag
-          </Button>
-          <Button colorScheme="red" size="lg" mb={2} width="full" onClick={handleAddToFavourites}>
-            Add to Favourites
-          </Button>
+          <VStack spacing={4} align="stretch" mt={4} mb={4}>
+            <ButtonComponent
+              text="Add to Bag"
+              onClick={handleAddToBag}
+              variant="primaryBlackBtn"
+            />
+            <ButtonComponent
+              text="Add to Favourites"
+              onClick={handleAddToFavourites}
+              variant="ctaBtn"
+            />
+          </VStack>
+
+
 
 
           {/* Accordion for Description and Materials & Care */}

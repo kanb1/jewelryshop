@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Box, Heading, Text, Button } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+import ButtonComponent from "../shared/ButtonComponent";
 
 interface ConfirmationProps {
   deliveryInfo: {
@@ -46,9 +47,13 @@ const Confirmation: React.FC<ConfirmationProps> = ({
       <Text textAlign="center" mb={4}>
         We have sent a confirmation to your email!
       </Text>
-      <Button colorScheme="blue" size="lg" onClick={goToHomePage} w="100%">
-        Go to Home
-      </Button>
+      <ButtonComponent
+        text="Go to Home"
+        onClick={goToHomePage}
+        variant="primaryBlackBtn"
+        size="lg"
+        styleOverride={{ width: "100%", marginTop: "1rem" }}
+      />
     </Box>
   );
 };

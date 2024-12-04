@@ -7,6 +7,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { Box, VStack, Button, Text } from "@chakra-ui/react";
+import ButtonComponent from "../shared/ButtonComponent";
 
 interface BillingProps {
   total: number;
@@ -114,9 +115,11 @@ const BillingInformation: React.FC<BillingProps> = ({
         <CardNumberElement />
         <CardExpiryElement />
         <CardCvcElement />
-        <Button colorScheme="blue" onClick={handlePayment}>
-          Pay ${calculateTotalPrice()}
-        </Button>
+        <ButtonComponent
+          text={`Pay $${calculateTotalPrice()}`}
+          onClick={handlePayment}
+          variant="greenBtn"
+        />
       </VStack>
     </Box>
   );

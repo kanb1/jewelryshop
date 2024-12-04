@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import ButtonComponent from "../../components/shared/ButtonComponent";
 
 const Signup: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -159,14 +160,13 @@ const Signup: React.FC = () => {
         {error && <Text color="red.500">{error}</Text>}
 
         {/* Submit Button */}
-        <Button
-          colorScheme="blue"
-          width="100%"
+        <ButtonComponent
+          text="Create account"
           onClick={handleSubmit}
-          isLoading={loading}
-        >
-          Submit
-        </Button>
+          isLoading={loading} // Pass the loading state
+          variant="primaryBlackBtn" // Use your desired variant
+          styleOverride={{ width: "100%" }} // Optional custom style for full width
+        />
 
         {/* Redirect to Login */}
         <Button variant="link" as={Link} to="/login">

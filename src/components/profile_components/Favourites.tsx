@@ -7,6 +7,7 @@ import {
   Image,
   useToast,
 } from '@chakra-ui/react';
+import ButtonComponent from '../shared/ButtonComponent';
 
 const Favourites: React.FC = () => {
   const [favourites, setFavourites] = useState<any[]>([]);
@@ -115,14 +116,11 @@ const Favourites: React.FC = () => {
                 {fav.productId.name}
               </Text>
               <Text>${fav.productId.price}</Text>
-              <Button
-                mt={4}
-                colorScheme="red"
-                size="sm"
+              <ButtonComponent
+                text="Remove"
+                variant="redBtn"
                 onClick={() => handleRemoveFavourite(fav._id)}
-              >
-                Remove
-              </Button>
+              />
             </Box>
           ))}
         </Grid>

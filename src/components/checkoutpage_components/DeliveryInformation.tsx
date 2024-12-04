@@ -11,6 +11,7 @@ import {
   RadioGroup,
   Radio,
 } from "@chakra-ui/react";
+import ButtonComponent from "../shared/ButtonComponent";
 
 interface DeliveryInfoProps {
   deliveryInfo: {
@@ -160,13 +161,16 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
             {/* Parcel Shop Logic */}
             {deliveryInfo.deliveryMethod === "parcel-shop" && (
               <>
-                <Button
-                  colorScheme="blue"
+                <ButtonComponent
+                  text="Find Parcel Shops"
                   onClick={fetchParcelShops}
-                  isLoading={isLoading}
-                >
-                  Find Parcel Shops
-                </Button>
+                  variant="primaryBlackBtn"
+                  styleOverride={{
+                    isLoading,
+                    marginTop: "1rem",
+                    width: "50%",
+                  }}
+                />
 
                 {parcelShops.length > 0 && (
                   <Stack spacing={4} mt={4}>
@@ -176,12 +180,11 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
                         <Text>
                           {shop.city}, {shop.postcode}
                         </Text>
-                        <Button
-                          colorScheme="green"
+                        <ButtonComponent
+                          text="Deliver here"
                           onClick={() => handleSelectParcelShop(shop)}
-                        >
-                          Deliver here
-                        </Button>
+                          variant="primaryBlackBtn"
+                        />
                       </Box>
                     ))}
                   </Stack>
@@ -207,9 +210,11 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
           </>
         )}
 
-        <Button colorScheme="green" onClick={saveAndPay}>
-          Save and Continue to Billing
-        </Button>
+        <ButtonComponent
+          text="Save and Continue to Billing"
+          onClick={saveAndPay}
+          variant="greenBtn"
+        />
       </VStack>
     </Box>
   );

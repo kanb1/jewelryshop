@@ -13,7 +13,7 @@ const FrontpageImageSection = () => {
         {/* Image Boxes */}
         <Box pos="relative" overflow="hidden" borderTopLeftRadius="none" borderBottomLeftRadius="none" borderTopRightRadius="lg" borderBottomRightRadius="lg" boxShadow="lg">
           <Image
-            src="/images/imagesection_img1.jpg"
+            src="/images/frontpage/imagesection_img1.jpg"
             alt="Jewelry Image 1"
             objectFit="cover"
             w="100%"
@@ -24,7 +24,7 @@ const FrontpageImageSection = () => {
         </Box>
         <Box pos="relative" overflow="hidden" borderRadius="lg" boxShadow="lg">
           <Image
-            src="/images/imagesection_img2.jpg"
+            src="/images/frontpage/imagesection_img2.jpg"
             alt="Jewelry Image 2"
             objectFit="cover"
             w="100%"
@@ -35,7 +35,7 @@ const FrontpageImageSection = () => {
         </Box>
         <Box pos="relative" overflow="hidden" borderTopLeftRadius="lg" borderBottomLeftRadius="lg" borderTopRightRadius="none" borderBottomRightRadius="none" boxShadow="lg">
           <Image
-            src="/images/imagesection_img3.jpg"
+            src="/images/frontpage/imagesection_img3.jpg"
             alt="Jewelry Image 3"
             objectFit="cover"
             w="100%"

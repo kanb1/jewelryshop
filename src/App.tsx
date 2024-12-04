@@ -14,6 +14,7 @@ import Cartpage from './pages/Cartpage';
 import ProductDetailPage from './pages/Productdetailpage';
 import Checkoutpage from './pages/Checkoutpage';
 import Adminpage from './pages/Adminpage';
+import About from './pages/Aboutpage';
 import theme from './theme';
 
 import { CartProvider, useCart } from './context/CartContext';
@@ -58,6 +59,7 @@ const App: React.FC = () => {
           <Route path="/checkout" element={<Checkoutpage />}/>   
            {/*I set up as a nested route, with subpaths handled by the AdminPage component.  */}
           <Route path="/admin/*" element={<Adminpage />} />
+          <Route path="/about" element={<About />} />
         </Routes>
         <Footer />
       </Router>

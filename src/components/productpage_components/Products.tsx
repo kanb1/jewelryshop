@@ -16,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import ProductCard from "../shared/ProductCard";
+import ButtonComponent from "../shared/ButtonComponent";
 
 // Define the Product interface to match the backend structure
 interface Product {
@@ -275,19 +276,19 @@ const Products: React.FC = () => {
 
       {/* Pagination Controls */}
       <Stack direction="row" spacing={4} mt={6} justify="center">
-        <Button
+      <ButtonComponent
+          text="Previous"
+          variant="primaryBlackBtn"
           onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          Previous
-        </Button>
+          hoverStyle={{ opacity: 0.8 }}
+      />
         <Text>{`${currentPage} of ${totalPages}`}</Text>
-        <Button
+      <ButtonComponent
+          text="Next"
+          variant="primaryBlackBtn"
           onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </Button>
+          hoverStyle={{ opacity: 0.8 }}
+      />
       </Stack>
     </Box>
   );
