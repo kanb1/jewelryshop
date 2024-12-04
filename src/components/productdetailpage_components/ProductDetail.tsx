@@ -206,15 +206,21 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
       </Breadcrumb>
 
       {/* Product Detail Layout */}
-      <Grid templateColumns={{ base: '1fr', lg: '2fr 3fr' }} gap={10}>
-        {/* Product Image */}
+      <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={10}>
+        {/* Product Images */}
         <Box>
-          <Image
-            src="https://via.placeholder.com/400" // Placeholder image, replace with product.image if available
-            alt={product.name}
-            boxSize="400px"
-            objectFit="contain"
-          />
+          <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+          {product.images?.map((img: any, index: React.Key | null | undefined) => (
+            <Image
+              key={index}
+              src={img || "/placeholder.jpg"}
+              alt={`${product.name} image ${index + 1}`}
+              borderRadius="md"
+              boxSize="300px"
+              objectFit="cover"
+            />
+          ))}
+          </Grid>
         </Box>
 
         {/* Product Info */}

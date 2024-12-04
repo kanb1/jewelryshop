@@ -11,6 +11,7 @@ export interface IProduct extends Document {
   productCollection: string;
   price: number;
   sizes?: string[]; // Optional array of sizes (e.g., ["5", "6", "7"] for rings)
+  images: string[]; // Add images field
 }
 
 // Opretter en mongoose schema, der beskriver strukturen af dokumentet
@@ -20,7 +21,9 @@ const ProductSchema: Schema = new Schema({
   type: { type: String, required: true },
   productCollection: { type: String, required: true },
   price: { type: Number, required: true },
-  sizes: { type: [String], default: [] }, // Add the `sizes` field here
+  sizes: { type: [String], default: [] }, 
+  images: { type: [String], required: true }, 
+
 });
 
 // Opretter en mongoose model der hedder PRdouct based on ProductSchema

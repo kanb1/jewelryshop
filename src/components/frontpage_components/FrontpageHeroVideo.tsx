@@ -1,7 +1,15 @@
 import { Box, Button, AspectRatio, Heading } from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
+import { useNavigate } from "react-router-dom"; // Import the useNavigate hook
+
 
 const FrontpageHeroVideo = () => {
+  const navigate = useNavigate(); // Initialize the navigate function
+
+  const handleExploreClick = () => {
+    navigate("/products/all"); // Navigate to the product page
+  };
+
   return (
     <Box
       className="video-hero-section"
@@ -58,7 +66,7 @@ const FrontpageHeroVideo = () => {
             variant="primaryGreenBtn"
             size={{ base: "md", sm: "lg" }}
             fontFamily="'Afacad'"
-            onClick={() => console.log("Explore button clicked!")}
+            onClick={handleExploreClick} 
             hoverStyle={{ bg: "primary_color.greenHover", color: "primary_color.white" }}
           />
         </Box>

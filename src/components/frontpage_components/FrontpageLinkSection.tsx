@@ -1,8 +1,8 @@
-import { Box, Heading, Link, Image, Grid, Text } from "@chakra-ui/react";
+import { Box, Heading, Link, Image, Grid } from "@chakra-ui/react";
 
 const FrontpageLinkSection = () => {
   return (
-    <Box py={{base:"16", md:"20",lg:"32"}} px={{base:"10"}} textAlign="center">
+    <Box py={{ base: "16", md: "20", lg: "32" }} px={{ base: "10" }} textAlign="center">
       {/* Centered Collection Title */}
       <Heading as="h2" size="main_heading" variant="subhead" mb={2} color="primary_color.darkgrey" fontWeight="extrabold">
         Our Latest Collection:
@@ -22,9 +22,25 @@ const FrontpageLinkSection = () => {
         {/* Necklace */}
         <Box textAlign="center">
           <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
-            <Image src="/images/frontpage/linksection_img1.jpg" alt="Necklace" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
+            <Image
+              src="/images/frontpage/linksection_img1.jpg"
+              alt="Necklace"
+              w="100%"
+              h="100%"
+              objectFit="cover"
+              transition="transform 0.3s"
+              _hover={{ transform: "scale(1.05)" }}
+            />
           </Box>
-          <Link href="#" fontSize="lg" fontWeight="bold" color="primary_color.darkgrey" mt={2} display="block" _hover={{ color: "#000", textDecoration: "underline" }}>
+          <Link
+            href="/products/necklaces"
+            fontSize="lg"
+            fontWeight="bold"
+            color="primary_color.darkgrey"
+            mt={2}
+            display="block"
+            _hover={{ color: "#000", textDecoration: "underline" }}
+          >
             Necklace
           </Link>
         </Box>
@@ -32,9 +48,25 @@ const FrontpageLinkSection = () => {
         {/* Earrings */}
         <Box textAlign="center">
           <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
-            <Image src="/images/frontpage/linksection_img2.jpg" alt="Earrings" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
+            <Image
+              src="/images/frontpage/linksection_img2.jpg"
+              alt="Earrings"
+              w="100%"
+              h="100%"
+              objectFit="cover"
+              transition="transform 0.3s"
+              _hover={{ transform: "scale(1.05)" }}
+            />
           </Box>
-          <Link href="#" fontSize="lg" fontWeight="bold" color="primary_color.darkgrey" mt={2} display="block" _hover={{ color: "#000", textDecoration: "underline" }}>
+          <Link
+            href="/products/earrings"
+            fontSize="lg"
+            fontWeight="bold"
+            color="primary_color.darkgrey"
+            mt={2}
+            display="block"
+            _hover={{ color: "#000", textDecoration: "underline" }}
+          >
             Earrings
           </Link>
         </Box>
@@ -42,9 +74,25 @@ const FrontpageLinkSection = () => {
         {/* Bangles */}
         <Box textAlign="center">
           <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
-            <Image src="/images/frontpage/linksection_img3.jpg" alt="Bangles" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
+            <Image
+              src="/images/frontpage/linksection_img3.jpg"
+              alt="Bangles"
+              w="100%"
+              h="100%"
+              objectFit="cover"
+              transition="transform 0.3s"
+              _hover={{ transform: "scale(1.05)" }}
+            />
           </Box>
-          <Link href="#" fontSize="lg" fontWeight="bold" color="primary_color.darkgrey" mt={2} display="block" _hover={{ color: "#000", textDecoration: "underline" }}>
+          <Link
+            href="/products/bracelets"
+            fontSize="lg"
+            fontWeight="bold"
+            color="primary_color.darkgrey"
+            mt={2}
+            display="block"
+            _hover={{ color: "#000", textDecoration: "underline" }}
+          >
             Bangles
           </Link>
         </Box>
@@ -52,9 +100,25 @@ const FrontpageLinkSection = () => {
         {/* Rings */}
         <Box textAlign="center">
           <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
-            <Image src="/images/frontpage/linksection_img4.jpg" alt="Rings" w="100%" h="100%" objectFit="cover" transition="transform 0.3s" _hover={{ transform: "scale(1.05)" }} />
+            <Image
+              src="/images/frontpage/linksection_img4.jpg"
+              alt="Rings"
+              w="100%"
+              h="100%"
+              objectFit="cover"
+              transition="transform 0.3s"
+              _hover={{ transform: "scale(1.05)" }}
+            />
           </Box>
-          <Link href="#" fontSize="lg" fontWeight="bold" color="primary_color.darkgrey" mt={2} display="block" _hover={{ color: "#000", textDecoration: "underline" }}>
+          <Link
+            href="/products/rings"
+            fontSize="lg"
+            fontWeight="bold"
+            color="primary_color.darkgrey"
+            mt={2}
+            display="block"
+            _hover={{ color: "#000", textDecoration: "underline" }}
+          >
             Rings
           </Link>
         </Box>
