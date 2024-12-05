@@ -1,94 +1,88 @@
 Project Overview
 Project Name: JewelryShop Web App
+
 Overview
-JewelryShop is an e-commerce web application for showcasing and selling jewelry. It includes features like user authentication, dynamic product listings, an admin panel for product management, and a fully responsive design. Built using the MERN stack, it incorporates modern development practices and a clean UI.
+JewelryShop er en moderne e-commerce webapplikation designet til at fremvise og sælge smykker. Applikationen inkluderer funktioner som brugerautentifikation, dynamiske produktlister, et adminpanel til produktadministration og et fuldt responsivt design. Projektet er bygget med MERN-stacken og implementerer moderne udviklingsprincipper samt en brugervenlig UI.
 
 Key Features
 User Authentication:
+Login/Logout: Brugere kan registrere sig, logge ind og logge ud.
+Sikkerhed: JWT-baseret autentifikation med tokenlagring i localStorage.
+Profil: Brugerinformation vises på profil-siden.
+Beskyttede ruter: Begrænset adgang til bruger- og adminspecifikke data via middleware.
 
-Users can sign up, log in, and log out.
-JWT-based authentication with secure token storage in localStorage.
-Profile page displays user information.
-Protected routes for user-specific data.
 Admin Panel:
-
-Manage products: Add, update, and delete products.
-View all products in a scrollable table sorted by the most recently added.
-Access protected admin routes with middleware for role-based control.
+    Produktadministration:
+        Tilføj, opdater og slet produkter.
+        Upload flere billeder pr. produkt og automatisk sletning af billeder ved produkt-sletning.
+    Produktliste:
+        Dynamisk tabel over produkter, sorteret efter senest tilføjet.
+        Scroll-funktion for bedre håndtering af mange produkter.
+    Beskyttet adgang: Admin-ruter sikret med middleware for rollebaseret kontrol.
 Product Features:
+Dynamiske kategorier: Kategorier som Rings, Necklaces, Bracelets, og Earrings.
+Produktdetaljer: Individuelle sider for hvert produkt med relevante informationer.
+Filtrering og sortering: Sorter produkter efter pris og filtrer baseret på kategori eller kollektion.
+Case-insensitive matching: Matcher produkt-typer og kollektioner uafhængigt af store/små bogstaver.
 
-Dynamic product categories such as Rings, Necklaces, Bracelets, and Earrings.
-Individual product detail pages with relevant information.
-Sorting and filtering options for products.
 Navigation:
+Responsivt design: Responsiv navbar, der opdateres baseret på login-status.
+Mobilvenlig navigation: Drawer-baseret navigation for mobilbrugere.
 
-A responsive navbar that updates dynamically based on the user's login state.
-Drawer-based navigation for mobile users.
-Search functionality for products.
 Cart and Checkout:
-
-Users can dynamically add, remove, and update product quantities in the cart.
-Cart badge reflects the total quantity of items dynamically.
-Backend PUT API supports quantity updates.
-Real-time UI updates without requiring page refreshes.
-Complete checkout flow:
-Select between home delivery or parcel shop pickup.
-Integration with Stripe for payment.
-Order confirmation email sent after successful checkout.
+    Dynamisk kurv:
+        Tilføj, fjern og opdater produktmængder i kurven.
+        Badge opdateres i realtid med det samlede antal varer.
+    Checkout flow:
+        Valg mellem hjemmelevering eller afhentning ved pakkeshop.
+        Integration med Stripe for sikker betaling.
+        Ordrebekræftelse sendt via email efter succesfuld checkout.
 My Account Section:
+    Orders Tab:
+        Viser tidligere ordrer med status som In Progress, Completed og Return.
+        Mulighed for at starte returneringer med automatiserede emailnotifikationer.
+    Favourites Tab:        
+        Viser favoritprodukter og tillader fjernelse af dem.
+    User Information Tab:
+        Brugere kan opdatere deres oplysninger som navn og email.
+        Mulighed for at ændre password.
 
-Orders Tab:
-Show all past orders with statuses: In Progress, Completed, and Return.
-Allow initiating returns with email notifications for return labels.
-Favourites Tab:
-Display a list of favorite products.
-Allow users to remove items from their favorites.
-User Information Tab:
-Editable form for user details (first name, last name, email, etc.).
-Password update functionality.
-Backend:
 
-Built using Node.js and Express.
-MongoDB as the database for user, product, and order management.
-API endpoints tested via Postman.
-Email confirmation using Nodemailer.
 Current Progress
 Authentication:
+Sikker registrering, login og logout implementeret.
+Brug af bcrypt til password hashing og JWT til session-håndtering.
+Testet autentifikationsendpoints med Postman.
+Dynamisk opdatering af navbar baseret på login-status.
 
-Implemented secure signup, login, and logout functionality.
-Used bcrypt for password hashing and JWT for session management.
-Tested authentication endpoints with Postman.
-Navbar dynamically updates based on login state.
 Admin Panel:
+Fuldt funktionelt adminpanel med beskyttede ruter.
+CRUD-operationer for produkter.
+Automatisk håndtering af billedfiler under oprettelse og sletning.
 
-Fully functional admin panel with protected routes.
-Add, edit, and delete products with a responsive UI.
-Products sorted by most recently added in the table.
 Frontend:
+    Skabte sider:
+        Forside
+        Login-side
+        Signup-side
+        Profil-side (med Orders, Favourites og User Info tabs)
+        Produktsider med dynamiske kategorier og filtrering
+        Admin-sider til produkt- og ordreadministration
+        Kurvsider med interaktive mængdeopdateringer
+        Checkout-flow med leverings- og betalingsmuligheder
+        Fuldt responsivt design ved hjælp af Chakra UI.
+    Backend:
+    Database: Tilsluttet MongoDB Atlas.
+    API-endpoints: Implementeret for brugere, produkter, kurv og ordrer.
+        Middleware:    
+            JWT-validering for sessioner.
+            Rollebaseret kontrol for admin-specifikke ruter.
+    Integrationer: Stripe til betaling og Nodemailer til emailbekræftelser.
+    Filhåndtering: Upload af billeder og automatisk sletning af relaterede filer.
+    Testet API-endpoints med Postman og sikret fuld integration med frontend.
 
-Pages created:
-Front Page
-Login Page
-Signup Page
-Profile Page
-Product Pages (dynamic categories)
-Admin Pages (Product and Order Management)
-Cart Page with interactive quantity updates
-Checkout Pages (Delivery, Billing, and Confirmation)
-Fully responsive design using Chakra UI.
-Backend:
-
-Connected to MongoDB Atlas.
-API endpoints implemented for users, authentication, products, cart, and orders.
-Middleware for JWT token validation and role-based control.
-Dynamic cart handling with PUT and DELETE routes.
-Backend logic for delivery options (home and parcel shop).
-Integrated Stripe for payment.
-Nodemailer for email confirmations.
-Tested endpoints with Postman and verified full API integration.
-
-
-Technologies Used
+Technologies Used:
 Frontend: React.js, TypeScript, Chakra UI
 Backend: Node.js, Express.js, MongoDB
-Others: Postman, Axios, JWT, bcrypt, Stripe, Nodemailer
+Andre: Postman, Axios, JWT, bcrypt, Stripe, Nodemailer
+
