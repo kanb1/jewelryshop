@@ -23,7 +23,10 @@ router.get("/", async (Request, Response) => {
     // Bruger regex til case-insensitive match for type (f.eks. "Rings" vs "rings")
     if (type) {
       const types = Array.isArray(type) ? type : [type]; // Gør `type` til en array, hvis det ikke allerede er det
-      filter.type = { $in: types }; // Brug `$in` for at matche flere værdier
+      filter.type = {
+        // håndterer case sensitiveness
+        $in: types.map((t) => new RegExp(`^${String(t)}$`, "i")), // Explicitly cast `t` to a string
+      };
     }
         if (collection) {
       filter.productCollection = { $in: Array.isArray(collection) ? collection : [collection] };

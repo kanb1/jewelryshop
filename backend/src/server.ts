@@ -5,6 +5,8 @@ import cors from 'cors'; // Import cors
 import fs from 'fs'; // For at læse certifikatfilerne
 import https from 'https'; // For at oprette en HTTPS-server
 import { Request, Response, NextFunction } from 'express';
+import path from "path"; // Import the 'path' module if not already imported
+
 
 
 
@@ -40,6 +42,9 @@ const mongoUri = process.env.MONGO_URI || '';
 // Ensureing the backend has CORS enabled to accept requests from my frontend's origin (http://localhost:5173).
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json()); // Parse JSON from requests
+
+// Serve static files from the `public/uploads` directory
+app.use("/uploads", express.static(path.join(__dirname, "../../public/uploads")));
 
 // MongoDB connection
 mongoose
