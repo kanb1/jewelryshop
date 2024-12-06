@@ -7,15 +7,35 @@ import User from "../models/User";
 const router = express.Router();
 
 // POST /users - Register a new user
-router.post("/users", async (req: Request, res: Response) => {
-  const { username, email, password, name, surname } = req.body;
+router.post("/users", async (Request, Response) => {
+  const { username, email, password, name, surname } = Request.body;
 
+  // *************VALIDERING
   // Check if the user or email already exists
   const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+
   if (existingUser) {
-    res.status(400).json({ error: "User or email already exists" });
+    // Check what is causing the conflict
+    const errorMessage =
+      existingUser.username === username
+        ? "Username already exists. Please choose another."
+        : "Email already exists. Please use another email.";
+  
+        Response.status(400).json({ error: errorMessage });
     return;
   }
+
+  if (!username || !email || !password || !name || !surname) {
+     Response.status(400).json({ error: "All fields are required." });
+     return;
+  }
+  
+  if (password.length < 6) {
+     Response.status(400).json({ error: "Password must be at least 6 characters long." });
+     return;
+  }
+  
+  
 
   // Hash password
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -31,7 +51,7 @@ router.post("/users", async (req: Request, res: Response) => {
   });
   await newUser.save();
 
-  res.status(201).json({ message: "User created successfully" });
+  Response.status(201).json({ message: "User created successfully" });
 });
 
 // POST /auth/login - User login

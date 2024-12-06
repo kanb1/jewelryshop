@@ -71,7 +71,7 @@ const Signup: React.FC = () => {
     } catch (err: any) {
       console.error("Error during signup:", err); // Log any errors
       setLoading(false);
-      setError(err.response?.data?.message || "Failed to create account.");
+      setError(err.response?.data?.error || "Failed to create account."); // Updated error message
     }
   };
   
