@@ -6,28 +6,31 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { Box, VStack, Button, Text } from "@chakra-ui/react";
+import { Box, VStack, Button, Text, Divider, FormControl, FormLabel, Heading } from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
 
 interface BillingProps {
   total: number;
   onPaymentSuccess: (orderNumber: string) => void;
-  cartItems: any[]; // Include the cart items as a prop
+  cartItems: any[];
   deliveryInfo: {
     address: string;
     city: string;
     postalCode: string;
     country: string;
-    deliveryMethod: "home" | "parcel-shop"; // Add this line
-
+    deliveryMethod: "home" | "parcel-shop";
   };
+  goToPreviousStep: () => void; // Add this
 }
+
 
 const BillingInformation: React.FC<BillingProps> = ({
   total,
   onPaymentSuccess,
   cartItems,
   deliveryInfo,
+  goToPreviousStep, // Add this
+
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -109,17 +112,70 @@ const BillingInformation: React.FC<BillingProps> = ({
   
 
   return (
-    <Box>
-      <VStack spacing={4} align="stretch">
-        <Text>Billing Information</Text>
-        <CardNumberElement />
-        <CardExpiryElement />
-        <CardCvcElement />
-        <ButtonComponent
-          text={`Pay $${calculateTotalPrice()}`}
-          onClick={handlePayment}
-          variant="greenBtn"
-        />
+    <Box maxW="600px" mx="auto" p={5} boxShadow="lg" borderRadius="md" minH="50vh">
+      <Heading size="lg" textAlign="center" mb={5}>
+        Billing Information
+      </Heading>
+      <Divider mb={5} />
+
+      <VStack spacing={5} align="stretch">
+        {/* Card Number */}
+        <FormControl>
+          <FormLabel>Card Number</FormLabel>
+          <Box
+            p={3}
+            border="1px solid"
+            borderColor="gray.300"
+            borderRadius="md"
+            bg="white"
+          >
+            <CardNumberElement />
+          </Box>
+        </FormControl>
+
+        {/* Expiry Date */}
+        <FormControl>
+          <FormLabel>Expiry Date</FormLabel>
+          <Box
+            p={3}
+            border="1px solid"
+            borderColor="gray.300"
+            borderRadius="md"
+            bg="white"
+          >
+            <CardExpiryElement />
+          </Box>
+        </FormControl>
+
+        {/* CVC */}
+        <FormControl>
+          <FormLabel>CVC</FormLabel>
+          <Box
+            p={3}
+            border="1px solid"
+            borderColor="gray.300"
+            borderRadius="md"
+            bg="white"
+          >
+            <CardCvcElement />
+          </Box>
+        </FormControl>
+
+        <Divider />
+
+        {/* Buttons */}
+        <Box mt={5} display="flex" justifyContent="space-between">
+          <ButtonComponent
+            text="Back to Delivery"
+            onClick={goToPreviousStep}
+            variant="primaryBlackBtn"
+          />
+          <ButtonComponent
+            text={`Pay $${calculateTotalPrice()}`}
+            onClick={handlePayment}
+            variant="greenBtn"
+          />
+        </Box>
       </VStack>
     </Box>
   );

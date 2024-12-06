@@ -23,6 +23,7 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
+import { useNavigate } from "react-router-dom";
 
 const AdminProducts: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -36,6 +37,7 @@ const AdminProducts: React.FC = () => {
   });
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
 
   // Fetch products from backend
   const fetchProducts = async () => {
@@ -176,6 +178,14 @@ const AdminProducts: React.FC = () => {
 
   return (
     <Box p={5}>
+
+      <Box p={4} textAlign="left">
+        <ButtonComponent
+          text="Back to dashboard"
+          onClick={() => navigate("/admin")}
+          variant="primaryBlackBtn"
+        />
+      </Box>
       <Heading size="lg" mb={4}>
         Manage Products
       </Heading>

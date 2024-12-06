@@ -11,6 +11,9 @@ import {
   Button,
   Spinner,
 } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
+import ButtonComponent from "../shared/ButtonComponent";
+
 
 interface Order {
   _id: string;
@@ -36,6 +39,7 @@ interface Order {
 const AdminOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate(); 
 
   // Fetch all orders
   useEffect(() => {
@@ -111,9 +115,17 @@ const AdminOrders: React.FC = () => {
 
   return (
     <Box p={5}>
+      <Box p={4} textAlign="left">
+        <ButtonComponent
+          text="Back to dashboard"
+          onClick={() => navigate("/admin")}
+          variant="primaryBlackBtn"
+        />
+      </Box>
       <Heading size="lg" mb={4}>
         Manage Orders
       </Heading>
+      
       <Table variant="striped" colorScheme="teal">
         <Thead>
           <Tr>

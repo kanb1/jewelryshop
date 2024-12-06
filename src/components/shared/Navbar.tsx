@@ -31,6 +31,7 @@ import { AiOutlineShoppingCart } from "react-icons/ai";
 import { FaUser } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
 
+
 interface NavbarProps {
   isLoggedIn: boolean;
   setIsLoggedIn: (value: boolean) => void;
@@ -45,17 +46,15 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
 
   // Decode JWT token to check the role
   useEffect(() => {
-    // Check if there's a valid token in localStorage on initial load
     const token = localStorage.getItem("jwt");
     if (token) {
       try {
-        const decoded: any = jwtDecode(token);
+        const decoded: any = jwtDecode(token); // Use the imported jwt-decode library
+        console.log("Decoded Token:", decoded); // Debugging
         if (decoded.exp * 1000 > Date.now()) {
-          // Token is valid
           setIsLoggedIn(true);
-          setUserRole(decoded.role); // Set the user role from the token
+          setUserRole(decoded.role); // Ensure role is set correctly
         } else {
-          // Token is expired
           localStorage.removeItem("jwt");
           setIsLoggedIn(false);
           setUserRole(null);
@@ -65,11 +64,15 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
         setIsLoggedIn(false);
         setUserRole(null);
       }
-    } else {
-      setIsLoggedIn(false);
-      setUserRole(null);
     }
   }, [setIsLoggedIn]);
+
+  function jwtDecode(token: string): any {
+    return JSON.parse(atob(token.split(".")[1]));
+  }
+  
+  
+  
 
   const handleLogout = () => {
     localStorage.removeItem("jwt");
@@ -126,30 +129,30 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
         {/* LOGIN/LOGOUT AND CART */}
         <HStack spacing={6}>
         {isLoggedIn ? (
-            <>
-              {userRole === "admin" ? (
-                <Link to="/admin">
-                  <Button variant="ghost">Dashboard</Button>
-                </Link>
-              ) : (
-                <Link to="/profile">
-                  <Button variant="ghost">Profile</Button>
-                </Link>
-              )}
-              <Button variant="ghost" onClick={handleLogout}>
-                Logout
-              </Button>
-            </>
-          ) : (
-            <>
-              <Link to="/login">
-                <Button variant="ghost">Login</Button>
-              </Link>
-              <Link to="/signup">
-                <Button variant="outline">Signup</Button>
-              </Link>
-            </>
-          )}
+    <>
+      {userRole === "admin" ? (
+        <Link to="/admin">
+          <Button variant="ghost">Admin Dashboard</Button>
+        </Link>
+      ) : (
+        <Link to="/profile">
+          <Button variant="ghost">Profile</Button>
+        </Link>
+      )}
+      <Button variant="ghost" onClick={handleLogout}>
+        Logout
+      </Button>
+    </>
+  ) : (
+    <>
+      <Link to="/login">
+        <Button variant="ghost">Login</Button>
+      </Link>
+      <Link to="/signup">
+        <Button variant="outline">Signup</Button>
+      </Link>
+    </>
+  )}
           {/* Cart Icon with Badge */}
           <Link to="/cart">
             <IconButton

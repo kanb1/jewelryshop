@@ -6,7 +6,7 @@ import UserInfo from '../components/profile_components/UserInfo';
 
 const ProfilePage: React.FC = () => {
   return (
-    <Box p={5}>
+    <Box p={5} minH="100vh">
       <Tabs isFitted variant="enclosed">
         <TabList>
           <Tab>My Orders</Tab>

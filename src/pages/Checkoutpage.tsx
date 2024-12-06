@@ -4,19 +4,21 @@ import BillingInformation from "../components/checkoutpage_components/BillingInf
 import Confirmation from "../components/checkoutpage_components/Confirmation";
 import ProgressTimeline from "../components/checkoutpage_components/ProgressTimeline";
 import { Box, VStack, Heading } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 
 const CheckoutPage: React.FC = () => {
+  const navigate = useNavigate();
   const [deliveryInfo, setDeliveryInfo] = useState({
     address: "",
     city: "",
     postalCode: "",
     country: "",
-    deliveryMethod: "home" as "home" | "parcel-shop", // Default to "home"
+    deliveryMethod: "home" as "home" | "parcel-shop",
   });
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentStep, setCurrentStep] = useState<
-    "cart" | "delivery" | "billing" | "confirmation"
+    "delivery" | "billing" | "confirmation"
   >("delivery");
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
 
@@ -57,31 +59,40 @@ const CheckoutPage: React.FC = () => {
     setCurrentStep("confirmation");
   };
 
+
+  const goToPreviousStep = () => {
+    if (currentStep === "billing") setCurrentStep("delivery");
+  };
+  
+
   if (loading) return <p>Loading your cart...</p>;
   if (cartItems.length === 0) return <p>Your cart is empty.</p>;
 
   return (
-    <Box>
+    <Box >
       <VStack spacing={8} align="stretch">
-        <Heading>Checkout</Heading>
+        <Heading mt={10}>Checkout</Heading>
         <ProgressTimeline currentStep={currentStep} />
 
         {currentStep === "delivery" && (
-          <DeliveryInformation
-            deliveryInfo={deliveryInfo}
-            setDeliveryInfo={setDeliveryInfo}
-            setCurrentStep={setCurrentStep}
-          />
-        )}
+  <DeliveryInformation
+    deliveryInfo={deliveryInfo}
+    setDeliveryInfo={setDeliveryInfo}
+    setCurrentStep={setCurrentStep} // Correctly passed
+  />
+)}
 
-        {currentStep === "billing" && (
-          <BillingInformation
-            total={calculateTotal()}
-            cartItems={cartItems} // Use fetched cart items here
-            deliveryInfo={deliveryInfo}
-            onPaymentSuccess={handlePaymentSuccess}
-          />
-        )}
+{currentStep === "billing" && (
+  <BillingInformation
+    total={calculateTotal()}
+    cartItems={cartItems}
+    deliveryInfo={deliveryInfo}
+    onPaymentSuccess={handlePaymentSuccess}
+    goToPreviousStep={goToPreviousStep} // Correctly passed
+  />
+)}
+
+
 
         {currentStep === "confirmation" && (
           <Confirmation

@@ -9,6 +9,7 @@ import {
   Flex,
   Input,
   IconButton,
+  Divider,
 } from "@chakra-ui/react";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
@@ -106,63 +107,114 @@ const Cart: React.FC = () => {
   if (cartItems.length === 0) return <Text>Your cart is empty.</Text>;
 
   return (
-    <Box minH="50vh">
-    <Box p={10}>
-      <Heading mb={6}>Your Shopping Cart</Heading>
-      <Grid templateColumns={{ base: "1fr", lg: "3fr 1fr" }} gap={6}>
-        <Box>
-          {cartItems.map((item) => (
-            
-            <Flex key={item._id} justify="space-between" mb={4}>
-              <Image
-                src="https://via.placeholder.com/100"
-                alt={item.productId.name}
-                boxSize="100px"
-                objectFit="contain"
-              />
-              <Box>
-                <Text fontWeight="bold">{item.productId.name}</Text>
-                <Text>Size: {item.size}</Text>
-                <Text>Price: ${item.productId.price}</Text>
-              </Box>
-              <Flex align="center">
-                <IconButton
-                  icon={<MinusIcon />}
-                  size="sm"
-                  onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)} aria-label={""}                />
-                <Input
-                  value={item.quantity}
-                  readOnly
-                  width="50px"
-                  textAlign="center"
-                />
-                <IconButton
-                  icon={<AddIcon />}
-                  size="sm"
-                  onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)} aria-label={""}                />
-                <ButtonComponent
-                    text="Remove"
-                    onClick={() => handleRemoveItem(item._id)}
-                    variant="redBtn"
-                    styleOverride={{ marginLeft: "1rem" }}
-                  />
-              </Flex>
-            </Flex>
-          ))}
-        </Box>
-        <Box>
-          <Text>Total: ${calculateTotal()}</Text>
-          <ButtonComponent
-              text="Proceed to Checkout"
-              onClick={() => navigate("/checkout")}
-              variant="primaryBlackBtn"
-              styleOverride={{ marginTop: "1rem", width: "50%" }}
+    <Flex direction="column" minH="100vh" p={4}>
+  <Heading mb={6} size={{ base: "lg", sm: "xl" }} mt={6}>
+    Your Shopping Cart
+  </Heading>
+  <Grid
+    templateColumns={{ base: "1fr", lg: "3fr 1fr" }}
+    gap={6}
+    alignItems="flex-start"
+    pt={10}
+  >
+    {/* Cart Items Section */}
+    <Box>
+      {cartItems.map((item) => (
+        <Flex
+          key={item._id}
+          direction={{ base: "column", sm: "row" }}
+          align={{ base: "center", sm: "center" }}
+          justify="space-between"
+          mb={20}
+          gap={4}
+          px={{lg:"20"}}
+        >
+          {/* Product Image */}
+          <Image
+            src={item.productId.images[0] || "https://via.placeholder.com/100"}
+            alt={item.productId.name}
+            boxSize={{ base: "150px", sm: "200px" }}
+            objectFit="cover"
+            borderRadius="md"
+          />
+          {/* Product Details */}
+          <Box flex="1">
+            <Text fontWeight="bold" fontSize={{ base: "sm", sm: "md" }}>
+              {item.productId.name}
+            </Text>
+            <Text fontSize={{ base: "xs", sm: "sm", md: "lg", lg: "2xl" }}>Size: {item.size}</Text>
+            <Text fontSize={{ base: "xs", sm: "sm", md: "lg", lg: "2xl"}}>
+              Price: ${item.productId.price}
+            </Text>
+          </Box>
+          {/* Quantity and Remove */}
+          <Flex
+            align="center"
+            gap={2}
+            flexWrap={{ base: "wrap", sm: "nowrap" }}
+          >
+            <IconButton
+              icon={<MinusIcon />}
+              size="sm"
+              onClick={() =>
+                handleUpdateQuantity(item._id, item.quantity - 1)
+              }
+              aria-label="Decrease quantity"
             />
+            <Input
+              value={item.quantity}
+              readOnly
+              width={{ base: "40px", sm: "50px" }}
+              textAlign="center"
+            />
+            <IconButton
+              icon={<AddIcon />}
+              size="sm"
+              onClick={() =>
+                handleUpdateQuantity(item._id, item.quantity + 1)
+              }
+              aria-label="Increase quantity"
+            />
+            <ButtonComponent
+              text="Remove"
+              onClick={() => handleRemoveItem(item._id)}
+              variant="redBtn"
+              styleOverride={{
+                marginLeft: "1rem",
+                fontSize: { base: "xs", sm: "sm" },
+              }}
+            />
+          </Flex>
+        </Flex>
+      ))}
 
-        </Box>
-      </Grid>
     </Box>
+
+    {/* Summary Section */}
+    <Box
+      borderWidth="1px"
+      borderRadius="md"
+      p={6}
+      bg="white"
+      boxShadow="sm"
+      textAlign="center"
+    >
+      <Text fontWeight="bold" fontSize="lg" mb={4}>
+        Total: ${calculateTotal()}
+      </Text>
+      <ButtonComponent
+        text="Proceed to Checkout"
+        onClick={() => navigate("/checkout")}
+        variant="primaryBlackBtn"
+        styleOverride={{
+          width: "100%",
+          fontSize: { base: "sm", sm: "md" },
+          padding: { base: "0.5rem", sm: "1rem" },
+        }}
+      />
     </Box>
+  </Grid>
+</Flex>
   );
 };
 

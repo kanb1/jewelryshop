@@ -2,11 +2,11 @@ import React from "react";
 import { Box, Text, Flex, Divider } from "@chakra-ui/react";
 
 interface ProgressTimelineProps {
-  currentStep: "cart" | "delivery" | "billing" | "confirmation";
+  currentStep: "delivery" | "billing" | "confirmation";
 }
 
 const ProgressTimeline: React.FC<ProgressTimelineProps> = ({ currentStep }) => {
-  const steps = ["cart", "delivery", "billing", "confirmation"];
+  const steps = ["delivery", "billing", "confirmation"];
 
   return (
     <Flex justify="space-between" align="center" mt={4}>

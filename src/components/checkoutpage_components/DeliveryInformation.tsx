@@ -10,8 +10,13 @@ import {
   Stack,
   RadioGroup,
   Radio,
+  Divider,
+  Grid,
 } from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@chakra-ui/react";
+
 
 interface DeliveryInfoProps {
   deliveryInfo: {
@@ -31,15 +36,18 @@ interface DeliveryInfoProps {
     }>
   >;
   setCurrentStep: React.Dispatch<
-    React.SetStateAction<"cart" | "delivery" | "billing" | "confirmation">
+    React.SetStateAction<"delivery" | "billing" | "confirmation">
   >;
 }
+
 
 const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
   deliveryInfo,
   setDeliveryInfo,
   setCurrentStep,
+
 }) => {
+  const navigate = useNavigate(); // Add navigation hook
   const [parcelShops, setParcelShops] = useState<any[]>([]);
   const [selectedParcelShop, setSelectedParcelShop] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +80,8 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
     }
   };
 
+  const toast = useToast();
+
   const handleSelectParcelShop = (shop: any) => {
     setSelectedParcelShop(shop);
     setDeliveryInfo({
@@ -82,7 +92,15 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
       country: shop.country,
       deliveryMethod: "parcel-shop", // Update delivery method
     });
-    alert(`Delivery address updated to parcel shop: ${shop.address}`);
+    // Show a toast message
+  toast({
+    title: "Parcel Shop Selected",
+    description: `You have selected ${shop.name} for delivery.`,
+    status: "success", // success, error, warning, or info
+    duration: 5000, // Time in milliseconds
+    isClosable: true, // Allow the user to close the toast
+    position: "top", // Position of the toast (e.g., top, bottom-right)
+  });
   };
 
   const saveAndPay = () => {
@@ -104,120 +122,148 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
     setCurrentStep("billing"); // Proceed to billing
   };
 
+
+
   return (
-    <Box>
-      <Text>Cart &gt; Delivery &gt; Billing &gt; Confirmation</Text>
-      <Heading size="md" mb={4}>
-        Delivery Information
+
+    
+    
+    
+    <Box p={5} maxW="800px" mx="auto">
+      <Box mb={4}>
+      <ButtonComponent
+          text="Back to Cart"
+          onClick={() => navigate("/cart")} 
+          variant="primaryBlackBtn"
+        />
+</Box>
+    <Heading size="lg" textAlign="center" mb={6}>
+      Delivery Information
+    </Heading>
+
+    <VStack spacing={5} align="stretch">
+      {/* Address Input Fields */}
+      <Divider />
+      <Heading size="md" mb={2}>
+        Address Details
       </Heading>
-      <VStack spacing={4}>
-        {/* Address Input Fields */}
-        <Input
-          placeholder="Address"
-          name="address"
-          value={deliveryInfo.address}
-          onChange={handleInputChange}
-        />
-        <Input
-          placeholder="City"
-          name="city"
-          value={deliveryInfo.city}
-          onChange={handleInputChange}
-        />
-        <Input
-          placeholder="Postal Code"
-          name="postalCode"
-          value={deliveryInfo.postalCode}
-          onChange={handleInputChange}
-        />
-        <Select
-          placeholder="Country"
-          name="country"
-          value={deliveryInfo.country}
-          onChange={(e) =>
-            setDeliveryInfo({ ...deliveryInfo, country: e.target.value })
-          }
-        >
-          <option value="Denmark">Denmark</option>
-          <option value="Sweden">Sweden</option>
-          <option value="Norway">Norway</option>
-        </Select>
+      <Input
+        placeholder="Address"
+        name="address"
+        value={deliveryInfo.address}
+        onChange={handleInputChange}
+      />
+      <Input
+        placeholder="City"
+        name="city"
+        value={deliveryInfo.city}
+        onChange={handleInputChange}
+      />
+      <Input
+        placeholder="Postal Code"
+        name="postalCode"
+        value={deliveryInfo.postalCode}
+        onChange={handleInputChange}
+      />
+      <Select
+        placeholder="Select Country"
+        name="country"
+        value={deliveryInfo.country}
+        onChange={(e) =>
+          setDeliveryInfo({ ...deliveryInfo, country: e.target.value })
+        }
+      >
+        <option value="Denmark">Denmark</option>
+      </Select>
 
-        {/* Delivery Method Selection */}
-        {deliveryInfo.address && deliveryInfo.city && deliveryInfo.postalCode && (
-          <>
-            <RadioGroup
-              onChange={(value: "home" | "parcel-shop") =>
-                setDeliveryInfo({ ...deliveryInfo, deliveryMethod: value })
-              }
-              value={deliveryInfo.deliveryMethod}
-            >
-              <Stack direction="row" spacing={5}>
-                <Radio value="home">Home Delivery</Radio>
-                <Radio value="parcel-shop">Parcel Shop Delivery</Radio>
-              </Stack>
-            </RadioGroup>
+      <Divider />
 
-            {/* Parcel Shop Logic */}
-            {deliveryInfo.deliveryMethod === "parcel-shop" && (
-              <>
-                <ButtonComponent
-                  text="Find Parcel Shops"
-                  onClick={fetchParcelShops}
-                  variant="primaryBlackBtn"
-                  styleOverride={{
-                    isLoading,
-                    marginTop: "1rem",
-                    width: "50%",
-                  }}
-                />
+      {/* Delivery Method Selection */}
+      <Heading size="md" mb={2}>
+        Delivery Method
+      </Heading>
+      <RadioGroup
+        onChange={(value: "home" | "parcel-shop") =>
+          setDeliveryInfo({ ...deliveryInfo, deliveryMethod: value })
+        }
+        value={deliveryInfo.deliveryMethod}
+      >
+        <Stack direction="row" spacing={5}>
+          <Radio value="home">Home Delivery</Radio>
+          <Radio value="parcel-shop">Parcel Shop Delivery</Radio>
+        </Stack>
+      </RadioGroup>
 
-                {parcelShops.length > 0 && (
-                  <Stack spacing={4} mt={4}>
-                    {parcelShops.map((shop, index) => (
-                      <Box key={index} border="1px" borderColor="gray.200" p={4}>
-                        <Text>{shop.address}</Text>
-                        <Text>
-                          {shop.city}, {shop.postcode}
-                        </Text>
-                        <ButtonComponent
-                          text="Deliver here"
-                          onClick={() => handleSelectParcelShop(shop)}
-                          variant="primaryBlackBtn"
-                        />
-                      </Box>
-                    ))}
-                  </Stack>
-                )}
+      {/* Parcel Shop Logic */}
+      {deliveryInfo.deliveryMethod === "parcel-shop" && (
+        <>
+          <Button
+            onClick={fetchParcelShops}
+            isLoading={isLoading}
+            mt={4}
+            colorScheme="blue"
+            width="50%"
+            alignSelf="center"
+          >
+            Find Parcel Shops
+          </Button>
+          {parcelShops.length > 0 && (
+           <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6} mt={6}>
+           {parcelShops.map((shop, index) => (
+             <Box
+               key={index}
+               border="1px"
+               borderColor="gray.300"
+               p={5}
+               borderRadius="lg"
+               boxShadow="md"
+               textAlign="center"
+               _hover={{
+                 boxShadow: "xl",
+                 transform: "scale(1.05)",
+                 transition: "all 0.3s",
+               }}
+             >
+               <Text fontWeight="bold" fontSize="lg" mb={2}>
+                 {shop.name}
+               </Text>
 
-                {selectedParcelShop && (
-                  <Box mt={4} border="1px" borderColor="green.200" p={4}>
-                    <Text>Selected Parcel Shop:</Text>
-                    <Text>{selectedParcelShop.name}</Text>
-                    <Text>{selectedParcelShop.address}</Text>
-                  </Box>
-                )}
-              </>
-            )}
+               <Text fontSize="sm" color="gray.500" mb={4}>
+                 {shop.city}, {shop.postcode}
+               </Text>
+               <Button
+                 onClick={() => handleSelectParcelShop(shop)}
+                 colorScheme="green"
+                 variant="solid"
+                 size="sm"
+               >
+                 Deliver Here
+               </Button>
+             </Box>
+           ))}
+         </Grid>
+          )}
+        </>
+      )}
 
-            {/* Home Delivery Logic */}
-            {deliveryInfo.deliveryMethod === "home" && (
-              <Text mt={4}>
-                You have selected home delivery. Please ensure your address is
-                correct before proceeding.
-              </Text>
-            )}
-          </>
-        )}
+      {/* Home Delivery Logic */}
+      {deliveryInfo.deliveryMethod === "home" && (
+        <Text mt={4} color="gray.600">
+          Ensure your address is correct before proceeding.
+        </Text>
+      )}
 
-        <ButtonComponent
-          text="Save and Continue to Billing"
-          onClick={saveAndPay}
-          variant="greenBtn"
-        />
-      </VStack>
-    </Box>
-  );
+      <Divider />
+          
+          <ButtonComponent
+            text="Save and Continue to Billing"
+            onClick={saveAndPay}
+            variant="greenBtn"
+          />
+
+    </VStack>
+  </Box>
+);
 };
 
 export default DeliveryInformation;
