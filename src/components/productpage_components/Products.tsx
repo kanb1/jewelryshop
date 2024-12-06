@@ -156,23 +156,25 @@ const Products: React.FC = () => {
       {/* Breadcrumb */}
       <Breadcrumb fontSize="md" spacing="8px" separator="/">
         <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/" fontWeight="medium" color="blue.500">
+          <BreadcrumbLink as={Link} to="/">
+          <Text fontWeight="bold" color="gray.700">
             Home
+            </Text>
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem>
           <BreadcrumbLink
             as={Link}
             to="/products/all"
-            fontWeight="medium"
-            color="blue.500"
             onClick={() => {
               setSelectedCollections([]);
               setSelectedJewelryTypes([]);
               setSearchParams({});
             }}
           >
+           <Text fontWeight="bold" color="gray.700">
             All products
+            </Text>
           </BreadcrumbLink>
         </BreadcrumbItem>
         {category && category !== "all" && (
@@ -205,7 +207,7 @@ const Products: React.FC = () => {
             Filter
           </Heading>
           <Box mb={6}>
-            <Heading as="h3" size="sm" mb={2}>
+            <Heading as="h3" size="sm" mb={2} textAlign="left">
               Sort By
             </Heading>
             <RadioGroup value={sortOption} onChange={handleSortChange}>
@@ -218,7 +220,7 @@ const Products: React.FC = () => {
 
           <Divider my={4} />
           <Box mb={6}>
-            <Heading as="h3" size="sm" mb={2}>
+            <Heading as="h3" size="sm" mb={2} textAlign="left">
               Collections
             </Heading>
             <Stack direction="column">
@@ -235,7 +237,7 @@ const Products: React.FC = () => {
             </Stack>
           </Box>
           <Box>
-            <Heading as="h3" size="sm" mb={2}>
+            <Heading as="h3" size="sm" mb={2} textAlign="left">
               Jewelry Types
             </Heading>
             <Stack direction="column">

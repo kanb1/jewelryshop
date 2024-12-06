@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Box,
@@ -40,18 +40,36 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
   const { cartCount, setCartCount } = useCart(); // Access cart count from CartContext
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
 
   // Decode JWT token to check the role
-  const token = localStorage.getItem("jwt");
-  let userRole = "";
-  if (token) {
-    try {
-      const decoded: any = jwtDecode(token);
-      userRole = decoded.role; // Assuming your token has a "role" field
-    } catch (err) {
-      console.error("Failed to decode token:", err);
+  useEffect(() => {
+    // Check if there's a valid token in localStorage on initial load
+    const token = localStorage.getItem("jwt");
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        if (decoded.exp * 1000 > Date.now()) {
+          // Token is valid
+          setIsLoggedIn(true);
+          setUserRole(decoded.role); // Set the user role from the token
+        } else {
+          // Token is expired
+          localStorage.removeItem("jwt");
+          setIsLoggedIn(false);
+          setUserRole(null);
+        }
+      } catch (err) {
+        console.error("Error decoding token:", err);
+        setIsLoggedIn(false);
+        setUserRole(null);
+      }
+    } else {
+      setIsLoggedIn(false);
+      setUserRole(null);
     }
-  }
+  }, [setIsLoggedIn]);
 
   const handleLogout = () => {
     localStorage.removeItem("jwt");

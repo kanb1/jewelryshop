@@ -30,6 +30,7 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
   const [product, setProduct] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const toast = useToast();
 
@@ -184,18 +185,20 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
       {/* Breadcrumb */}
       <Breadcrumb fontSize="md" spacing="8px" separator="/">
         <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/" fontWeight="medium" color="blue.500">
+          <BreadcrumbLink as={Link} to="/">
+          <Text fontWeight="bold" color="gray.700">
             Home
+          </Text>
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem>
           <BreadcrumbLink
             as={Link}
             to={`/products/${product.type}`}
-            fontWeight="medium"
-            color="blue.500"
           >
+           <Text fontWeight="bold" color="gray.700">
             {product.type.charAt(0).toUpperCase() + product.type.slice(1)}
+            </Text>
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>
@@ -208,20 +211,38 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
       {/* Product Detail Layout */}
       <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={10}>
         {/* Product Images */}
-        <Box>
-          <Grid templateColumns="repeat(3, 1fr)" gap={4}>
-          {product.images?.map((img: any, index: React.Key | null | undefined) => (
-            <Image
-              key={index}
-              src={img || "/placeholder.jpg"}
-              alt={`${product.name} image ${index + 1}`}
-              borderRadius="md"
-              boxSize="300px"
-              objectFit="cover"
-            />
-          ))}
-          </Grid>
+<Box display="flex" flexDirection="row" gap={4} pt={10}>
+  {/* Thumbnails */}
+  <Box display="flex" flexDirection="column" gap={2}>
+    {product.images?.map((img: any, index: React.Key | null | undefined) => (
+      <Image
+        key={index}
+        src={img || "/placeholder.jpg"}
+        alt={`${product.name} thumbnail ${index + 1}`}
+        borderRadius="md"
+        boxSize="80px"
+        objectFit="cover"
+        cursor="pointer"
+        border="2px solid"
+        borderColor="gray.300"
+        _hover={{ borderColor: "black" }}
+        onClick={() => setSelectedImage(img)} // Set the selected image on click
+      />
+    ))}
+  </Box>
+
+        {/* Main Image */}
+        <Box flex="1">
+          <Image
+            src={selectedImage || product.images[0] || "/placeholder.jpg"}
+            alt={product.name}
+            borderRadius="md"
+            objectFit="cover" // Ensures the image covers the area
+            objectPosition="top" // Aligns the image content to the top
+            boxSize="500px"
+          />
         </Box>
+      </Box>
 
         {/* Product Info */}
         <Box>
@@ -271,14 +292,15 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
               <h2>
                 <AccordionButton>
                   <Box flex="1" textAlign="left">
-                    Description
+                   Description
                   </Box>
                   <AccordionIcon />
                 </AccordionButton>
               </h2>
-              <AccordionPanel pb={4}>
-                {product.description || 'No description available'}
-              </AccordionPanel>
+              <AccordionPanel pb={4} textAlign="left">
+              {product.description ||
+        'Crafted with precision and elegance, this piece of jewelry is designed to make a timeless statement. Perfect for both everyday wear and special occasions, its intricate details and fine materials ensure a luxurious experience.'}              
+        </AccordionPanel>
             </AccordionItem>
 
             <AccordionItem>
@@ -290,9 +312,10 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
                   <AccordionIcon />
                 </AccordionButton>
               </h2>
-              <AccordionPanel pb={4}>
-                {product.materialsAndCare || 'Material info not available'}
-              </AccordionPanel>
+              <AccordionPanel pb={4} textAlign="left">
+              {product.materialsAndCare ||
+        'Made from high-quality 18K gold and adorned with ethically sourced gemstones. To maintain its brilliance, avoid direct contact with water, perfumes, and chemicals. Clean gently with a soft cloth to preserve its luster.'}
+        </AccordionPanel>
             </AccordionItem>
           </Accordion>
         </Box>

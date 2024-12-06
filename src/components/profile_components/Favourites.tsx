@@ -1,25 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Grid,
-  Text,
-  Button,
-  Image,
-  useToast,
-} from '@chakra-ui/react';
-import ButtonComponent from '../shared/ButtonComponent';
+import React, { useEffect, useState } from "react";
+import { Box, Grid, Text, useToast } from "@chakra-ui/react";
+import ProductCard from "../shared/ProductCard";
+import ButtonComponent from "../shared/ButtonComponent";
 
 const Favourites: React.FC = () => {
   const [favourites, setFavourites] = useState<any[]>([]);
   const toast = useToast();
 
   const fetchFavourites = async () => {
-    const token = localStorage.getItem('jwt');
+    const token = localStorage.getItem("jwt");
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:5001/api/favourites', {
-        method: 'GET',
+      const response = await fetch("http://localhost:5001/api/favourites", {
+        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -30,21 +24,21 @@ const Favourites: React.FC = () => {
         setFavourites(data);
       } else {
         const errorData = await response.json();
-        console.error('Error fetching favourites:', errorData);
+        console.error("Error fetching favourites:", errorData);
         toast({
-          title: 'Error',
-          description: 'Failed to fetch favourites.',
-          status: 'error',
+          title: "Error",
+          description: "Failed to fetch favourites.",
+          status: "error",
           duration: 3000,
           isClosable: true,
         });
       }
     } catch (error) {
-      console.error('Error fetching favourites:', error);
+      console.error("Error fetching favourites:", error);
       toast({
-        title: 'Error',
-        description: 'Something went wrong while fetching favourites.',
-        status: 'error',
+        title: "Error",
+        description: "Something went wrong while fetching favourites.",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
@@ -52,43 +46,46 @@ const Favourites: React.FC = () => {
   };
 
   const handleRemoveFavourite = async (favouriteId: string) => {
-    const token = localStorage.getItem('jwt');
+    const token = localStorage.getItem("jwt");
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/favourites/${favouriteId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `http://localhost:5001/api/favourites/${favouriteId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         setFavourites(favourites.filter((fav) => fav._id !== favouriteId));
         toast({
-          title: 'Removed',
-          description: 'Favourite removed successfully.',
-          status: 'success',
+          title: "Removed",
+          description: "Favourite removed successfully.",
+          status: "success",
           duration: 3000,
           isClosable: true,
         });
       } else {
         const errorData = await response.json();
-        console.error('Error removing favourite:', errorData);
+        console.error("Error removing favourite:", errorData);
         toast({
-          title: 'Error',
-          description: 'Failed to remove favourite.',
-          status: 'error',
+          title: "Error",
+          description: "Failed to remove favourite.",
+          status: "error",
           duration: 3000,
           isClosable: true,
         });
       }
     } catch (error) {
-      console.error('Error removing favourite:', error);
+      console.error("Error removing favourite:", error);
       toast({
-        title: 'Error',
-        description: 'Something went wrong while removing favourite.',
-        status: 'error',
+        title: "Error",
+        description: "Something went wrong while removing favourite.",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
@@ -100,28 +97,31 @@ const Favourites: React.FC = () => {
   }, []);
 
   return (
-    <Box>
+    <Box minH="50vh">
       {favourites.length === 0 ? (
         <Text>No favourites yet.</Text>
       ) : (
-        <Grid templateColumns="repeat(auto-fill, minmax(200px, 1fr))" gap={4}>
+        <Grid templateColumns="repeat(auto-fill, minmax(250px, 1fr))" gap={6}>
           {favourites.map((fav) => (
-            <Box key={fav._id} borderWidth="1px" borderRadius="md" p={4}>
-              <Image
-                src="https://via.placeholder.com/150" // Replace with fav.productId.image if available
-                alt={fav.productId.name}
-                mb={4}
-              />
-              <Text fontWeight="bold" mb={2}>
-                {fav.productId.name}
-              </Text>
-              <Text>${fav.productId.price}</Text>
-              <ButtonComponent
-                text="Remove"
-                variant="redBtn"
-                onClick={() => handleRemoveFavourite(fav._id)}
-              />
-            </Box>
+            <ProductCard
+              key={fav._id}
+              product={{
+                _id: fav.productId._id,
+                name: fav.productId.name,
+                price: fav.productId.price,
+                type: fav.productId.type,
+                productCollection: fav.productId.productCollection,
+                images: fav.productId.images,
+              }}
+            >
+              <Box mt={4}>
+                <ButtonComponent
+                  text="Remove from favorites"
+                  variant="redBtn"
+                  onClick={() => handleRemoveFavourite(fav._id)}
+                />
+              </Box>
+            </ProductCard>
           ))}
         </Grid>
       )}
