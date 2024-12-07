@@ -169,7 +169,7 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
   }
 
   return (
-    <Box p={10}>
+    <Box p={10} minH="100vh">
       {/* Breadcrumb */}
       <Breadcrumb fontSize="md" spacing="8px" separator="/">
         <BreadcrumbItem>

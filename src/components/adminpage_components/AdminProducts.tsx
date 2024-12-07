@@ -21,6 +21,8 @@ import {
   ModalCloseButton,
   useDisclosure,
   Stack,
+  useBreakpointValue,
+  Text,
 } from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
 import { useNavigate } from "react-router-dom";
@@ -38,6 +40,8 @@ const AdminProducts: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
 
   // Fetch products from backend
   const fetchProducts = async () => {
@@ -174,6 +178,18 @@ const AdminProducts: React.FC = () => {
     }
   };
   
+
+    // Return early if the user is on a mobile device
+    if (isMobile) {
+      return (
+        <Box textAlign="center" p={5}>
+          <Heading size="md" mb={4}>
+            Manage Products is best viewed on desktop.
+          </Heading>
+          <Text>Please switch to a larger device for a better experience.</Text>
+        </Box>
+      );
+    }
     
 
   return (

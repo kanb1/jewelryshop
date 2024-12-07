@@ -12,18 +12,23 @@ import {
   Th,
   Button,
   useToast,
+  Stack,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 
 const MyOrders: React.FC = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const toast = useToast();
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
 
   // Function to fetch orders
   const fetchOrders = async () => {
     setLoading(true); // Set loading to true while fetching
     try {
       const token = localStorage.getItem("jwt");
+
       if (!token) throw new Error("Unauthorized");
 
       const response = await fetch("http://localhost:5001/api/orders", {
@@ -115,57 +120,103 @@ const MyOrders: React.FC = () => {
 
   return (
     <Box p={5}>
-      <Heading size="lg" mb={4}>My Orders</Heading>
-      <Table variant="striped" colorScheme="gray">
-        <Thead>
-          <Tr>
-            <Th>Order ID</Th>
-            <Th>Status</Th>
-            <Th>Date</Th>
-            <Th>Returnable</Th>
-            <Th>Return ID</Th>
-            <Th>Return Status</Th>
-            <Th>Return Initiated At</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-  {orders.map((order) => (
-    <Tr key={order.orderId}>
-      <Td>{order.orderId}</Td>
-      <Td>{order.status}</Td>
-      <Td>{new Date(order.createdAt).toLocaleDateString()}</Td>
-      <Td>
-        {order.isReturnable
-          ? "Yes"
-          : order.status === "Return Initiated"
-          ? "Returnlabel already sent to email"
-          : "Return date expired"}
-      </Td>
-      <Td>{order.returnId || ""}</Td>
-      <Td>{order.returnStatus || ""}</Td>
-      <Td>
-        {order.returnInitiatedAt
-          ? new Date(order.returnInitiatedAt).toLocaleDateString()
-          : ""}
-      </Td>
-      <Td>
-        {order.isReturnable && order.status !== "Return Initiated" && (
-          <Button
-            colorScheme="blue"
-            size="sm"
-            onClick={() => initiateReturn(order.orderId)}
-          >
-            Initiate Return
-          </Button>
-        )}
-      </Td>
-    </Tr>
-  ))}
-</Tbody>
-
-      </Table>
+      <Heading size="lg" mb={4}>
+        My Orders
+      </Heading>
+      {isMobile ? (
+        <Stack spacing={4}>
+          {orders.map((order) => (
+            <Box
+              key={order.orderId}
+              p={4}
+              border="1px solid"
+              borderColor="gray.200"
+              borderRadius="md"
+            >
+              <Text fontWeight="bold">Order ID: {order.orderId}</Text>
+              <Text>Status: {order.status}</Text>
+              <Text>Date: {new Date(order.createdAt).toLocaleDateString()}</Text>
+              <Text>
+                Returnable:{" "}
+                {order.isReturnable
+                  ? "Yes"
+                  : order.status === "Return Initiated"
+                  ? "Returnlabel already sent to email"
+                  : "Return date expired"}
+              </Text>
+              <Text>Return ID: {order.returnId || ""}</Text>
+              <Text>Return Status: {order.returnStatus || ""}</Text>
+              <Text>
+                Return Initiated At:{" "}
+                {order.returnInitiatedAt
+                  ? new Date(order.returnInitiatedAt).toLocaleDateString()
+                  : ""}
+              </Text>
+              {order.isReturnable && order.status !== "Return Initiated" && (
+                <Button
+                  mt={2}
+                  colorScheme="blue"
+                  size="sm"
+                  onClick={() => initiateReturn(order.orderId)}
+                >
+                  Initiate Return
+                </Button>
+              )}
+            </Box>
+          ))}
+        </Stack>
+      ) : (
+        <Table variant="striped" colorScheme="gray">
+          <Thead>
+            <Tr>
+              <Th>Order ID</Th>
+              <Th>Status</Th>
+              <Th>Date</Th>
+              <Th>Returnable</Th>
+              <Th>Return ID</Th>
+              <Th>Return Status</Th>
+              <Th>Return Initiated At</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {orders.map((order) => (
+              <Tr key={order.orderId}>
+                <Td>{order.orderId}</Td>
+                <Td>{order.status}</Td>
+                <Td>{new Date(order.createdAt).toLocaleDateString()}</Td>
+                <Td>
+                  {order.isReturnable
+                    ? "Yes"
+                    : order.status === "Return Initiated"
+                    ? "Returnlabel already sent to email"
+                    : "Return date expired"}
+                </Td>
+                <Td>{order.returnId || ""}</Td>
+                <Td>{order.returnStatus || ""}</Td>
+                <Td>
+                  {order.returnInitiatedAt
+                    ? new Date(order.returnInitiatedAt).toLocaleDateString()
+                    : ""}
+                </Td>
+                <Td>
+                  {order.isReturnable && order.status !== "Return Initiated" && (
+                    <Button
+                      colorScheme="blue"
+                      size="sm"
+                      onClick={() => initiateReturn(order.orderId)}
+                    >
+                      Initiate Return
+                    </Button>
+                  )}
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      )}
     </Box>
   );
 };
+
 
 export default MyOrders;

@@ -2,7 +2,7 @@ import { Box, Heading, Text, VStack, Image } from "@chakra-ui/react";
 
 const About = () => {
   return (
-    <Box  py={10} px={{ base: 4, md: 10 }}>
+    <Box  py={10} px={{ base: 4, md: 10 }} minH="100vh">
       {/* Hero Section */}
       <VStack spacing={6} textAlign="center" mb={10}>
         <Heading as="h1" size="xl" color="gray.800">

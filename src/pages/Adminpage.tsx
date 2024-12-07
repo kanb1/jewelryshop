@@ -3,10 +3,14 @@ import AdminDashboard from "../components/adminpage_components/AdminDashboard";
 import AdminOrders from "../components/adminpage_components/AdminOrders";
 import AdminProducts from "../components/adminpage_components/AdminProducts";
 import ProtectedRoute from "../components/shared/ProtectedRoute"; // Import the ProtectedRoute component
+import { Box } from "@chakra-ui/react";
 
 
 const AdminPage: React.FC = () => {
   return (
+    <Box
+  minH="100vh" // Ensures the container takes at least the full viewport height
+>
     <Routes>
       <Route path="/" element={
           <ProtectedRoute role="admin">
@@ -24,6 +28,7 @@ const AdminPage: React.FC = () => {
           </ProtectedRoute>
         } />
     </Routes>
+    </Box>
   );
 };
 

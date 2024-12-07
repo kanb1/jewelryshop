@@ -10,6 +10,9 @@ import {
   Th,
   Button,
   Spinner,
+  VStack,
+  Text,
+  useMediaQuery,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import ButtonComponent from "../shared/ButtonComponent";
@@ -40,6 +43,9 @@ const AdminOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate(); 
+
+  // Responsive media query
+  const [isMobile] = useMediaQuery("(max-width: 768px)");
 
   // Fetch all orders
   useEffect(() => {
@@ -115,17 +121,77 @@ const AdminOrders: React.FC = () => {
 
   return (
     <Box p={5}>
-      <Box p={4} textAlign="left">
-        <ButtonComponent
-          text="Back to dashboard"
-          onClick={() => navigate("/admin")}
-          variant="primaryBlackBtn"
-        />
-      </Box>
-      <Heading size="lg" mb={4}>
-        Manage Orders
-      </Heading>
-      
+    <Box p={4} textAlign="left">
+      <ButtonComponent
+        text="Back to dashboard"
+        onClick={() => navigate("/admin")}
+        variant="primaryBlackBtn"
+      />
+    </Box>
+    <Heading size="lg" mb={4}>
+      Manage Orders
+    </Heading>
+
+    {isMobile ? (
+      // Responsive Layout for Mobile
+      <VStack spacing={4} align="stretch">
+        {orders.map((order) => (
+          <Box
+            key={order._id}
+            p={4}
+            borderWidth={1}
+            borderRadius="md"
+            boxShadow="sm"
+            bg="white"
+          >
+            <Text>
+              <strong>Order ID:</strong> {order._id}
+            </Text>
+            <Text>
+              <strong>Status:</strong> {order.status}
+            </Text>
+            <Text>
+              <strong>Return Status:</strong> {order.returnStatus || "N/A"}
+            </Text>
+            <Text>
+              <strong>Total Price:</strong> ${order.totalPrice}
+            </Text>
+            <Text>
+              <strong>Address:</strong> {`${order.deliveryInfo.address}, ${order.deliveryInfo.city}, ${order.deliveryInfo.country}`}
+            </Text>
+            {(order.status === "Return" || order.status === "Return Initiated") && (
+              <Box mt={3}>
+                <Button
+                  colorScheme="blue"
+                  size="sm"
+                  onClick={() =>
+                    handleUpdateReturnStatus(order._id, "Received")
+                  }
+                  isDisabled={
+                    order.returnStatus === "Received" ||
+                    order.returnStatus === "Refunded"
+                  }
+                >
+                  Mark as Received
+                </Button>
+                <Button
+                  colorScheme="green"
+                  size="sm"
+                  onClick={() =>
+                    handleUpdateReturnStatus(order._id, "Refunded")
+                  }
+                  isDisabled={order.returnStatus === "Refunded"}
+                  ml={2}
+                >
+                  Mark as Refunded
+                </Button>
+              </Box>
+            )}
+          </Box>
+        ))}
+      </VStack>
+    ) : (
+      // Desktop Table View
       <Table variant="striped" colorScheme="teal">
         <Thead>
           <Tr>
@@ -136,44 +202,49 @@ const AdminOrders: React.FC = () => {
           </Tr>
         </Thead>
         <Tbody>
-          {orders.map((order: Order) => (
+          {orders.map((order) => (
             <Tr key={order._id}>
               <Td>{order._id}</Td>
               <Td>{order.status}</Td>
               <Td>{order.returnStatus || ""}</Td>
               <Td>
-              {(order.status === "Return" || order.status === "Return Initiated") && (
-  <>
-    <Button
-      colorScheme="blue"
-      size="sm"
-      onClick={() => handleUpdateReturnStatus(order._id, "Received")}
-      isDisabled={
-        order.returnStatus === "Received" ||
-        order.returnStatus === "Refunded"
-      }
-    >
-      Mark as Received
-    </Button>
-    <Button
-      colorScheme="green"
-      size="sm"
-      onClick={() => handleUpdateReturnStatus(order._id, "Refunded")}
-      isDisabled={order.returnStatus === "Refunded"}
-      ml={2}
-    >
-      Mark as Refunded
-    </Button>
-  </>
-)}
-
+                {(order.status === "Return" ||
+                  order.status === "Return Initiated") && (
+                  <>
+                    <Button
+                      colorScheme="blue"
+                      size="sm"
+                      onClick={() =>
+                        handleUpdateReturnStatus(order._id, "Received")
+                      }
+                      isDisabled={
+                        order.returnStatus === "Received" ||
+                        order.returnStatus === "Refunded"
+                      }
+                    >
+                      Mark as Received
+                    </Button>
+                    <Button
+                      colorScheme="green"
+                      size="sm"
+                      onClick={() =>
+                        handleUpdateReturnStatus(order._id, "Refunded")
+                      }
+                      isDisabled={order.returnStatus === "Refunded"}
+                      ml={2}
+                    >
+                      Mark as Refunded
+                    </Button>
+                  </>
+                )}
               </Td>
             </Tr>
           ))}
         </Tbody>
       </Table>
-    </Box>
-  );
+    )}
+  </Box>
+);
 };
 
 export default AdminOrders;

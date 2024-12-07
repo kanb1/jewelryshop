@@ -29,6 +29,7 @@ const FrontpageHeroVideo = () => {
         bg: "rgba(0, 0, 0, 0.4)", // Dark overlay effect
         zIndex: 1,
       }}
+      
     >
       <AspectRatio ratio={21 / 9} maxW="100%" height="100%">
         <video
