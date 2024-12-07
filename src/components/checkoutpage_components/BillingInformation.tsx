@@ -6,13 +6,24 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { Box, VStack, Button, Text, Divider, FormControl, FormLabel, Heading } from "@chakra-ui/react";
+import { Box, VStack, Divider, FormControl, FormLabel, Heading} from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
+import { useToast } from "@chakra-ui/react";
+
 
 interface BillingProps {
   total: number;
   onPaymentSuccess: (orderNumber: string) => void;
-  cartItems: any[];
+  cartItems: Array<{
+    productId: {
+      _id: string;
+      name: string;
+      price: number;
+    };
+    quantity: number;
+    size: string;
+  }>;
+  
   deliveryInfo: {
     address: string;
     city: string;
@@ -20,7 +31,7 @@ interface BillingProps {
     country: string;
     deliveryMethod: "home" | "parcel-shop";
   };
-  goToPreviousStep: () => void; // Add this
+  goToPreviousStep: () => void;
 }
 
 
@@ -29,86 +40,148 @@ const BillingInformation: React.FC<BillingProps> = ({
   onPaymentSuccess,
   cartItems,
   deliveryInfo,
-  goToPreviousStep, // Add this
-
+  goToPreviousStep,
 }) => {
+  console.log("Cart Items:", cartItems);
+
   const stripe = useStripe();
   const elements = useElements();
+  const toast = useToast();
 
   const calculateTotalPrice = () => {
-    // Calculate the total price based on cart items
-    return cartItems.reduce(
-      (sum, item) => sum + item.productId.price * item.quantity,
-      0
-    );
+    return cartItems.reduce((sum: number, item: { productId: { price: number; }; quantity: number; }) => sum + item.productId.price * item.quantity, 0);
   };
 
+
   const handlePayment = async () => {
-    const token = localStorage.getItem("jwt");
+    const userToken = localStorage.getItem("jwt");
+    if (!userToken) {
+      toast({
+        title: "Authentication Error",
+        description: "User is not logged in. Please log in to proceed.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
   
-    // Debugging: Log token and initial cart items
-    console.log("Token retrieved in BillingInformation:", token); // Check if JWT is retrieved correctly
-    console.log("Cart items being sent:", cartItems); // Validate cart items before processing
-  
-    const orderItems = cartItems.map((item) => ({
-      productId: item.productId._id, // Validate product ID mapping
-      size: item.size,
-      quantity: item.quantity,
-    }));
-  
-    // Debugging: Log orderItems to ensure proper mapping
-    console.log("Mapped order items:", orderItems); 
-  
-    // Debugging: Log delivery information
-    console.log("Delivery Info:", deliveryInfo); 
-  
-    // Debugging: Log calculated total price
-    console.log("Total price being sent:", calculateTotalPrice());
+    if (!stripe || !elements) {
+      toast({
+        title: "Payment Error",
+        description: "Stripe is not initialized correctly. Please try again later.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
   
     try {
-      // Debugging: Log API request payload
-      const requestBody = {
-        items: orderItems,
-        totalPrice: calculateTotalPrice(),
-        deliveryInfo,
-        deliveryMethod: deliveryInfo.deliveryMethod,
-      };
-      console.log("Request payload to API:", requestBody);
-  
-      // Make the API call
-      const response = await fetch("http://localhost:5001/api/orders", {
+      const response = await fetch("http://localhost:5001/api/payment/create-payment-intent", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Debug: Ensure token is passed
+          Authorization: `Bearer ${userToken}`,
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          amount: calculateTotalPrice() * 100,
+          currency: "usd",
+        }),
       });
   
-      // Debugging: Log the raw response
-      console.log("Raw response from API:", response);
+      const { clientSecret } = await response.json();
   
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error response from server:", errorData);
-        alert(`Order creation failed: ${errorData.error || "Unknown error"}`); // Inform user about the error
+      const cardElement = elements.getElement(CardNumberElement);
+      if (!cardElement) {
+        toast({
+          title: "Payment Error",
+          description: "Card details are not provided correctly.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
         return;
       }
   
-      // Parse the successful response
-      const result = await response.json();
+      const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: "Test User",
+          },
+        },
+      });
   
-      // Debugging: Log successful result
-      console.log("Order created successfully:", result);
+      if (error) {
+        toast({
+          title: "Payment Error",
+          description: error.message || "Something went wrong.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        console.error("Payment confirmation error:", error.message);
+      } else {
+        // After a successful payment, save the order in the backend
+        const saveOrderResponse = await fetch("http://localhost:5001/api/orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userToken}`,
+          },
+          body: JSON.stringify({
+            items: cartItems.map((item) => ({
+              productId: item.productId._id, // Extract the _id from productId
+              quantity: item.quantity,
+              size: item.size,
+            })),
+            totalPrice: calculateTotalPrice(),
+            deliveryInfo,
+            deliveryMethod: deliveryInfo.deliveryMethod,
+            paymentIntentId: paymentIntent.id, // Pass Stripe's Payment Intent ID
+          }),
+        });
+
+
   
-      // Trigger success callback
-      onPaymentSuccess(result.order.orderNumber);
-    } catch (err) {
-      // Debugging: Log any unexpected errors
-      console.error("Error during payment processing:", err);
-      alert("Something went wrong during payment. Please try again.");
+        if (!saveOrderResponse.ok) {
+          const errorData = await saveOrderResponse.json();
+          toast({
+            title: "Order Save Error",
+            description: errorData.error || "Failed to save order. Please try again.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+          console.error("Failed to save order:", errorData);
+          return;
+        }
+  
+        const { order } = await saveOrderResponse.json();
+        toast({
+          title: "Payment Successful",
+          description: `Order #${order.orderNumber} placed successfully!`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+        onPaymentSuccess(order.orderNumber);
+      }
+    } catch (error) {
+      console.error("Error during payment:", error);
+      toast({
+        title: "Payment Error",
+        description: "Something went wrong during the payment process.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
+  
+  
+  
   
 
   return (
@@ -117,53 +190,26 @@ const BillingInformation: React.FC<BillingProps> = ({
         Billing Information
       </Heading>
       <Divider mb={5} />
-
       <VStack spacing={5} align="stretch">
-        {/* Card Number */}
         <FormControl>
           <FormLabel>Card Number</FormLabel>
-          <Box
-            p={3}
-            border="1px solid"
-            borderColor="gray.300"
-            borderRadius="md"
-            bg="white"
-          >
+          <Box p={3} border="1px solid" borderColor="gray.300" borderRadius="md" bg="white">
             <CardNumberElement />
           </Box>
         </FormControl>
-
-        {/* Expiry Date */}
         <FormControl>
           <FormLabel>Expiry Date</FormLabel>
-          <Box
-            p={3}
-            border="1px solid"
-            borderColor="gray.300"
-            borderRadius="md"
-            bg="white"
-          >
+          <Box p={3} border="1px solid" borderColor="gray.300" borderRadius="md" bg="white">
             <CardExpiryElement />
           </Box>
         </FormControl>
-
-        {/* CVC */}
         <FormControl>
           <FormLabel>CVC</FormLabel>
-          <Box
-            p={3}
-            border="1px solid"
-            borderColor="gray.300"
-            borderRadius="md"
-            bg="white"
-          >
+          <Box p={3} border="1px solid" borderColor="gray.300" borderRadius="md" bg="white">
             <CardCvcElement />
           </Box>
         </FormControl>
-
         <Divider />
-
-        {/* Buttons */}
         <Box mt={5} display="flex" justifyContent="space-between">
           <ButtonComponent
             text="Back to Delivery"
@@ -174,6 +220,7 @@ const BillingInformation: React.FC<BillingProps> = ({
             text={`Pay $${calculateTotalPrice()}`}
             onClick={handlePayment}
             variant="greenBtn"
+            isDisabled={!stripe || !elements}
           />
         </Box>
       </VStack>

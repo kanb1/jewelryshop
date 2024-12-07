@@ -73,7 +73,7 @@ router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response
 
 // POST /orders - Create a new order
 router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
-  const { items, totalPrice, deliveryInfo, deliveryMethod } = req.body;
+  const { items, totalPrice, deliveryInfo, deliveryMethod, paymentIntentId } = req.body; // Include paymentIntentId from frontend
   const userId = req.user?.userId;
 
   try {
@@ -102,9 +102,7 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
     // Check product existence
     for (const item of items) {
       const productExists = await Products.exists({ _id: item.productId });
-      console.log(`Product existence check for ID ${item.productId}:`, productExists);
       if (!productExists) {
-        console.error("Product not found in database:", { productId: item.productId });
         res.status(404).json({ error: `Product with ID ${item.productId} not found` });
         return;
       }
@@ -117,12 +115,10 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
       deliveryMethod === "home" &&
       (!deliveryInfo.address || !deliveryInfo.city || !deliveryInfo.postalCode || !deliveryInfo.country)
     ) {
-      console.error("Validation failed: Incomplete home delivery address", { deliveryInfo });
       res.status(400).json({ error: "Incomplete home delivery address" });
       return;
     }
     if (deliveryMethod === "parcel-shop" && !deliveryInfo.address) {
-      console.error("Validation failed: Parcel shop address is missing", { deliveryInfo });
       res.status(400).json({ error: "Parcel shop address is missing" });
       return;
     }
@@ -141,7 +137,8 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
       deliveryInfo,
       deliveryMethod,
       orderNumber,
-      paymentStatus: "Pending",
+      paymentIntentId, // Save Stripe's Payment Intent ID here
+      paymentStatus: "Succeeded", // Update the status after payment success
       createdAt: new Date(),
     };
 
@@ -155,48 +152,27 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
     // Fetch user's email
     const user = await User.findById(order.userId);
     if (!user || !user.email) {
-      console.error("User or email not found:", { userId: order.userId });
       res.status(404).json({ error: "User or email not found" });
       return;
     }
 
-    console.log("User email found:", user.email);
-
     const emailBody = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
-    <h1 style="color: #6EBF8B;">Thank You for Your Order!</h1>
-    <p>Hi ${user.name || "Customer"},</p>
-    <p>We're excited to let you know that your order has been successfully placed. Below are your order details:</p>
-    <table style="border-collapse: collapse; width: 100%; margin: 20px 0;">
-      <tr>
-        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 8px;">Order Number</th>
-        <td style="padding: 8px;">${orderNumber}</td>
-      </tr>
-      <tr>
-        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 8px;">Total Amount</th>
-        <td style="padding: 8px;">$${order.totalPrice.toFixed(2)}</td>
-      </tr>
-      <tr>
-        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 8px;">Delivery Method</th>
-        <td style="padding: 8px;">${order.deliveryMethod === "home" ? "Home Delivery" : "Parcel Shop Pickup"}</td>
-      </tr>
-    </table>
-    <p>If you have any questions or need to make changes, please contact our support team at support@jewelryshop.com.</p>
-    <p>We hope you enjoy your purchase!</p>
-    <p style="margin-top: 30px;">Warm regards,<br/>The JewelryShop Team</p>
-  </div>
+      <h1>Order Confirmation</h1>
+      <p>Thank you for your order, ${user.name || "Customer"}!</p>
+      <p>Your order number is: ${orderNumber}</p>
+      <p>Stripe Payment ID: ${paymentIntentId}</p>
+      <p>Total: $${totalPrice}</p>
+      <p>We will notify you once your order has been shipped.</p>
     `;
     await transporter.sendMail({
-      from: "kanzafullstackexam@gmail.com",
+      from: "your-email@example.com",
       to: user.email,
       subject: "Order Confirmation",
       html: emailBody,
     });
 
-    console.log("Step 7: Email sent successfully.");
-
+    console.log("Email sent successfully.");
     res.status(201).json({ message: "Order created successfully", order });
-    console.log("Final response sent to frontend.");
   } catch (error) {
     console.error("Error during order processing:", error);
     res.status(500).json({ error: "Internal server error" });

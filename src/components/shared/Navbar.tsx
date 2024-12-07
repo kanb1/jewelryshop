@@ -127,7 +127,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
 
 
         {/* LOGIN/LOGOUT AND CART */}
-        <HStack spacing={6}>
+        <HStack spacing={{ base: 2, lg: 6 }} alignItems="center"> 
         {isLoggedIn ? (
     <>
       {userRole === "admin" ? (
@@ -195,47 +195,31 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
             </Link>
           </DrawerHeader>
           <DrawerBody>
-            <VStack align="start" spacing={4}>
-              {/* Categories */}
-              {categories.map((category) => (
-                <Link
-                  key={category}
-                  to={`/products/${category.toLowerCase()}`}
-                  style={{ fontWeight: "medium", textDecoration: "none" }}
-                  onClick={onClose} // Close the menu after navigation
-                >
-                  {category}
-                </Link>
-              ))}
-
-              <Divider my={6} />
-
-              {/* Profile Links */}
-              {isLoggedIn ? (
-                <>
-                  <Link to="/profile" onClick={onClose}>
-                    My Profile
-                  </Link>
-                  <Button onClick={handleLogout} variant="link">
-                    Logout
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link to="/login" onClick={onClose}>
-                    Login
-                  </Link>
-                  <Link to="/signup" onClick={onClose}>
-                    Signup
-                  </Link>
-                </>
-              )}
-
-              <Link to="/cart" onClick={onClose}>
-                Basket
+          <VStack align="start" spacing={4}>
+            {/* Render product categories */}
+            {categories.map((category) => (
+              <Link key={category} to={`/products/${category.toLowerCase()}`} onClick={onClose}>
+                {category}
               </Link>
-            </VStack>
-          </DrawerBody>
+            ))}
+            <Divider my={6} />
+            {/* Profile or Login options */}
+            {isLoggedIn ? (
+              <>
+                <Link to="/profile" onClick={onClose}>My Profile</Link>
+                <Button onClick={handleLogout} variant="link">Logout</Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={onClose}>Login</Link>
+                <Link to="/signup" onClick={onClose}>Signup</Link>
+              </>
+            )}
+            {/* Cart link */}
+            <Link to="/cart" onClick={onClose}>Basket</Link>
+          </VStack>
+        </DrawerBody>
+
         </DrawerContent>
       </Drawer>
 

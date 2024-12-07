@@ -37,6 +37,8 @@ const CheckoutPage: React.FC = () => {
         });
         const data = await response.json();
         setCartItems(data);
+        console.log("Cart Items from API:", data);
+
       } catch (error) {
         console.error("Error fetching cart items:", error);
       } finally {

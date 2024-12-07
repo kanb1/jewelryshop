@@ -22,6 +22,7 @@ const orderSchema = new mongoose.Schema({
     required: true,
   },
   orderNumber: { type: String, required: true },
+  paymentIntentId: { type: String, required: true }, // Stripe Payment Intent ID
   paymentStatus: { type: String, default: "Pending" },
   status: {
     type: String,

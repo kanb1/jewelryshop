@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Grid,
   Heading,
   Text,
-  Button,
   Select,
   Accordion,
   AccordionItem,
@@ -17,22 +16,26 @@ import {
   BreadcrumbLink,
   useToast,
   VStack,
-} from '@chakra-ui/react';
-import { useParams, Link } from 'react-router-dom';
-import ButtonComponent from '../shared/ButtonComponent';
+  useBreakpointValue,
+} from "@chakra-ui/react";
+import { useParams, Link } from "react-router-dom";
+import ButtonComponent from "../shared/ButtonComponent";
 
 interface ProductDetailProps {
   updateCartCount: () => void;
 }
 
-const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCartCount }) => {
+const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
+  updateCartCount,
+}) => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState<number>(1);
   const toast = useToast();
+
+  const isMobile = useBreakpointValue({ base: true, lg: false }); // Detect screen size
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -41,7 +44,7 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
         const data = await response.json();
         setProduct(data);
       } catch (err) {
-        console.error('Error fetching product:', err);
+        console.error("Error fetching product:", err);
       } finally {
         setLoading(false);
       }
@@ -50,15 +53,6 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
   }, [id]);
 
   const handleAddToBag = async () => {
-    // Debugging the product and payload being sent
-    console.log("Product being added:", product);
-    console.log("Payload being sent to backend:", {
-      productId: product._id, // Ensure this is the ObjectId
-      size: selectedSize,
-      quantity,
-    });
-  
-    // Retrieve the JWT from localStorage
     const token = localStorage.getItem("jwt");
     if (!token) {
       toast({
@@ -68,25 +62,25 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
         duration: 3000,
         isClosable: true,
       });
-      return; // Stop execution if no token is found
+      return;
     }
-  
+
     try {
       const response = await fetch("http://localhost:5001/api/cart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Attach the token
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          productId: product._id, // Make sure this is the ObjectId
+          productId: product._id,
           size: selectedSize,
-          quantity,
+          quantity: 1,
         }),
       });
-  
+
       if (response.ok) {
-        updateCartCount(); // Refresh the cart count
+        updateCartCount();
         toast({
           title: "Added to Bag",
           description: `${product.name} has been added to your bag.`,
@@ -95,8 +89,6 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
           isClosable: true,
         });
       } else {
-        const errorData = await response.json();
-        console.error("Error response from server:", errorData);
         toast({
           title: "Error",
           description: "Failed to add product to the cart.",
@@ -109,7 +101,7 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
       console.error("Error adding to cart:", error);
       toast({
         title: "Error",
-        description: "Something went wrong while adding the product to your bag.",
+        description: "Something went wrong.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -119,7 +111,7 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
 
   const handleAddToFavourites = async () => {
     const token = localStorage.getItem("jwt");
-  
+
     if (!token) {
       toast({
         title: "Login Required",
@@ -130,7 +122,7 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
       });
       return;
     }
-  
+
     try {
       const response = await fetch("http://localhost:5001/api/favourites", {
         method: "POST",
@@ -142,7 +134,7 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
           productId: product._id, // Send the product ID to favourites
         }),
       });
-  
+
       if (response.ok) {
         toast({
           title: "Added to Favourites",
@@ -152,8 +144,6 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
           isClosable: true,
         });
       } else {
-        const errorData = await response.json();
-        console.error("Error response from server:", errorData);
         toast({
           title: "Error",
           description: "Failed to add product to favourites.",
@@ -173,8 +163,6 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
       });
     }
   };
-  
-  
 
   if (loading || !product) {
     return <Text>Loading...</Text>;
@@ -186,18 +174,15 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
       <Breadcrumb fontSize="md" spacing="8px" separator="/">
         <BreadcrumbItem>
           <BreadcrumbLink as={Link} to="/">
-          <Text fontWeight="bold" color="gray.700">
-            Home
-          </Text>
+            <Text fontWeight="bold" color="gray.700">
+              Home
+            </Text>
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem>
-          <BreadcrumbLink
-            as={Link}
-            to={`/products/${product.type}`}
-          >
-           <Text fontWeight="bold" color="gray.700">
-            {product.type.charAt(0).toUpperCase() + product.type.slice(1)}
+          <BreadcrumbLink as={Link} to={`/products/${product.type}`}>
+            <Text fontWeight="bold" color="gray.700">
+              {product.type.charAt(0).toUpperCase() + product.type.slice(1)}
             </Text>
           </BreadcrumbLink>
         </BreadcrumbItem>
@@ -208,41 +193,83 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
         </BreadcrumbItem>
       </Breadcrumb>
 
-      {/* Product Detail Layout */}
-      <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={10}>
-        {/* Product Images */}
-<Box display="flex" flexDirection="row" gap={4} pt={10}>
-  {/* Thumbnails */}
-  <Box display="flex" flexDirection="column" gap={2}>
-    {product.images?.map((img: any, index: React.Key | null | undefined) => (
-      <Image
-        key={index}
-        src={img || "/placeholder.jpg"}
-        alt={`${product.name} thumbnail ${index + 1}`}
-        borderRadius="md"
-        boxSize="80px"
-        objectFit="cover"
-        cursor="pointer"
-        border="2px solid"
-        borderColor="gray.300"
-        _hover={{ borderColor: "black" }}
-        onClick={() => setSelectedImage(img)} // Set the selected image on click
-      />
-    ))}
-  </Box>
-
-        {/* Main Image */}
-        <Box flex="1">
-          <Image
-            src={selectedImage || product.images[0] || "/placeholder.jpg"}
-            alt={product.name}
-            borderRadius="md"
-            objectFit="cover" // Ensures the image covers the area
-            objectPosition="top" // Aligns the image content to the top
-            boxSize="500px"
-          />
+      {/* Layout */}
+      <Grid
+        templateColumns={{ base: "1fr", lg: "1fr 1fr" }}
+        gap={10}
+        alignItems="start"
+      >
+        {/* Image Section */}
+        <Box>
+          {isMobile ? (
+            // Mobile: Stacked layout with thumbnails below
+            <Box>
+              {/* main image */}
+              <Image
+                src={selectedImage || product.images[0] || "/placeholder.jpg"}
+                alt={product.name}
+                borderRadius="md"
+                objectFit="cover"
+                width="100%" // Full-width for mobile
+                maxHeight="300px" // Limit height for mobile
+              />
+              <Box display="flex"
+                  gap={2}
+                  mt={4}
+                  overflowX="auto" // Enable horizontal scrolling
+                  css={{
+                    '&::-webkit-scrollbar': { display: 'none' }, // Hide scrollbar for cleaner look
+                  }}>
+                {product.images?.map((img: string, index: number) => (
+                  <Image
+                  key={index}
+                  src={img || "/placeholder.jpg"}
+                  alt={`${product.name} thumbnail ${index + 1}`}
+                  borderRadius="md"
+                  boxSize="60px" // Smaller size for thumbnails on mobile
+                  objectFit="cover"
+                  cursor="pointer"
+                  border="2px solid"
+                  borderColor="gray.300"
+                  _hover={{ borderColor: "black" }}
+                  onClick={() => setSelectedImage(img)} // Changes main image on click
+                  />
+                ))}
+              </Box>
+            </Box>
+          ) : (
+            // Desktop: Original layout
+            <Box display="flex" flexDirection="row" gap={4}>
+              {/* Thumbnails */}
+              <Box display="flex" flexDirection="column" gap={2}>
+                {product.images?.map((img: string, index: number) => (
+                  <Image
+                  key={index}
+                  src={img || "/placeholder.jpg"}
+                  alt={`${product.name} thumbnail ${index + 1}`}
+                  borderRadius="md"
+                  boxSize="80px" // Ensures uniform thumbnail size
+                  objectFit="cover" // Ensures consistent cropping
+                  cursor="pointer"
+                  border="2px solid"
+                  borderColor="gray.300"
+                  _hover={{ borderColor: "black" }}
+                  onClick={() => setSelectedImage(img)} // Changes main image on click
+                  />
+                ))}
+              </Box>
+              {/* Main Image */}
+              <Image
+                 src={selectedImage || product.images[0] || "/placeholder.jpg"}
+                 alt={product.name}
+                 borderRadius="md"
+                 objectFit="cover" // Ensures image fills its container
+                 objectPosition="top" // Aligns content within the image
+                 boxSize="500px" // Fixed size for uniformity
+              />
+            </Box>
+          )}
         </Box>
-      </Box>
 
         {/* Product Info */}
         <Box>
@@ -256,18 +283,14 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
           <Select
             placeholder="Select size"
             mb={4}
-            value={selectedSize || ''}
+            value={selectedSize || ""}
             onChange={(e) => setSelectedSize(e.target.value)}
           >
-            {product.sizes && product.sizes.length > 0 ? (
-              product.sizes.map((size: string) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))
-            ) : (
-              <option value="One Size">One Size</option>
-            )}
+            {product.sizes?.map((size: string) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
           </Select>
 
           <VStack spacing={4} align="stretch" mt={4} mb={4}>
@@ -283,39 +306,25 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({ updateCart
             />
           </VStack>
 
-
-
-
-          {/* Accordion for Description and Materials & Care */}
+          {/* Accordion */}
           <Accordion defaultIndex={[0]} allowMultiple>
             <AccordionItem>
-              <h2>
-                <AccordionButton>
-                  <Box flex="1" textAlign="left">
-                   Description
-                  </Box>
-                  <AccordionIcon />
-                </AccordionButton>
-              </h2>
-              <AccordionPanel pb={4} textAlign="left">
-              {product.description ||
-        'Crafted with precision and elegance, this piece of jewelry is designed to make a timeless statement. Perfect for both everyday wear and special occasions, its intricate details and fine materials ensure a luxurious experience.'}              
-        </AccordionPanel>
+              <AccordionButton>
+                <Box flex="1" textAlign="left">
+                  Description
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>{product.description}</AccordionPanel>
             </AccordionItem>
-
             <AccordionItem>
-              <h2>
-                <AccordionButton>
-                  <Box flex="1" textAlign="left">
-                    Materials and Care
-                  </Box>
-                  <AccordionIcon />
-                </AccordionButton>
-              </h2>
-              <AccordionPanel pb={4} textAlign="left">
-              {product.materialsAndCare ||
-        'Made from high-quality 18K gold and adorned with ethically sourced gemstones. To maintain its brilliance, avoid direct contact with water, perfumes, and chemicals. Clean gently with a soft cloth to preserve its luster.'}
-        </AccordionPanel>
+              <AccordionButton>
+                <Box flex="1" textAlign="left">
+                  Materials and Care
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>{product.materialsAndCare}</AccordionPanel>
             </AccordionItem>
           </Accordion>
         </Box>
