@@ -9,32 +9,72 @@ const router = express.Router();
 // POST /users - Register a new user
 router.post("/users", async (Request, Response) => {
   const { username, email, password, name, surname } = Request.body;
+  const nameRegex = /^[A-Za-z]+$/;
+
 
   // *************VALIDERING
-  // Check if the user or email already exists
-  const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+  // Validate input
+  if (!username || !email || !password || !name || !surname) {
+    Response.status(400).json({ error: "All fields are required. Please complete the form." });
+    return;
 
+  }
+
+  if (username.length < 3) {
+    Response.status(400).json({ error: "Username must be at least 3 characters long." });
+     return;
+
+  }
+
+  if (!nameRegex.test(name)) {
+     Response
+      .status(400)
+      .json({ error: "First name cannot contain numbers or special characters." });
+      return;
+  }
+
+  if (!nameRegex.test(surname)) {
+     Response
+      .status(400)
+      .json({ error: "Last name cannot contain numbers or special characters." });
+      return;
+  }
+
+  if (name.length < 2) {
+    Response.status(400).json({ error: "First name must be at least 2 characters long." });
+    return;
+
+  }
+
+  if (surname.length < 2) {
+    Response.status(400).json({ error: "Last name must be at least 2 characters long." });
+     return;
+
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    Response.status(400).json({ error: "Invalid email format. Please enter a valid email." });
+     return;
+
+  }
+
+  if (password.length < 6) {
+    Response.status(400).json({ error: "Password must be at least 6 characters long." });
+    return;
+
+  }
+
+  // Check for existing username or email
+  const existingUser = await User.findOne({ $or: [{ username }, { email }] });
   if (existingUser) {
-    // Check what is causing the conflict
     const errorMessage =
       existingUser.username === username
-        ? "Username already exists. Please choose another."
-        : "Email already exists. Please use another email.";
-  
+        ? "Username already exists. Please choose a different one."
+        : "Email already exists. Please use a different email.";
         Response.status(400).json({ error: errorMessage });
-    return;
-  }
-
-  if (!username || !email || !password || !name || !surname) {
-     Response.status(400).json({ error: "All fields are required." });
      return;
   }
-  
-  if (password.length < 6) {
-     Response.status(400).json({ error: "Password must be at least 6 characters long." });
-     return;
-  }
-  
   
 
   // Hash password

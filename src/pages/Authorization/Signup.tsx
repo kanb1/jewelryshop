@@ -25,14 +25,47 @@ const Signup: React.FC = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Simple email regex
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async () => {
+    const nameRegex = /^[A-Za-z]+$/;
+
     if (!username || !email || !password || !confirmPassword || !name || !surname) {
       setError("Please fill in all fields.");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError("Invalid email format. Please enter a valid email.");
       return;
     }
   
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      return;
+    }
+
+    if (!nameRegex.test(name)) {
+      setError("First name cannot contain numbers or special characters.");
+      return;
+    }
+  
+    if (!nameRegex.test(surname)) {
+      setError("Last name cannot contain numbers or special characters.");
+      return;
+    }
+
+    if (name.length < 2) {
+      setError("First name must be at least 2 characters.");
+      return;
+    }
+  
+    if (surname.length < 2) {
+      setError("Last name must be at least 2 characters.");
       return;
     }
   

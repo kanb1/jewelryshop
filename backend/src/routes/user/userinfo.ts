@@ -40,9 +40,36 @@ router.get("/me", authenticateJWT, async (Request: AuthenticatedRequest, Respons
 
 // PUT /users/:id - Update user info
 router.put("/:id", authenticateJWT, async (Request: AuthenticatedRequest, Response) => {
+  const nameRegex = /^[A-Za-z]+$/;
+  const { name, surname } = Request.body;
+
+
   try {
     const userId = Request.user?.userId;
     const updates = Request.body;
+
+    // VALIDATION
+    if (!userId || userId !== Request.params.id) {
+      Response.status(403).json({ message: "Unauthorized to update this user" });
+      return;
+    }
+
+    if (!name || !surname) {
+      Response.status(400).json({ message: "First name and last name cannot be empty." });
+      return;
+    }
+
+    if (name.length < 2 || !nameRegex.test(name)) {
+      Response.status(400).json({ message: "First name must be at least 2 characters and cannot contain numbers or special characters." });
+      return;
+    }
+
+    if (surname.length < 2 || !nameRegex.test(surname)) {
+      Response.status(400).json({ message: "Last name must be at least 2 characters and cannot contain numbers or special characters." });
+      return;
+    }
+
+
 
     if (!userId || userId !== Request.params.id) {
        Response.status(403).json({ message: "Unauthorized to update this user" });

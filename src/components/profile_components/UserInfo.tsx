@@ -48,6 +48,41 @@ const UserInfo: React.FC = () => {
   }, []);
 
   const handleInfoUpdate = async () => {
+    const nameRegex = /^[A-Za-z]+$/;
+
+  if (!user.name || !user.surname) {
+    toast({
+      title: "Validation Error",
+      description: "First name and last name cannot be empty.",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+    return;
+  }
+
+  if (user.name.length < 2 || !nameRegex.test(user.name)) {
+    toast({
+      title: "Validation Error",
+      description: "First name must be at least 2 characters and cannot contain numbers or special characters.",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+    return;
+  }
+
+  if (user.surname.length < 2 || !nameRegex.test(user.surname)) {
+    toast({
+      title: "Validation Error",
+      description: "Last name must be at least 2 characters and cannot contain numbers or special characters.",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+    return;
+  }
+  
     try {
       setUpdatingInfo(true);
       const token = localStorage.getItem("jwt");
