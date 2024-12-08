@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import ButtonComponent from "../shared/ButtonComponent";
+import { BACKEND_URL } from "../../config";
 
 const ResetPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -45,7 +46,7 @@ const ResetPassword: React.FC = () => {
 
     try {
       // Make API call to reset password
-      const response = await fetch("http://localhost:5001/api/forgotpassword/reset-password", {
+      const response = await fetch(`${BACKEND_URL}/api/forgotpassword/reset-password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

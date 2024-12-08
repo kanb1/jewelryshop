@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "lib": ["DOM", "ESNext"], // DOM for browser and ESNext for modern JS features
-    "types": ["node"] // Include Node.js types for process.env
+    "lib": ["DOM", "ESNext"],
+    "types": ["node"], // Add this line to include Node.js types
+    "strict": true
   },
   "files": [],
   "references": [

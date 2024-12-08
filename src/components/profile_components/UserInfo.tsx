@@ -12,6 +12,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
+import { BACKEND_URL } from "../../config";
 
 const UserInfo: React.FC = () => {
   const [user, setUser] = useState<any | null>(null);
@@ -28,7 +29,7 @@ const UserInfo: React.FC = () => {
         const token = localStorage.getItem("jwt");
         if (!token) throw new Error("Unauthorized");
 
-        const response = await fetch("http://localhost:5001/api/users/me", {
+        const response = await fetch(`${BACKEND_URL}/api/users/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -87,7 +88,7 @@ const UserInfo: React.FC = () => {
       const token = localStorage.getItem("jwt");
       if (!token) throw new Error("Unauthorized");
 
-      const response = await fetch(`http://localhost:5001/api/users/${user._id}`, {
+      const response = await fetch(`${BACKEND_URL}/api/users/${user._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -127,7 +128,7 @@ const UserInfo: React.FC = () => {
       const token = localStorage.getItem("jwt");
       if (!token) throw new Error("Unauthorized");
 
-      const response = await fetch(`http://localhost:5001/api/users/${user._id}/change-password`, {
+      const response = await fetch(`${BACKEND_URL}/api/users/${user._id}/change-password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

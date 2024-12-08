@@ -13,6 +13,8 @@ import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import ButtonComponent from "../shared/ButtonComponent";
+import { BACKEND_URL } from "../../config";
+
 
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
@@ -30,7 +32,7 @@ const Cart: React.FC = () => {
       }
 
       try {
-        const response = await fetch("http://localhost:5001/api/cart", {
+        const response = await fetch(`${BACKEND_URL}/api/cart`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -53,7 +55,7 @@ const Cart: React.FC = () => {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/cart/${id}`, {
+      const response = await fetch(`${BACKEND_URL}/api/cart/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -76,7 +78,7 @@ const Cart: React.FC = () => {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/cart/${id}`, {
+      const response = await fetch(`${BACKEND_URL}/api/cart/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

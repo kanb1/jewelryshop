@@ -3,6 +3,8 @@ import crypto from "crypto";
 import bcrypt from "bcrypt";
 import User from "../../models/User";
 import transporter from "../../helpers/emailConfig"; // Use centralized transporter
+import { BACKEND_URL } from "../../config";
+
 
 const router = express.Router();
 
@@ -24,7 +26,7 @@ router.post("/forgot-password", async (Request, Response) => {
     await user.save();
 
     // Generate the reset link
-    const resetLink = `http://localhost:5173/reset-password?token=${resetToken}&id=${user._id}`;
+    const resetLink = `${BACKEND_URL}/reset-password?token=${resetToken}&id=${user._id}`;
 
     // Send email
     try {

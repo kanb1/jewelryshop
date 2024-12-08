@@ -26,6 +26,8 @@ import {
 } from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
 import { useNavigate } from "react-router-dom";
+import { BACKEND_URL } from "../../config";
+
 
 const AdminProducts: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -48,7 +50,7 @@ const AdminProducts: React.FC = () => {
     const token = localStorage.getItem("jwt");
     try {
       const response = await fetch(
-        "http://localhost:5001/api/products?limit=1000",
+        `${BACKEND_URL}/api/products?limit=1000`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -90,7 +92,7 @@ const AdminProducts: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5001/api/admin/products", {
+      const response = await fetch(`${BACKEND_URL}/api/admin/products`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -121,7 +123,7 @@ const AdminProducts: React.FC = () => {
   const handleDelete = async (id: string) => {
     const token = localStorage.getItem("jwt");
     try {
-      await fetch(`http://localhost:5001/api/admin/products/${id}`, {
+      await fetch(`${BACKEND_URL}/api/admin/products/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -151,7 +153,7 @@ const AdminProducts: React.FC = () => {
   
     try {
       const response = await fetch(
-        `http://localhost:5001/api/admin/products/${editingProduct._id}`,
+        `${BACKEND_URL}/api/admin/products/${editingProduct._id}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },

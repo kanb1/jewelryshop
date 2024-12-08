@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Grid, Text, useToast } from "@chakra-ui/react";
 import ProductCard from "../shared/ProductCard";
 import ButtonComponent from "../shared/ButtonComponent";
+import { BACKEND_URL } from "../../config";
 
 const Favourites: React.FC = () => {
   const [favourites, setFavourites] = useState<any[]>([]);
@@ -12,7 +13,7 @@ const Favourites: React.FC = () => {
     if (!token) return;
 
     try {
-      const response = await fetch("http://localhost:5001/api/favourites", {
+      const response = await fetch(`${BACKEND_URL}/api/favourites`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -51,7 +52,7 @@ const Favourites: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/favourites/${favouriteId}`,
+        `${BACKEND_URL}/api/favourites/${favouriteId}`,
         {
           method: "DELETE",
           headers: {

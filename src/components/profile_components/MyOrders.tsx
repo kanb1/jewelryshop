@@ -15,6 +15,7 @@ import {
   Stack,
   useBreakpointValue,
 } from "@chakra-ui/react";
+import { BACKEND_URL } from "../../config";
 
 const MyOrders: React.FC = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -31,7 +32,7 @@ const MyOrders: React.FC = () => {
 
       if (!token) throw new Error("Unauthorized");
 
-      const response = await fetch("http://localhost:5001/api/orders", {
+      const response = await fetch(`${BACKEND_URL}/api/orders`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -57,7 +58,7 @@ const MyOrders: React.FC = () => {
       const token = localStorage.getItem("jwt");
       if (!token) throw new Error("Unauthorized");
 
-      const response = await fetch(`http://localhost:5001/api/orders/${orderId}/return`, {
+      const response = await fetch(`${BACKEND_URL}/api/orders/${orderId}/return`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

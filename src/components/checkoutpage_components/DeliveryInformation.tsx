@@ -16,6 +16,8 @@ import {
 import ButtonComponent from "../shared/ButtonComponent";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@chakra-ui/react";
+import { BACKEND_URL } from "../../config";
+
 
 
 interface DeliveryInfoProps {
@@ -64,7 +66,7 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5001/api/delivery/parcel-shops?address=${deliveryInfo.address}&radius=10000`
+        `${BACKEND_URL}/api/delivery/parcel-shops?address=${deliveryInfo.address}&radius=10000`
       );
       const data = await response.json();
       if (data.length === 0) {

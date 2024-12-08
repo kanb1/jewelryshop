@@ -20,6 +20,8 @@ import {
 } from "@chakra-ui/react";
 import { useParams, Link } from "react-router-dom";
 import ButtonComponent from "../shared/ButtonComponent";
+import { BACKEND_URL } from "../../config";
+
 
 interface ProductDetailProps {
   updateCartCount: () => void;
@@ -40,7 +42,7 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`http://localhost:5001/api/products/${id}`);
+        const response = await fetch(`${BACKEND_URL}/api/products/${id}`);
         const data = await response.json();
         setProduct(data);
       } catch (err) {
@@ -66,7 +68,7 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
     }
 
     try {
-      const response = await fetch("http://localhost:5001/api/cart", {
+      const response = await fetch(`${BACKEND_URL}/api/cart`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -124,7 +126,7 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
     }
 
     try {
-      const response = await fetch("http://localhost:5001/api/favourites", {
+      const response = await fetch(`${BACKEND_URL}/api/favourites`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

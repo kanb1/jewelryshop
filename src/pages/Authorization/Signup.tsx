@@ -12,6 +12,7 @@ import {
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import ButtonComponent from "../../components/shared/ButtonComponent";
+import { BACKEND_URL } from "../../config";
 
 const Signup: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -81,7 +82,7 @@ const Signup: React.FC = () => {
     setLoading(true);
   
     try {
-      const response = await axios.post("http://localhost:5001/api/auth/users", {
+      const response = await axios.post(`${BACKEND_URL}/api/auth/users`, {
         username,
         email,
         name,

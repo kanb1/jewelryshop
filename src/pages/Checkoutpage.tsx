@@ -4,6 +4,7 @@ import BillingInformation from "../components/checkoutpage_components/BillingInf
 import Confirmation from "../components/checkoutpage_components/Confirmation";
 import ProgressTimeline from "../components/checkoutpage_components/ProgressTimeline";
 import { Box, VStack, Heading } from "@chakra-ui/react";
+import { BACKEND_URL } from "../config";
 
 const CheckoutPage: React.FC = () => {
   const [deliveryInfo, setDeliveryInfo] = useState({
@@ -30,7 +31,7 @@ const CheckoutPage: React.FC = () => {
       }
 
       try {
-        const response = await fetch("http://localhost:5001/api/cart", {
+        const response = await fetch(`${BACKEND_URL}/api/cart`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();

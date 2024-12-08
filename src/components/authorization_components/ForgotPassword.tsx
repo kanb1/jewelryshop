@@ -10,6 +10,7 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
+import { BACKEND_URL } from "../../config";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -31,7 +32,7 @@ const ForgotPassword: React.FC = () => {
     setLoading(true);
 
     try {
-        const response = await fetch("http://localhost:5001/api/forgotpassword/forgot-password", {
+        const response = await fetch(`${BACKEND_URL}/api/forgotpassword/forgot-password`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

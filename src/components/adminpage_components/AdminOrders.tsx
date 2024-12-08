@@ -16,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import ButtonComponent from "../shared/ButtonComponent";
+import { BACKEND_URL } from "../../config";
 
 
 interface Order {
@@ -53,7 +54,7 @@ const AdminOrders: React.FC = () => {
       setIsLoading(true);
       const token = localStorage.getItem("jwt");
       try {
-        const response = await fetch("http://localhost:5001/api/admin/orders", {
+        const response = await fetch("${BACKEND_URL}/api/admin/orders", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -78,7 +79,7 @@ const AdminOrders: React.FC = () => {
     try {
       const token = localStorage.getItem("jwt");
       const response = await fetch(
-        `http://localhost:5001/api/admin/orders/${orderId}/return-status`,
+        `${BACKEND_URL}/api/admin/orders/${orderId}/return-status`,
         {
           method: "PUT",
           headers: {

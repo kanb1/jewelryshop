@@ -13,6 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate, useLocation } from "react-router-dom";
 import ButtonComponent from "../../components/shared/ButtonComponent";
+import { BACKEND_URL } from "../../config";
 
 interface LoginProps {
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
@@ -57,7 +58,7 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
     setPasswordError("");
 
     try {
-      const response = await fetch("http://localhost:5001/api/auth/login", {
+      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

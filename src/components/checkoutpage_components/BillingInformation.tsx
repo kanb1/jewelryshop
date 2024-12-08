@@ -9,6 +9,8 @@ import {
 import { Box, VStack, Divider, FormControl, FormLabel, Heading} from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
 import { useToast } from "@chakra-ui/react";
+import { BACKEND_URL } from "../../config";
+
 
 
 interface BillingProps {
@@ -77,7 +79,7 @@ const BillingInformation: React.FC<BillingProps> = ({
     }
   
     try {
-      const response = await fetch("http://localhost:5001/api/payment/create-payment-intent", {
+      const response = await fetch(`${BACKEND_URL}/api/payment/create-payment-intent`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +125,7 @@ const BillingInformation: React.FC<BillingProps> = ({
         console.error("Payment confirmation error:", error.message);
       } else {
         // After a successful payment, save the order in the backend
-        const saveOrderResponse = await fetch("http://localhost:5001/api/orders", {
+        const saveOrderResponse = await fetch(`${BACKEND_URL}/api/orders`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
