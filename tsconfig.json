@@ -1,4 +1,8 @@
 {
+  "compilerOptions": {
+    "lib": ["DOM", "ESNext"], // DOM for browser and ESNext for modern JS features
+    "types": ["node"] // Include Node.js types for process.env
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
