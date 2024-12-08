@@ -3,7 +3,7 @@ import FrontpageHeroVideo from '../components/frontpage_components/FrontpageHero
 import FrontpageLinkSection from '../components/frontpage_components/FrontpageLinkSection';
 import FrontpageEcofriendly from '../components/frontpage_components/FrontpageEcofriendly';
 import FrontpageImageSection from '../components/frontpage_components/FrontpageImageSection';
-import FrontpageTrustpilot from '../components/frontpage_components/FrontpageTrustpilot';
+// import FrontpageTrustpilot from '../components/frontpage_components/FrontpageTrustpilot';
 import ExampleUsage from '../components/frontpage_components/ExampleUsage';
 
 const Frontpage: React.FC = () => {
@@ -13,7 +13,7 @@ const Frontpage: React.FC = () => {
       <FrontpageLinkSection />
       <FrontpageEcofriendly />
       <FrontpageImageSection />
-      <FrontpageTrustpilot />
+      {/* <FrontpageTrustpilot /> */}
       {/* Til test af shared components. Udkommentér når det er færdigtestet */}
       {/* <ExampleUsage/> */}
     </>
