@@ -16,6 +16,8 @@ import {
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import ProductCard from "../shared/ProductCard";
 import ButtonComponent from "../shared/ButtonComponent";
+import { BACKEND_URL } from "../../config";
+
 
 // Define the Product interface to match the backend structure
 interface Product {
@@ -56,7 +58,7 @@ const Products: React.FC = () => {
         const limit = 6;
 
         const response = await fetch(
-          `http://localhost:5001/api/products?page=${page}&limit=${limit}&${searchParams.toString()}`
+          `${BACKEND_URL}/api/products?page=${page}&limit=${limit}&${searchParams.toString()}`
         );
         const data = await response.json();
 
@@ -90,7 +92,7 @@ const Products: React.FC = () => {
   useEffect(() => {
     const fetchCollections = async () => {
       try {
-        const response = await fetch(`http://localhost:5001/api/products/collections`);
+        const response = await fetch(`${BACKEND_URL}/api/products/collections`);
         const data = await response.json();
         setAllCollections(data.collections || []);
       } catch (err) {

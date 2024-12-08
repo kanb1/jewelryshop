@@ -37,10 +37,22 @@ dotenv.config(); // Load environment variables from .env file
 const app = express();
 const PORT = process.env.PORT || 5001;
 const mongoUri = process.env.MONGO_URI || '';
+const isProduction = process.env.NODE_ENV === "production";
+const frontendURL = isProduction
+  ? "https://jewelryshop-two.vercel.app" // Deployed frontend
+  : "http://localhost:5173"; // Local frontend
 
 // Middleware
 // Ensureing the backend has CORS enabled to accept requests from my frontend's origin (http://localhost:5173).
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173", // Development frontend
+      "https://jewelryshop-two.vercel.app", // Deployed frontend
+    ],
+    credentials: true, // Allow cookies and authentication headers
+  })
+);
 app.use(express.json()); // Parse JSON from requests
 
 // Serve static files from the `public/uploads` directory
@@ -115,12 +127,22 @@ app.use('/api/users', userRouter);
 //   });
 // });
 
+const staticPath = isProduction
+  ? path.join(__dirname, "uploads") // Adjust for production build
+  : path.join(__dirname, "../../public/uploads");
+
+app.use("/uploads", express.static(staticPath));
 
 
 
 // Start the server
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-
+app.listen(PORT, () => {
+  console.log(
+    `Server running in ${
+      isProduction ? "production" : "development"
+    } mode on ${isProduction ? "https" : "http"}://localhost:${PORT}`
+  );
+});
 // ***********************PRODUCTION MODE*****************************Create HTTPS server instead of HTTP server
 // https.createServer(credentials, app).listen(PORT, () => {
 //   console.log(`Server running on https://localhost:${PORT}`);
