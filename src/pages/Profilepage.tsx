@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
 import Favourites from '../components/profile_components/Favourites';
 import MyOrders from '../components/profile_components/MyOrders';

@@ -3,7 +3,6 @@ import {
   Box,
   Heading,
   Input,
-  Button,
   FormControl,
   FormLabel,
   Spinner,
@@ -223,6 +222,8 @@ const UserInfo: React.FC = () => {
           text="Update Profile"
           variant="primaryBlackBtn"
           onClick={handleInfoUpdate}
+          isLoading={updatingInfo} // Optional: Chakra UI's loading state
+          isDisabled={updatingInfo} // Disable the button while updating
         />
       </VStack>
 
@@ -236,6 +237,7 @@ const UserInfo: React.FC = () => {
             type="password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
+            isDisabled={changingPassword} // Disable input while changing password
           />
         </FormControl>
         <FormControl>

@@ -4,12 +4,10 @@ import {
   Heading,
   Text,
   Grid,
-  Button,
   Image,
   Flex,
   Input,
   IconButton,
-  Divider,
 } from "@chakra-ui/react";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";

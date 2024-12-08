@@ -1,4 +1,4 @@
-import { Box, Grid, Image, Text, VStack } from "@chakra-ui/react";
+import { Box, Grid, Image} from "@chakra-ui/react";
 
 const FrontpageImageSection = () => {
 

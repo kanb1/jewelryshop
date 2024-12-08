@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import './App.css';
 import { ChakraProvider } from '@chakra-ui/react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Navbar from './components/shared/Navbar';
 import Footer from './components/shared/Footer';
 import Frontpage from './pages/Frontpage';
 import Productpage from './pages/Productpage';
-import ProductDetail from './components/productdetailpage_components/ProductDetail';
 import LoginPage from './pages/Authorization/Login';
 import SignupPage from './pages/Authorization/Signup';
 import Profile from "./pages/Profilepage";
@@ -17,7 +16,7 @@ import Adminpage from './pages/Adminpage';
 import About from './pages/Aboutpage';
 import theme from './theme';
 
-import { CartProvider, useCart } from './context/CartContext';
+import { CartProvider} from './context/CartContext';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import ResetPassword from './components/authorization_components/ResetPassword';

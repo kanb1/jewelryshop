@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Box, Heading, Text, Button, Divider, Icon, VStack } from "@chakra-ui/react";
+import { Box, Heading, Text, Divider, Icon, VStack } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import ButtonComponent from "../shared/ButtonComponent";
 import { CheckCircleIcon } from "@chakra-ui/icons";

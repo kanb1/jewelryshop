@@ -36,7 +36,6 @@ interface BillingProps {
 
 
 const BillingInformation: React.FC<BillingProps> = ({
-  total,
   onPaymentSuccess,
   cartItems,
   deliveryInfo,

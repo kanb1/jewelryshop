@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, ReactNode } from 'react';
 // Define the shape of the cart context
 interface CartContextType {
   cartCount: number;
-  setCartCount: (count: number) => void;
+  setCartCount: React.Dispatch<React.SetStateAction<number>>; // Function to directly set cart count
   updateCartCount: () => void;
 }
 
@@ -17,7 +17,7 @@ interface CartProviderProps {
 
 // Provide cart-related state and functions
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  const [cartCount, setCartCount] = useState(0);
+  const [cartCount, setCartCount] = useState<number>(0);
 
   // Function to update the cart count (increments the count by 1)
   const updateCartCount = () => {

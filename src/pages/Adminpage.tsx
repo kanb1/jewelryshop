@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Routes, Route } from "react-router-dom";
 import AdminDashboard from "../components/adminpage_components/AdminDashboard";
 import AdminOrders from "../components/adminpage_components/AdminOrders";
 import AdminProducts from "../components/adminpage_components/AdminProducts";

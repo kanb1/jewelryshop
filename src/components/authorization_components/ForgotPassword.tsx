@@ -15,7 +15,7 @@ import ButtonComponent from "../shared/ButtonComponent";
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const toast = useToast();
 
   const handleSubmit = async () => {

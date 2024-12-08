@@ -10,7 +10,7 @@ interface ProductCardProps {
     price: number;
     type: string;
     productCollection: string;
-    images: string[]; // Include images array
+    images?: string[]; // Mark as optional
   };
   children?: React.ReactNode; // Allow passing custom content like the Remove button
 
@@ -27,7 +27,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, children }) => {
     maxW="sm"
     textAlign="center">
       <Image
-        src={product.images[0] || "/placeholder.jpg"} // Display the first image or a placeholder
+        src={product.images?.[0] || "https://via.placeholder.com/150"}
         alt={product.name}
         borderRadius="md"
         mb={4}

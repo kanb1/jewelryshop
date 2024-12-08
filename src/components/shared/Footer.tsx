@@ -1,11 +1,10 @@
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Box,
   Stack,
   Text,
   VStack,
   Divider,
-  Image,
   HStack,
   IconButton,
 } from "@chakra-ui/react";

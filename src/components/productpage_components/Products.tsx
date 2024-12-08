@@ -9,7 +9,6 @@ import {
   RadioGroup,
   Stack,
   Divider,
-  Button,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -25,6 +24,7 @@ interface Product {
   price: number;
   type: string;
   productCollection: string;
+  images?: string[]; // Make this optional
   sizes?: string[];
 }
 

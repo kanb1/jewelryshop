@@ -93,7 +93,6 @@ const AdminOrders: React.FC = () => {
         throw new Error(`Failed to update return status: ${response.statusText}`);
       }
   
-      const updatedOrder = await response.json();
       alert(`Return status updated to ${newStatus}`);
   
       // Refresh orders after updating

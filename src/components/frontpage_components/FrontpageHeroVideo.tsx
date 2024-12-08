@@ -1,4 +1,4 @@
-import { Box, Button, AspectRatio, Heading } from "@chakra-ui/react";
+import { Box, AspectRatio, Heading } from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
 import { useNavigate } from "react-router-dom"; // Import the useNavigate hook
 

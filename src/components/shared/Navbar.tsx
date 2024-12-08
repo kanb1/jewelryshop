@@ -5,7 +5,6 @@ import {
   Flex,
   HStack,
   IconButton,
-  Text,
   Drawer,
   DrawerBody,
   DrawerHeader,
@@ -15,21 +14,14 @@ import {
   useDisclosure,
   VStack,
   Divider,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Button,
-  InputGroup,
-  Input,
-  InputLeftElement,
   Badge,
   Image,
 } from "@chakra-ui/react";
-import { ChevronDownIcon, HamburgerIcon} from "@chakra-ui/icons";
 import { AiOutlineShoppingCart } from "react-icons/ai";
-import { FaUser } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
+import { HamburgerIcon } from "@chakra-ui/icons";
+
 
 
 interface NavbarProps {
@@ -228,7 +220,4 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, setIsLoggedIn }) => {
 };
 
 export default Navbar;
-function jwtDecode(token: string): any {
-  throw new Error("Function not implemented.");
-}
 

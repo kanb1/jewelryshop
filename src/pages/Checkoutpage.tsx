@@ -4,10 +4,8 @@ import BillingInformation from "../components/checkoutpage_components/BillingInf
 import Confirmation from "../components/checkoutpage_components/Confirmation";
 import ProgressTimeline from "../components/checkoutpage_components/ProgressTimeline";
 import { Box, VStack, Heading } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
 
 const CheckoutPage: React.FC = () => {
-  const navigate = useNavigate();
   const [deliveryInfo, setDeliveryInfo] = useState({
     address: "",
     city: "",
