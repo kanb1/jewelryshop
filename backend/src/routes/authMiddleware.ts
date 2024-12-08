@@ -1,7 +1,7 @@
-// src/routes/authMiddleware.ts
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 
+// Middleware for authenticating JWT
 const authenticateJWT = (req: Request, res: Response, next: NextFunction): void => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   console.log('Token received:', token);
@@ -11,28 +11,38 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction): void 
     return;
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, decoded) => {
-    if (err || !decoded) {
-      console.log('Token decoding failed:', err);
-      res.status(403).json({ error: 'Forbidden: Invalid token' });
-      return;
+  jwt.verify(
+    token,
+    process.env.JWT_SECRET || 'your-secret-key',
+    (err: VerifyErrors | null, decoded: JwtPayload | string | undefined) => {
+      if (err || !decoded) {
+        console.log('Token decoding failed:', err);
+        res.status(403).json({ error: 'Forbidden: Invalid token' });
+        return;
+      }
+
+      console.log('Decoded token:', decoded);
+      // Attach user information to the request object (if it's a JwtPayload)
+      if (typeof decoded === 'object' && decoded !== null) {
+        (req as Request & { user?: JwtPayload }).user = decoded;
+      }
+
+      next();
     }
-
-    console.log('Decoded token:', decoded);
-    (req as Request & { user?: any }).user = decoded;
-
-    next();
-  });
+  );
 };
 
-export const adminMiddleware = (req: Request & { user?: any }, res: Response, next: NextFunction) => {
+// Middleware for admin authorization
+export const adminMiddleware = (
+  req: Request & { user?: JwtPayload },
+  res: Response,
+  next: NextFunction
+): void => {
   if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Access denied' });
+    res.status(403).json({ error: 'Access denied' });
+    return;
   }
   next();
 };
-
-
-
 
 export default authenticateJWT;
