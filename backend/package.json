@@ -34,7 +34,8 @@
     "node-cache": "^5.1.2",
     "nodemailer": "^6.9.16",
     "stripe": "^17.4.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@types/axios": "^0.14.4",
