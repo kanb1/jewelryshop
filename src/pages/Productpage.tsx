@@ -10,9 +10,9 @@ const Productpage: React.FC = () => {
   return (
     <>
       {category ? (
-        <Products /> // Render Products if a category is specified in the URL
+        <Products /> 
     ) : (
-        <Collections /> // Render Collections if no category is specified
+        <Collections /> 
       )}
     </>
   );

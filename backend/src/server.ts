@@ -25,12 +25,6 @@ import adminOrders from "./routes/admin/adminOrders";
 import userRouter from "./routes/user/userinfo";
 
 
-
-
-
-
-// import categoriesRouter from './routes/categories';
-
 dotenv.config(); // Load environment variables from .env file
 
 
@@ -41,6 +35,10 @@ const isProduction = process.env.NODE_ENV === "production";
 const frontendURL = isProduction
   ? "https://jewelryshop-two.vercel.app" // Deployed frontend
   : "http://localhost:5173"; // Local frontend
+
+
+
+
 
 // Middleware
 // Ensureing the backend has CORS enabled to accept requests from my frontend's origin (http://localhost:5173).
@@ -55,8 +53,16 @@ app.use(
 );
 app.use(express.json()); // Parse JSON from requests
 
+
+
+
+
 // Serve static files from the `public/uploads` directory
 app.use("/uploads", express.static(path.join(__dirname, "../../public/uploads")));
+
+
+
+
 
 // MongoDB connection
 mongoose
@@ -100,35 +106,8 @@ app.use('/api/users', userRouter);
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-// ***********************************************************API's not used so far
-// app.use('/api/categories', categoriesRouter);
-
-// Testing the middleware
-// app.get('/test-middleware', authenticateJWT, (req: Request & { user?: any }, res: Response) => {
-//   if (!req.user) {
-//     res.status(401).json({ error: 'Unauthorized: No user found' });
-//     return;
-//   }
-//   res.json({
-//     message: 'Middleware is working!',
-//     user: req.user, // Display the decoded JWT payload here
-//   });
-// });
-
 const staticPath = isProduction
-  ? path.join(__dirname, "uploads") // Adjust for production build
+  ? path.join(__dirname, "uploads") 
   : path.join(__dirname, "../../public/uploads");
 
 app.use("/uploads", express.static(staticPath));

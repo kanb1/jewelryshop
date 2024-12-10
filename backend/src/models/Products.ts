@@ -11,7 +11,7 @@ export interface IProduct extends Document {
   productCollection: string;
   price: number;
   sizes?: string[]; // Optional array of sizes (e.g., ["5", "6", "7"] for rings)
-  images: string[]; // Add images field
+  images: string[]; 
 }
 
 // Opretter en mongoose schema, der beskriver strukturen af dokumentet

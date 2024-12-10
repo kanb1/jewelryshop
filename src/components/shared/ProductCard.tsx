@@ -44,6 +44,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, children }) => {
           {product.productCollection}
         </Badge>
       </Stack>
+      {/* Product Name */}
+      <Text fontSize="lg" fontWeight="bold" mt={3}>
+        {product.name}
+      </Text>
       {/* Product Price */}
       <Text fontSize="xl" fontWeight="bold" my={3}>
         ${product.price.toLocaleString()}

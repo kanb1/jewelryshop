@@ -2,8 +2,8 @@ import express, { Request, Response } from "express";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import User from "../../models/User";
-import transporter from "../../helpers/emailConfig"; // Use centralized transporter
-import { BACKEND_URL } from "../../config";
+import transporter from "../../helpers/emailConfig"; // Using centralized transporter
+import { FRONTEND_URL } from "../../config";
 
 
 const router = express.Router();
@@ -26,7 +26,7 @@ router.post("/forgot-password", async (Request, Response) => {
     await user.save();
 
     // Generate the reset link
-    const resetLink = `${BACKEND_URL}/reset-password?token=${resetToken}&id=${user._id}`;
+    const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}&id=${user._id}`;
 
     // Send email
     try {

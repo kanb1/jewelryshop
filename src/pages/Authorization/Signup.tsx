@@ -9,12 +9,16 @@ import {
   FormErrorMessage,
   useToast,
 } from "@chakra-ui/react";
+// library for making http requests to the backend
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import ButtonComponent from "../../components/shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
+// React.FC --> TS type for functional componnents
 const Signup: React.FC = () => {
+  // manages the value of the username input field
+  // usestate --> hook that manages component state 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -23,10 +27,12 @@ const Signup: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  // chakra hook for showing toast notifications
   const toast = useToast();
   const navigate = useNavigate();
 
 
+  // ************************* VALIDATION AND HANDLESUBMIT
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Simple email regex
     return emailRegex.test(email);
@@ -80,7 +86,9 @@ const Signup: React.FC = () => {
   
     setError(""); // Clear error if validation passes
     setLoading(true);
-  
+   // ************************* VALIDATION AND HANDLESUBMIT
+
+    // sends POST request to /api/auth/users with the user data
     try {
       const response = await axios.post(`${BACKEND_URL}/api/auth/users`, {
         username,
@@ -90,8 +98,9 @@ const Signup: React.FC = () => {
         password,
       });
   
-      console.log("Backend response:", response.data); // Log the backend response
-  
+      console.log("Backend response:", response.data); 
+      
+      // shows successmessage wtih toast
       toast({
         title: "Signup successful",
         description: "Your account has been created.",
@@ -102,10 +111,12 @@ const Signup: React.FC = () => {
   
       setLoading(false);
       navigate("/login");
+
+      // logs the error and sets the error state with the backends error message
     } catch (err: any) {
-      console.error("Error during signup:", err); // Log any errors
+      console.error("Error during signup:", err); 
       setLoading(false);
-      setError(err.response?.data?.error || "Failed to create account."); // Updated error message
+      setError(err.response?.data?.error || "Failed to create account."); 
     }
   };
   
@@ -126,6 +137,8 @@ const Signup: React.FC = () => {
         </Text>
 
         {/* Username Field */}
+        {/* FormControl wrapping inputfields for vlaidation styling */}
+        {/* !! Converts a value to a boolean, used to check if a vlaue is truthy or falsy */}
         <FormControl isInvalid={!!error && !username}>
           <Input
             placeholder="Username"
@@ -197,9 +210,9 @@ const Signup: React.FC = () => {
         <ButtonComponent
           text="Create account"
           onClick={handleSubmit}
-          isLoading={loading} // Pass the loading state
-          variant="primaryBlackBtn" // Use your desired variant
-          styleOverride={{ width: "100%" }} // Optional custom style for full width
+          isLoading={loading}
+          variant="primaryBlackBtn" 
+          styleOverride={{ width: "100%" }} 
         />
 
         {/* Redirect to Login */}

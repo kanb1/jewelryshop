@@ -4,7 +4,7 @@ import adminMiddleware from '../authMiddleware';
 
 
 const router = express.Router();
-router.use(adminMiddleware); // Apply admin middleware to all routes in this file
+router.use(adminMiddleware); // Apply admin middleware to all routes in this file!!
 
 
 // GET /api/admin/orders - Fetch all orders

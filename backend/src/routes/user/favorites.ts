@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import Favorite from "../../models/Favorites"; // Import Favourite model
+import Favorite from "../../models/Favorites";
 import authenticateJWT from "../authMiddleware";
 import mongoose from "mongoose";
 

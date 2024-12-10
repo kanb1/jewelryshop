@@ -1,8 +1,8 @@
-import dotenv from 'dotenv'; // Import dotenv for environment variables
+import dotenv from 'dotenv';
 import express, { Request, Response } from "express";
 import Stripe from "stripe";
 
-dotenv.config(); // Load environment variables from .env file
+dotenv.config();
 
 
 const router = express.Router();
@@ -27,14 +27,14 @@ router.post("/create-payment-intent", async (req: Request, res: Response) => {
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
       amount, // Amount in cents (e.g., 139700 for $1397.00)
-      currency, // e.g., 'usd'
+      currency, 
     });
 
     // Send client secret back to frontend
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (error) {
     console.error("Error creating payment intent:", error);
-    res.status(500).json({ error: (error as Error).message }); // Explicitly cast error to Error
+    res.status(500).json({ error: (error as Error).message }); 
   }
 });
 

@@ -317,7 +317,11 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
                 </Box>
                 <AccordionIcon />
               </AccordionButton>
-              <AccordionPanel pb={4}>{product.description}</AccordionPanel>
+              <AccordionPanel pb={4}>
+                {product.description
+                  ? product.description
+                  : "This product is crafted with precision and care to ensure the highest quality. Perfect for any occasion."}
+              </AccordionPanel>
             </AccordionItem>
             <AccordionItem>
               <AccordionButton>
@@ -326,9 +330,14 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
                 </Box>
                 <AccordionIcon />
               </AccordionButton>
-              <AccordionPanel pb={4}>{product.materialsAndCare}</AccordionPanel>
+              <AccordionPanel pb={4}>
+                {product.materialsAndCare
+                  ? product.materialsAndCare
+                  : "Made from premium materials. Please clean with a soft cloth and avoid exposure to water or harsh chemicals to maintain its shine."}
+              </AccordionPanel>
             </AccordionItem>
           </Accordion>
+
         </Box>
       </Grid>
     </Box>

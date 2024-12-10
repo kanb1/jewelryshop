@@ -54,7 +54,7 @@ const AdminOrders: React.FC = () => {
       setIsLoading(true);
       const token = localStorage.getItem("jwt");
       try {
-        const response = await fetch("${BACKEND_URL}/api/admin/orders", {
+        const response = await fetch(`${BACKEND_URL}/api/admin/orders`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

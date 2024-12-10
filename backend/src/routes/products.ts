@@ -66,16 +66,16 @@ router.delete('/:id', async (req: any, res: any) => {
   try {
     const { id } = req.params;
 
-    console.log('Received ID:', id); // Debug log
+    console.log('Received ID:', id); 
 
     // Validate if the provided ID is a valid MongoDB ObjectId
     if (!mongoose.isValidObjectId(id)) {
-      console.log('Invalid Product ID:', id); // Debug log
+      console.log('Invalid Product ID:', id); 
       return res.status(400).json({ error: 'Invalid Product ID' });
     }
 
     const result = await Product.findByIdAndDelete(id);
-    console.log('Deletion result:', result); // Debug log
+    console.log('Deletion result:', result); 
 
     if (!result) {
       return res.status(404).json({ error: 'Product not found' });

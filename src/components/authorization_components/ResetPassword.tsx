@@ -85,6 +85,7 @@ const ResetPassword: React.FC = () => {
       borderWidth="1px"
       borderRadius="md"
       boxShadow="lg"
+      minH="100vh" 
     >
       <VStack spacing={4}>
         <Text fontSize="2xl" fontWeight="bold">

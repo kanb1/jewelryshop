@@ -10,11 +10,11 @@ dotenv.config();
 const transporter = nodemailer.createTransport({
   service: "gmail",
   host: "smtp.gmail.com",
-  port: 465, // Use 465 for secure SSL/TLS
+  port: 465, // Using 465 for secure SSL/TLS
   secure: true, // SSL connection
   auth: {
-    user: process.env.EMAIL_USER, // Use the email address from .env
-    pass: process.env.EMAILPASS, // Use the app-specific password from .env
+    user: process.env.EMAIL_USER, // Using the email address from .env
+    pass: process.env.EMAILPASS, // Using the app-specific password from .env
   },
 });
 

@@ -8,12 +8,12 @@ import fs from "fs";
 
 
 const router = express.Router();
-router.use(adminMiddleware); // Apply admin middleware to all routes in this file
+router.use(adminMiddleware); // Apply admin middleware to all routes in this file!!
 
 // Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../../../../public/uploads")); // Adjust to the correct path
+    cb(null, path.join(__dirname, "../../../../public/uploads")); 
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);

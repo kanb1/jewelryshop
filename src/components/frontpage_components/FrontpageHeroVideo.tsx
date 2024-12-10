@@ -1,13 +1,15 @@
 import { Box, AspectRatio, Heading } from "@chakra-ui/react";
 import ButtonComponent from "../shared/ButtonComponent";
-import { useNavigate } from "react-router-dom"; // Import the useNavigate hook
+// hook for navigation
+import { useNavigate } from "react-router-dom"; 
 
 
 const FrontpageHeroVideo = () => {
-  const navigate = useNavigate(); // Initialize the navigate function
+  // hook to navigate between routes
+  const navigate = useNavigate(); 
 
   const handleExploreClick = () => {
-    navigate("/products/all"); // Navigate to the product page
+    navigate("/products/all"); // Navigate to the productspage with "all products"
   };
 
   return (
@@ -26,18 +28,18 @@ const FrontpageHeroVideo = () => {
         left: 0,
         width: "100%",
         height: "50vh",
-        bg: "rgba(0, 0, 0, 0.4)", // Dark overlay effect
+        bg: "rgba(0, 0, 0, 0.4)",
         zIndex: 1,
       }}
       
     >
       <AspectRatio ratio={21 / 9} maxW="100%" height="100%">
         <video
-          src="videos/video_hero_earringpose.mp4"  // Ensure this path is correct
+          src="videos/video_hero_earringpose.mp4"  
           autoPlay
           loop
           muted
-          playsInline
+          playsInline //no fullscreen when video plays. It plays inline within the webpage. Particularly for mobilesize
           style={{ objectFit: "cover", width: "100%", height: "100%" }}
         />
       </AspectRatio>
@@ -52,12 +54,12 @@ const FrontpageHeroVideo = () => {
         display="flex"
         alignItems="center"
         justifyContent="center"
-        zIndex={2} // Set z-index higher than the overlay
+        zIndex={2} 
         color="white"
         textAlign="center"
       >
         <Box p={{base:"2", lg:"4"}}>
-          {/* You call it "size" and not "fontSize" because you want to refer to the "sizes" in the theme.ts  */}
+          {/* I call it "size" and not "fontSize" because you want to refer to the "sizes" in the theme.ts  */}
           {/* Remember standard sizes are still available like "xl, 2xl" and so on */}
           <Heading size="main_heading"fontWeight="bold" mb={4}>
             Crafted with Passion, Worn with Pride

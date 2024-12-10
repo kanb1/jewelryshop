@@ -55,7 +55,7 @@ const CheckoutPage: React.FC = () => {
     );
 
   const handlePaymentSuccess = (orderNumber: string) => {
-    console.log("Payment successful. Moving to confirmation step."); // Debug
+    console.log("Payment successful. Moving to confirmation step."); 
     setOrderNumber(orderNumber);
     setCurrentStep("confirmation");
   };
@@ -79,7 +79,7 @@ const CheckoutPage: React.FC = () => {
   <DeliveryInformation
     deliveryInfo={deliveryInfo}
     setDeliveryInfo={setDeliveryInfo}
-    setCurrentStep={setCurrentStep} // Correctly passed
+    setCurrentStep={setCurrentStep} 
   />
 )}
 
@@ -89,7 +89,7 @@ const CheckoutPage: React.FC = () => {
     cartItems={cartItems}
     deliveryInfo={deliveryInfo}
     onPaymentSuccess={handlePaymentSuccess}
-    goToPreviousStep={goToPreviousStep} // Correctly passed
+    goToPreviousStep={goToPreviousStep} 
   />
 )}
 

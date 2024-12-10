@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './App.css';
 import { ChakraProvider } from '@chakra-ui/react';
 import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
@@ -17,38 +17,35 @@ import About from './pages/Aboutpage';
 import theme from './theme';
 
 import { CartProvider} from './context/CartContext';
+import { AuthProvider } from "./context/AuthContext";
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import ResetPassword from './components/authorization_components/ResetPassword';
 import ForgotPassword from './components/authorization_components/ForgotPassword';
 
-// Initialize Stripe with your public key
+// Initialize Stripe with my public key
 // const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 const stripePromise = loadStripe("pk_test_51QOfWI2NXuSUDNPpoB5ApMoesVZEDQIkFh3vZICP1JMwbv1IV5S1OX8m7LKBZ5TurvNb94eRfkHEVBxvGghE6cMa00P9IM9drn");
 
 
 
-// console.log("Stripe Key:", import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-
-
-
 const App: React.FC = () => {
 
-  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem("jwt"));
 
 
   return (
+    <AuthProvider>
     <CartProvider>
     <ChakraProvider theme={theme}>
     <Elements stripe={stripePromise}>
       <Router>
-        <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+        <Navbar />
         <Routes>
           <Route path="/" element={<Frontpage />} />
           {/* the route /products/:category dynamically captures the category segment from the URL. */}
           <Route path="/products/:category" element={<Productpage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
-          <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
+          <Route path="/login" element={<LoginPage/>} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/signup" element={<SignupPage />} />
@@ -66,6 +63,7 @@ const App: React.FC = () => {
 
     </ChakraProvider>
     </CartProvider>
+    </AuthProvider>
 
   );
 };

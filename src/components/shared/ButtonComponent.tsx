@@ -21,7 +21,7 @@ interface ButtonComponentProps {
   hoverStyle?: { [key: string]: any }; 
   styleOverride?: { [key: string]: any }; // Adding this for custom styles
   isLoading?: boolean; // Add loading state
-  isDisabled?: boolean; // Add this line
+  isDisabled?: boolean; // Disable the butotn when true
 
 }
 

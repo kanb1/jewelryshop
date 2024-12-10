@@ -4,7 +4,7 @@ import Order from "../../models/Order";
 import authenticateJWT from "../authMiddleware"; // Ensure the user is authenticated
 import mongoose from "mongoose";
 import Products from "../../models/Products";
-import User from "../../models/User"; // Import the User model
+import User from "../../models/User"; 
 import transporter from "../../helpers/emailConfig";
 import { v4 as uuidv4 } from "uuid";
 
@@ -15,7 +15,7 @@ dotenv.config();
 
 // Extend the Express Request type to include `user`
 interface AuthenticatedRequest extends Request {
-  user?: { userId: string }; // Adjust the structure of `user` if needed
+  user?: { userId: string }; 
 }
 const router = express.Router();
 

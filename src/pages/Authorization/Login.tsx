@@ -12,14 +12,11 @@ import {
   Link,
 } from "@chakra-ui/react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuthContext } from "../../context/AuthContext"; 
 import ButtonComponent from "../../components/shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
-interface LoginProps {
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
+const Login: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(""); // General form error
@@ -28,6 +25,9 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Access AuthContext to update login state
+  const { setIsLoggedIn, setUserRole } = useAuthContext();
 
   // Access the redirected message
   const message = location.state?.message;
@@ -79,6 +79,10 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
       const tokenPayload = JSON.parse(atob(data.token.split(".")[1]));
       const userRole = tokenPayload.role;
 
+      // Update AuthContext
+      setIsLoggedIn(true); // Update login state
+      setUserRole(userRole); // Update role in context
+
       // Show success toast
       toast({
         title: "Login successful",
@@ -86,8 +90,6 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
         duration: 3000,
         isClosable: true,
       });
-
-      if (setIsLoggedIn) setIsLoggedIn(true);
 
       // Redirect based on role
       if (userRole === "admin") {
@@ -102,64 +104,68 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
 
   return (
     <Box minH="50vh">
-    <Box
-      maxWidth="400px"
-      mx="auto"
-      mt="100px"
-      p="6"
-      borderWidth="1px"
-      borderRadius="md"
-      boxShadow="lg"
-    >
-      <VStack spacing={4}>
-        <Text fontSize="2xl" fontWeight="bold">
-          Login
-        </Text>
+      <Box
+        maxWidth="400px"
+        mx="auto"
+        mt="100px"
+        p="6"
+        borderWidth="1px"
+        borderRadius="md"
+        boxShadow="lg"
+      >
+        <VStack spacing={4}>
+          <Text fontSize="2xl" fontWeight="bold">
+            Login
+          </Text>
 
-        {/* Display Redirect Message */}
-        {message && (
-          <Alert status="error" borderRadius="md">
-            <AlertIcon />
-            {message}
-          </Alert>
-        )}
+          {/* Display Redirect Message */}
+          {message && (
+            <Alert status="error" borderRadius="md">
+              <AlertIcon />
+              {message}
+            </Alert>
+          )}
 
-        {/* Username Field */}
-        <FormControl isInvalid={!!usernameError}>
-          <Input
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+          {/* Username Field */}
+          <FormControl isInvalid={!!usernameError}>
+            <Input
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <FormErrorMessage>{usernameError}</FormErrorMessage>
+          </FormControl>
+
+          {/* Password Field */}
+          <FormControl isInvalid={!!passwordError}>
+            <Input
+              placeholder="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <FormErrorMessage>{passwordError}</FormErrorMessage>
+          </FormControl>
+
+          {/* General Form Error */}
+          {error && <Text color="red.500">{error}</Text>}
+
+          {/* Submit Button */}
+          <ButtonComponent
+            variant="primaryBlackBtn"
+            text={"Login"}
+            onClick={handleSubmit}
+            styleOverride={{ width: "100%" }}
           />
-          <FormErrorMessage>{usernameError}</FormErrorMessage>
-        </FormControl>
 
-        {/* Password Field */}
-        <FormControl isInvalid={!!passwordError}>
-          <Input
-            placeholder="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <FormErrorMessage>{passwordError}</FormErrorMessage>
-        </FormControl>
-
-        {/* General Form Error */}
-        {error && <Text color="red.500">{error}</Text>}
-
-        {/* Submit Button */}
-        <ButtonComponent 
-            variant="primaryBlackBtn" text={"Login"} onClick={handleSubmit}  styleOverride={{ width: "100%"}} 
-
-        />
-
-        {/* Forgot Password Link */}
-        <Text fontSize="sm" color="blue.500" mt={2}>
-          <Link onClick={() => navigate("/forgot-password")}>Forgot Password?</Link>
-        </Text>
-      </VStack>
-    </Box>
+          {/* Forgot Password Link */}
+          <Text fontSize="sm" color="blue.500" mt={2}>
+            <Link onClick={() => navigate("/forgot-password")}>
+              Forgot Password?
+            </Link>
+          </Text>
+        </VStack>
+      </Box>
     </Box>
   );
 };

@@ -1,10 +1,13 @@
 import { extendTheme } from "@chakra-ui/react";
 
 const theme = extendTheme({
+    // Custom Fonts
   fonts: {
-    heading: "Cinzel, serif",  // Default font for headings
-    body: "Asar, serif",       // Default font for body text
+    heading: "Cinzel, serif",  
+    body: "Asar, serif",      
   },
+
+    // Custom Colors
 
   colors:{
     primary_color:{
@@ -26,13 +29,14 @@ const theme = extendTheme({
 
   },
 
-  
+    // Component-Specific Customizations, chakra components
   components: {
     Heading: {
       baseStyle: {
         fontFamily: "Cinzel, serif",
       },
       sizes: {
+        // Responsive font sizes for main headings
         main_heading:{
           fontSize: { base: "20px", sm: "20px", md: "30px", lg: "45px"},
         },
@@ -42,6 +46,7 @@ const theme = extendTheme({
           fontFamily: "Afacad, serif",
           fontSize: { base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" },
           fontWeight: "bold",
+          // Slightly darker grey for subheaders
           color: "gray.700",
         },
       },
