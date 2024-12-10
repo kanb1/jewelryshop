@@ -127,6 +127,61 @@ const Navbar: React.FC = () => {
           </Link>
         </HStack>
       </Flex>
+
+      {/* MOBILE DRAWER */}
+      <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>
+            <Link to="/">
+              <Image
+                src="/images/KanzaJewelriesLogo.png"
+                alt="Kanza Jewelry Logo"
+                maxWidth="120px"
+                height="auto"
+                objectFit="contain"
+              />
+            </Link>
+          </DrawerHeader>
+          <DrawerBody>
+            <VStack align="start" spacing={4}>
+              {categories.map((category) => (
+                <Link
+                  key={category}
+                  to={`/products/${category.toLowerCase()}`}
+                  onClick={onClose}
+                >
+                  {category}
+                </Link>
+              ))}
+              <Divider />
+              {isLoggedIn ? (
+                <>
+                  {userRole === "admin" ? (
+                    <Link to="/admin" onClick={onClose}>
+                      Admin Dashboard
+                    </Link>
+                  ) : (
+                    <Link to="/profile" onClick={onClose}>
+                      Profile
+                    </Link>
+                  )}
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      handleLogout();
+                      onClose();
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </>
+              ) : null}
+            </VStack>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
     </Box>
   );
 };
