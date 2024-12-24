@@ -4,6 +4,10 @@ import crypto from "crypto";
 import User from "../../models/User";
 import authenticateJWT from "../authMiddleware";
 import nodemailer from "nodemailer";
+import upload from "../../helpers/multerConfig"; // Import the multer config
+import fs from "fs"; // File System module
+import path from "path";
+
 
 
 // Extend the Request type to include user details from the JWT
@@ -13,7 +17,8 @@ interface AuthenticatedRequest extends Request {
 
 const router = express.Router();
 
-// GET /users/me - Fetch user details
+//************************************************************** */ GET USER INFO
+
 router.get("/me", authenticateJWT, async (Request: AuthenticatedRequest, Response) => {
   try {
     const userId = Request.user?.userId;
@@ -23,6 +28,7 @@ router.get("/me", authenticateJWT, async (Request: AuthenticatedRequest, Respons
        return;
     }
 
+    // Fetches the user’s information from the database and excludes the password field for security.
     const user = await User.findById(userId).select("-password");
     if (!user) {
        Response.status(404).json({ message: "User not found" });
@@ -38,7 +44,8 @@ router.get("/me", authenticateJWT, async (Request: AuthenticatedRequest, Respons
   }
 });
 
-// PUT /users/:id - Update user info
+//************************************************************** */ UPDATE USER INFO
+
 router.put("/:id", authenticateJWT, async (Request: AuthenticatedRequest, Response) => {
   const nameRegex = /^[A-Za-z]+$/;
   const { name, surname } = Request.body;
@@ -76,6 +83,7 @@ router.put("/:id", authenticateJWT, async (Request: AuthenticatedRequest, Respon
        return;
     }
 
+    // Updates the user's information in the database and validates the input.
     const user = await User.findByIdAndUpdate(userId, updates, {
       new: true,
       runValidators: true,
@@ -118,7 +126,7 @@ router.put("/:id/change-password", authenticateJWT, async (req: AuthenticatedReq
       return;
     }
 
-    // Verify the current password
+    // Verifies that the provided current password matches the hashed password stored in the database.
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       res.status(400).json({ message: "Current password is incorrect" });
@@ -135,6 +143,69 @@ router.put("/:id/change-password", authenticateJWT, async (req: AuthenticatedReq
     res.status(500).json({ message: "Server error" });
   }
 });
+
+
+
+//************************************************************** */ UPLOAD PROFILE PICTURE
+//Use Multer middleware for single file upload
+router.post("/upload-profile-picture", authenticateJWT, upload.single("profilePicture"), async (Request, Response) => {
+    try {
+      // Ensure the file is uploaded
+      if (!Request.file) {
+         Response.status(400).json({ message: "No file uploaded" });
+         return;
+      }
+
+      // Get user ID from the authenticated JWT
+      const userId = (Request as any).user?.userId; // Assuming your `authMiddleware` adds `userId` to `req.user`
+
+      if (!userId) {
+         Response.status(401).json({ message: "Unauthorized" });
+        return;
+
+      }
+      
+
+      // Fetch the user to get the current profile picture path
+      const user = await User.findById(userId);
+      if (!user) {
+        Response.status(404).json({ message: "User not found" });
+        return;
+      }
+
+          // Save the relative file path of the new profile picture
+          const relativeFilePath = `uploads_profilepictures/${Request.file.filename}`;
+
+          // Delete the old profile picture if it exists
+      if (user.profilePicture) {
+        const oldFilePath = path.join(
+          __dirname,
+          "../../../../public",
+          user.profilePicture
+        ); // Resolve relative path to absolute path
+
+        try {
+          fs.unlinkSync(oldFilePath);
+          console.log(`Deleted old file: ${oldFilePath}`);
+        } catch (err) {
+          console.error(`Failed to delete old file: ${oldFilePath}`, err);
+        }
+      }
+    
+          // Update the user's profile picture path in the database
+          user.profilePicture = relativeFilePath;
+          await user.save();
+
+      Response.status(200).json({
+        message: "Profile picture uploaded successfully",
+        profilePicture: relativeFilePath, // Return relative path for frontend usage
+      });
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      Response.status(500).json({ message: "Server error" });
+    }
+  }
+);
 
 
   

@@ -17,22 +17,25 @@ import { BACKEND_URL } from "../../config";
 
 // React.FC --> TS type for functional componnents
 const Signup: React.FC = () => {
-  // manages the value of the username input field
   // usestate --> hook that manages component state 
+
+  // storing the values from the inputfields
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  // any validation or API-related error messages
   const [error, setError] = useState("");
+  // whether or not the submission is in progress or what
   const [loading, setLoading] = useState(false);
   // chakra hook for showing toast notifications
   const toast = useToast();
   const navigate = useNavigate();
 
 
-  // ************************* VALIDATION AND HANDLESUBMIT
+  // ************************* VALIDATION AND HANDLESUBMIT (FORM SUBMISSION)
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Simple email regex
     return emailRegex.test(email);
@@ -100,7 +103,7 @@ const Signup: React.FC = () => {
   
       console.log("Backend response:", response.data); 
       
-      // shows successmessage wtih toast
+      //If success --> send a toast with successful message
       toast({
         title: "Signup successful",
         description: "Your account has been created.",
@@ -112,7 +115,7 @@ const Signup: React.FC = () => {
       setLoading(false);
       navigate("/login");
 
-      // logs the error and sets the error state with the backends error message
+      //If failure --> logs the error and sets the error state with the backends error message
     } catch (err: any) {
       console.error("Error during signup:", err); 
       setLoading(false);

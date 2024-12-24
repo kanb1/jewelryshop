@@ -5,9 +5,11 @@ import ButtonComponent from "../shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
 const Favourites: React.FC = () => {
+  // favourites: Stores the list of the user's favorite products fetched from the backend.
   const [favourites, setFavourites] = useState<any[]>([]);
   const toast = useToast();
 
+  // ********************************************* GET FAVORITES
   const fetchFavourites = async () => {
     const token = localStorage.getItem("jwt");
     if (!token) return;
@@ -20,6 +22,7 @@ const Favourites: React.FC = () => {
         },
       });
 
+      // If the request is successful, the response is parsed and stored in the favourites state.
       if (response.ok) {
         const data = await response.json();
         setFavourites(data);
@@ -46,6 +49,7 @@ const Favourites: React.FC = () => {
     }
   };
 
+  // ********************************************* REMOVE FAVORITES
   const handleRemoveFavourite = async (favouriteId: string) => {
     const token = localStorage.getItem("jwt");
     if (!token) return;
@@ -62,6 +66,7 @@ const Favourites: React.FC = () => {
       );
 
       if (response.ok) {
+        // Updates the favourites state to remove the deleted favorite.
         setFavourites(favourites.filter((fav) => fav._id !== favouriteId));
         toast({
           title: "Removed",

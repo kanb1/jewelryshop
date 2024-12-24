@@ -6,7 +6,10 @@ import ProgressTimeline from "../components/checkoutpage_components/ProgressTime
 import { Box, VStack, Heading } from "@chakra-ui/react";
 import { BACKEND_URL } from "../config";
 
+// Main container for my checkout flow.. renders the specific components that matches the current step
+
 const CheckoutPage: React.FC = () => {
+  // Holds the delivery details, passed to DeliveryInformation to collect/update user input
   const [deliveryInfo, setDeliveryInfo] = useState({
     address: "",
     city: "",
@@ -14,16 +17,27 @@ const CheckoutPage: React.FC = () => {
     country: "",
     deliveryMethod: "home" as "home" | "parcel-shop",
   });
+  // Stores items fetched from the user's cart
+  // updated using fetchCartItems()
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  // Tracks the current step in the checkoutflow
   const [currentStep, setCurrentStep] = useState<
     "delivery" | "billing" | "confirmation"
   >("delivery");
+  // takes the generated order number from the backend after successful payment, passed to confirmation
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
 
+
+
+
+
+
+  // ******************************** FETCHES USER'S CART ITEMS WHEN PAGE LOADS
   useEffect(() => {
     const fetchCartItems = async () => {
       setLoading(true);
+      // Authentication
       const token = localStorage.getItem("jwt");
       if (!token) {
         setLoading(false);
@@ -35,6 +49,7 @@ const CheckoutPage: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
+        // Stores in cartItems
         setCartItems(data);
         console.log("Cart Items from API:", data);
 
@@ -48,14 +63,21 @@ const CheckoutPage: React.FC = () => {
     fetchCartItems();
   }, []);
 
+
+  // *******************************' CALCULATE TOTAL
   const calculateTotal = () =>
+  // loops through cart, multiplying price by quantity each time
     cartItems.reduce(
       (total, item) => total + item.productId.price * item.quantity,
       0
     );
 
+
+  // Triggered whena  successful payment occurs
+  // Updates orderNumber and mvoes the user to the confirmation step after a successful payment
   const handlePaymentSuccess = (orderNumber: string) => {
     console.log("Payment successful. Moving to confirmation step."); 
+    // updates the orderNumber state with the ordernumber returned by the backend
     setOrderNumber(orderNumber);
     setCurrentStep("confirmation");
   };
@@ -69,12 +91,17 @@ const CheckoutPage: React.FC = () => {
   if (loading) return <p>Loading your cart...</p>;
   if (cartItems.length === 0) return <p>Your cart is empty.</p>;
 
+
+
+
+
+
   return (
     <Box >
       <VStack spacing={8} align="stretch">
         <Heading mt={10}>Checkout</Heading>
         <ProgressTimeline currentStep={currentStep} />
-
+{/* Render komponenterne alt efter currentstep */}
         {currentStep === "delivery" && (
   <DeliveryInformation
     deliveryInfo={deliveryInfo}

@@ -17,6 +17,7 @@ import ButtonComponent from "../../components/shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
 const Login: React.FC = () => {
+  // Using the username and password to store the input values
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(""); // General form error
@@ -44,7 +45,13 @@ const Login: React.FC = () => {
     }
   }, [message, toast]);
 
+
+
+
+// ************************************************' HANDLE LOGIN SUBMISSION
   const handleSubmit = async () => {
+
+    // Ensures that both fields are filled before sending the request
     if (!username) {
       setUsernameError("Username is required.");
       return;
@@ -58,6 +65,7 @@ const Login: React.FC = () => {
     setPasswordError("");
 
     try {
+      // Sending the request, with the username and password
       const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
@@ -66,20 +74,21 @@ const Login: React.FC = () => {
         body: JSON.stringify({ username, password }),
       });
 
+      // the response
       const data = await response.json();
-
+      //  if fails --> login failed
       if (!response.ok) {
         throw new Error(data.message || "Login failed.");
       }
 
-      // Save the token to localStorage
+      // Save the JWT token to localStorage
       localStorage.setItem("jwt", data.token);
 
-      // Manually decode JWT to extract the role
+      // Manually decode JWT to extract the user's role
       const tokenPayload = JSON.parse(atob(data.token.split(".")[1]));
       const userRole = tokenPayload.role;
 
-      // Update AuthContext
+      // Update the global AuthContext - authentication context
       setIsLoggedIn(true); // Update login state
       setUserRole(userRole); // Update role in context
 

@@ -22,6 +22,8 @@ import { useParams, Link } from "react-router-dom";
 import ButtonComponent from "../shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
+// Hådnterer logikken for at hente og vise produktdata
+
 
 interface ProductDetailProps {
   updateCartCount: () => void;
@@ -30,20 +32,28 @@ interface ProductDetailProps {
 const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
   updateCartCount,
 }) => {
+  // hentes fra URL'en dette bruges til at hente det korrekt eprodukt fra backend
   const { id } = useParams<{ id: string }>();
+  // gemmer produktdata hentet fra backend
   const [product, setProduct] = useState<any | null>(null);
+  // Indikerer om data stadig hentes
   const [loading, setLoading] = useState<boolean>(true);
+  // holder styr på den valgte størrelse (hvis produktet har størrelser)
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const toast = useToast();
 
   const isMobile = useBreakpointValue({ base: true, lg: false }); // Detect screen size
 
+
+  //********************************** */ HENTER PRODUCTDATA
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        // henter produktdata baseret på ID fra URL'en
         const response = await fetch(`${BACKEND_URL}/api/products/${id}`);
         const data = await response.json();
+        // sætter produktdata i state
         setProduct(data);
       } catch (err) {
         console.error("Error fetching product:", err);
@@ -54,8 +64,13 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
     fetchProduct();
   }, [id]);
 
+
+  // ******************************* ADD TO BAG
+
   const handleAddToBag = async () => {
+    // henter token fra localstorage, for at tjekke login
     const token = localStorage.getItem("jwt");
+    // hvis der ikke er et JWT token, vises en advarsel om login
     if (!token) {
       toast({
         title: "Login Required",
@@ -67,6 +82,8 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
       return;
     }
 
+    // POST til /api/cart
+    // sender en POST forespørgsel til backend med produktID, valgt størrelse og mængde
     try {
       const response = await fetch(`${BACKEND_URL}/api/cart`, {
         method: "POST",
@@ -81,6 +98,8 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
         }),
       });
 
+      // kalder updatecartCount() for at opdatere antallet af varer i kurven
+      // vi opdaterer updatecartCount for at vise det samlede antal varer i kurven (fx i navbaren med en badge)
       if (response.ok) {
         updateCartCount();
         toast({
@@ -111,6 +130,8 @@ const ProductDetail: React.FunctionComponent<ProductDetailProps> = ({
     }
   };
 
+
+  // ************************************ HÅNDTER FAVORITES
   const handleAddToFavourites = async () => {
     const token = localStorage.getItem("jwt");
 

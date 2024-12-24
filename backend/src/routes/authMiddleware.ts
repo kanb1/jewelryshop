@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-
+// The environment variable that holds the secret key used to sign and verify JWT's --> makes sure only my server can generate valid JWT's
 // Ensure the environment variable exists at runtime
 // This prevents the application from starting if the JWT_SECRET is missing, making it safer and more predictable.
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -19,12 +19,17 @@ require("dotenv").config();
 
 // ********************************************************************************************** Middleware for authenticating JWT
 
+// The authenticateJWT middleware verifies if a request has a valid JWT in the Authorization header
+  // if valid --> allows the request to proceed
+
 // next --> a function to pass control to the next middleware or route handler (middleware job is finished, ex validating a JWT token) (express)
 const authenticateJWT = (req: Request, res: Response, next: NextFunction): void => {
-  // extracts the token from the request, replace strips the BEarer prefix so we just have the token left
+  // Reads the authorization header
+  // Removes the "Bearer" prefix to get the raw token
   const token = req.header('Authorization')?.replace('Bearer ', '');
   console.log('Token received:', token);
 
+  // if token is missing --> respons with 401 unauthorized
   if (!token) {
     res.status(401).json({ error: 'Unauthorized: No token provided' });
     return;
@@ -45,7 +50,7 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction): void 
       }
 
       console.log('Decoded token:', decoded);
-      // Attach user information to the request object (if it's a JwtPayload)
+      // If valid --> Attach the decoded payload (eg userId or role) to the request object, so we can use it in route handlers
 
       // Ensures the decoded payload is an object (e.g., { userId: '12345', role: 'user' }).
       // Decoded JWTs can sometimes be strings, so this check ensures it's safe to use.

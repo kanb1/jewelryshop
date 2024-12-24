@@ -13,13 +13,15 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
 } from "@chakra-ui/react";
+// useParams --> læser route-parametre fra URL'en fx /products/:category
+// useSearchParams -->Håndterer forespørgselsparametre i URL'en fx ?page=2&type=rings
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import ProductCard from "../shared/ProductCard";
 import ButtonComponent from "../shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
 
-// Define the Product interface to match the backend structure
+// Definerer typen for produkter, hvert produkt forventes at have disse felter. Images og sizes are valgfri med "?"
 interface Product {
   _id: string;
   name: string;
@@ -31,28 +33,46 @@ interface Product {
 }
 
 const Products: React.FC = () => {
+  // *******************************************' STATES
+
+  // useParams henter category fra URL'en
   const { category } = useParams<{ category: string }>();
+  // Henter forespørgselsparametre fra URL'en fx hvis vi vælger sort price high to low
   const [searchParams, setSearchParams] = useSearchParams();
+  // Gemmer den valgte sorteringsmulighed fx pricehightolow.. det er den initial state
   const [sortOption, setSortOption] = useState(searchParams.get("sort") || "priceLowToHigh");
+  // Gemmer valgte filtre
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedJewelryTypes, setSelectedJewelryTypes] = useState<string[]>(
     category === "all" || !category ? [] : [category]
   );
+  // indeholder de hentede produkter
   const [products, setProducts] = useState<Product[]>([]);
   const [allCollections, setAllCollections] = useState<string[]>([]);
+  // Pagination
   const [totalProducts, setTotalProducts] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  // indikerer om data hentes
   const [loading, setLoading] = useState(false);
+  // sørger for at parametre er klar før data hentes. Når denne her komponent loader så kan der være en forsinkelse før searchparams og andre parametre bliver initialiseret. Undgår at sende en ufuldstændig forespørgsel til backend. Fungerer som en kontrolmekanisme. 
+  // sat til false som default for at sige at forespørgselsparametrene er ikke klar endnu, og når category ændres, når searchParams opdateres, så bliver den true
   const [paramsReady, setParamsReady] = useState(false); // Tilføjet: Holder styr på parametre
 
-  // Fetch products based on filters and pagination
+
+
+
+  // ******************************************** HENT PRODUKTER FRA BACKEND
+  // Trigger fetchProducts, hver gang searchParams eller paramsReady ændres
   useEffect(() => {
     if (!paramsReady) return; // Vent, indtil parametrene er klar
 
+    // Den fetcher data fra backend
+    
     const fetchProducts = async () => {
       setLoading(true);
 
+      // Her bygger den URL'en baseret på searchParams (forespørgsllerne), så alt der står som $limit osv bliver skiftet ud med forespørgslen
       try {
         const page = searchParams.get("page") || "1";
         const limit = 6;
@@ -61,11 +81,13 @@ const Products: React.FC = () => {
           `${BACKEND_URL}/api/products?page=${page}&limit=${limit}&${searchParams.toString()}`
         );
         const data = await response.json();
-
+        
+        // Gemmer produkter og pagination-data, altså vi opdaterer state
         setProducts(data.products);
         setTotalProducts(data.totalProducts);
         setTotalPages(data.totalPages);
         setCurrentPage(parseInt(page));
+        // backend behandler forespørgslen, og sender JSON-data tilbage, som frontend bruger til at opdatere sin state (og viser de rigtige produkter frem)
       } catch (err) {
         console.error("Error fetching products:", err);
       } finally {
@@ -76,7 +98,11 @@ const Products: React.FC = () => {
     fetchProducts();
   }, [searchParams, paramsReady]);
 
-  // Reset filters whenever the category changes
+
+
+   // ****************************** HÅNDTER KATEGORIÆNDRINGER
+  //  Hver gang category ændres, fx når brugeren klikker på rings, så opdaterer forespørgselsparametre type og page
+  // resetter valgte smykketyper selectedJewelryTypes
   useEffect(() => {
     if (category) {
       const params = new URLSearchParams();
@@ -88,12 +114,18 @@ const Products: React.FC = () => {
     }
   }, [category]);
 
+
+// ****************************** HENT COLLECTIONS UAFHÆNGIGT
   // Fetch collections independently
+  // Hooken kører kun 1 gang når komponent loader [] tom afhængighedsarray
+
   useEffect(() => {
+    // vi henter alle kollektionerne til at generere filtermuligheder for kollektioner i sidebaren, det bliver hentet fra backenden
     const fetchCollections = async () => {
       try {
         const response = await fetch(`${BACKEND_URL}/api/products/collections`);
         const data = await response.json();
+        // gemmer de hentede kollektioner i allCollections state
         setAllCollections(data.collections || []);
       } catch (err) {
         console.error("Error fetching collections:", err);
@@ -103,52 +135,84 @@ const Products: React.FC = () => {
     fetchCollections();
   }, []);
 
-  // Handle Collection Change
+
+// ****************************** HÅNDTER KOLLEKTION ÆNDRINGER
   const handleCollectionChange = (collection: string, isChecked: boolean) => {
+
+    // hvis brugeren tjekker boksen (true) eller false hvis den fjernes
     const updatedCollections = isChecked
       ? [...selectedCollections, collection]
       : selectedCollections.filter((c) => c !== collection);
 
+    // opdater seletectedCollections, den tilføjer hvis isChecked true og fjernes hvis isChecked false
     setSelectedCollections(updatedCollections);
 
+    // Opdaterer URL parametre (searchParams)
+    // Fjerner eksisterende collection-parametre
     const params = new URLSearchParams(searchParams);
     params.delete("collection");
+    // Tilføjer hver valgt kollektion som en separat parameter (det at kunne vælge flere)
     updatedCollections.forEach((col) => params.append("collection", col));
+    // resetter page til 1 hver gang
     params.set("page", "1"); // Reset page to 1
+    // når setSearchParams ændrer URL parametrene kalder useEffect automatisk fethcProducts()
     setSearchParams(params);
   };
 
-  // Handle Jewelry Type Filter Change
+
+
+   // ****************************** HÅNDTER SMYKKE-TYPE ÆNDRINGER 
   const handleJewelryTypeChange = (type: string, isChecked: boolean) => {
+    // type -->  den valgte smykketype
+    // isChecked --> Om brugeren har valgt eller ej, true/false
     const updatedJewelryTypes = isChecked
       ? [...selectedJewelryTypes, type]
       : selectedJewelryTypes.filter((t) => t !== type);
   
+    //opdaterer, tilføjer/fjerner selectedJwelryType 
     setSelectedJewelryTypes(updatedJewelryTypes);
-  
+    
+    // Opdaterer URL parametre (searchParams)
     const params = new URLSearchParams(searchParams);
-    params.delete("type"); // Fjern alle tidligere 'type'-parametre
-    updatedJewelryTypes.forEach((t) => params.append("type", t)); // Tilføj hver ny valgt type som en separat parameter
+    // Fjern alle tidligere 'type'-parametre
+    params.delete("type"); 
+    // Tilføj hver ny valgt type som en separat parameter
+    updatedJewelryTypes.forEach((t) => params.append("type", t)); 
     params.set("page", "1"); // Gå altid tilbage til side 1
     setSearchParams(params);
   };
   
 
+
+
+  // ****************************** HÅNDTER SORT
   // Handle Sort Change
   const handleSortChange = (sortOption: string) => {
+    // opdaterer den vlagte sorteringsmulighed i state
     setSortOption(sortOption);
     const params = new URLSearchParams(searchParams);
+    // tilføjer/ændrer sort i searchParams
     params.set("sort", sortOption);
+    // resetter page til 1
     params.set("page", "1");
     setSearchParams(params);
   };
 
-  // Handle Page Change
+
+
+
+
+  // ****************************** PAGINATION FRONTEND
+
   const handlePageChange = (page: number) => {
+    // Tjekker om siden er gyldig: Siden skal være mlelem 1 og totalPages
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+      // tilføjer/ændrer page i searchparams
+      // bruger går til side 2: URL, /products?page=2
       const params = new URLSearchParams(searchParams);
       params.set("page", page.toString());
+      // når setsearchparams ændrer URL parametrene kalder useffect automatisk fetchproducts
       setSearchParams(params);
     }
   };
@@ -262,6 +326,10 @@ const Products: React.FC = () => {
           <Text mb={4}>
             {totalProducts > 0 ? `${totalProducts} products in total` : "No products found"}
           </Text>
+
+          {/* Produkterne bliver hentet fra backend og gemt i state (products) i Products.tsx. Hvert produkt sendes som props til ProductCard */}
+          {/* product indeholder al data som id, name, price, type osv */}
+          {/* Hvert objekt i products-arrayet (som kommer fra backend) sendes til ProductCard som en product-prop. */}
 
           {loading ? (
             <Text>Loading products...</Text>

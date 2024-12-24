@@ -10,7 +10,7 @@ interface AuthenticatedRequest extends Request {
 
 const router = express.Router();
 
-// GET /favourites?userId=123 - Fetch user's favourite products
+//************************************************************************************Fetch user's favourite products
 router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Extract the userId from the token
@@ -23,6 +23,7 @@ router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response
       }
   
       // Fetch favourites for the authenticated user
+      // populate("productId"): Replaces the productId with the full product document from the Product collection.
       const favourites = await Favorite.find({ userId }).populate("productId");
   
       res.status(200).json(favourites);
@@ -32,7 +33,7 @@ router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response
     }
   });
 
-// POST /favourites - Add a product to user's favourites
+//************************************************************************************ADD PRODUCT TO USER'S LIST
 router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     const { productId } = req.body;
     const userId = req.user?.userId; // Extract userId from the authenticated JWT middleware
@@ -48,14 +49,14 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
         return;
       }
   
-      // Check if the product is already in favourites
+      // Check if the product is already in favourites by finding all the favorite documents belonging to the user by querying the Favorite model where userId matches the logged user's id
       const existingFavourite = await Favorite.findOne({ userId, productId });
       if (existingFavourite) {
         res.status(409).json({ error: "Product is already in favourites" });
         return;
       }
   
-      // Create and save the favourite
+      // Creates a new favorite document with the userId and productId, then saves it to the database.
       const newFavourite = new Favorite({ userId, productId });
       await newFavourite.save();
   
@@ -67,11 +68,13 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
   });
   
 
-// DELETE /favourites/:id - Remove a product from user's favourites
+//************************************************************************************DELETE PRODUCT FROM USERS LIST
 router.delete("/:id", authenticateJWT, async (Request, Response) => {
+  // Extracts the favorite document ID (id) from the URL parameters.
   const { id } = Request.params;
 
   try {
+    // Finds the favorite document by its ID and deletes it. If the document doesn't exist, a 404 Not Found is returned.
     const favourite = await Favorite.findByIdAndDelete(id);
     if (!favourite) {
        Response.status(404).json({ error: "Favourite not found" });

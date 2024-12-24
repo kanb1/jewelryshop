@@ -7,6 +7,9 @@ dotenv.config();
 // console.log("EMAIL_USER:", process.env.EMAIL_USER);
 // console.log("EMAILPASS:", process.env.EMAILPASS);
 
+// nodemailer transporter for sending emails
+// uses the env.variables, emailuser, email pass to configure the gmail SMTP server
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   host: "smtp.gmail.com",
@@ -17,5 +20,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAILPASS, // Using the app-specific password from .env
   },
 });
+
+// we use the transporter.sendMail to send an email, fx in the reset link
 
 export default transporter;

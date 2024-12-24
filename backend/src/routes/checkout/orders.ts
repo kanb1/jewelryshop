@@ -15,6 +15,7 @@ dotenv.config();
 
 // Extend the Express Request type to include `user`
 interface AuthenticatedRequest extends Request {
+  // is added after authentication via authenticateJWT 
   user?: { userId: string }; 
 }
 const router = express.Router();
@@ -29,28 +30,42 @@ const isEligibleForReturn = (orderDate: Date): boolean => {
   return diffInDays <= 30;
 };
 
-// GET /orders
-
+//**************************************** *GET orders
+// Express checks the route handler in order
+// first authenticateJWT runs, then AuthenticatedRequest defines to TS that the req object will ahve req.user after the authenticateJWT middleware runs. To prevent the TS error 
 router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+  // Extracts userId from the JWT-protected request (req.user).
   const userId = req.user?.userId;
+  //extracts the status query paraemter from the requst
+      //eg GET /api/orders?status=Completed
+      //req.query contains all the query parameters in the request URL.
   const { status } = req.query;
 
+  // ensruing user exist and is a valid mongodb objectid
   if (!userId || !mongoose.isValidObjectId(userId)) {
       res.status(400).json({ error: "Valid user ID is required" });
       return;
   }
 
   try {
+    // Creates a query object to filter orders by userId
+    // intiially it only includes the userId, but later we will dynamically add the status property to the query object
       const query: any = { userId };
 
+      // checks if the status query parameter exists
+      // regular expression for pattern matching
       if (status) {
-          query.status = new RegExp(`^${status}$`, "i"); // Case-insensitive
+        // pattern says what is exactly "status" 
+          query.status = new RegExp(`^${status}$`, "i"); // Case-insensitive (for mongodb field)
       }
 
+      // Query to MongoDB: { userId: "12345", status: /^Completed$/i }
       console.log("Query to MongoDB:", query);
 
+      // this query will then be passed to Order.find() to fetch orders belonging to the current user
       const orders = await Order.find(query).sort({ createdAt: -1 });
 
+      // maps the raw mongodb orders into a clean, structure response
       const mappedOrders = orders.map((order) => ({
         orderId: order._id,
         status: order.status,
@@ -58,6 +73,7 @@ router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response
         returnId: order.returnId || null,
         returnStatus: order.returnStatus || null,
         returnInitiatedAt: order.returnInitiatedAt || null,
+        // isEligibleForReturn(order.createdat) --> checks if the order was placed within 30 days
         isReturnable: order.status === "In Progress" && isEligibleForReturn(order.createdAt),
     }));
     
@@ -70,10 +86,11 @@ router.get("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response
 });
 
 
-
-// POST /orders - Create a new order
+//**************************************** *CREATE ORDER
+// When in the billing frontend we "save"/create the order after the payment is succesful
 router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
-  const { items, totalPrice, deliveryInfo, deliveryMethod, paymentIntentId } = req.body; // Include paymentIntentId from frontend
+  // the frontend sends all this data in the POST request body
+  const { items, totalPrice, deliveryInfo, deliveryMethod, paymentIntentId } = req.body;
   const userId = req.user?.userId;
 
   try {
@@ -82,7 +99,7 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
     console.log("Delivery method:", deliveryMethod);
     console.log("Delivery info:", deliveryInfo);
 
-    // Validate delivery method
+    // Validate delivery method (ensures it's either home or parcelshop)
     if (!deliveryMethod || !["home", "parcel-shop"].includes(deliveryMethod)) {
       console.error("Validation failed: Invalid delivery method", { deliveryMethod });
       res.status(400).json({ error: "Invalid delivery method" });
@@ -90,6 +107,8 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
     }
 
     // Validate all product IDs
+    // Each product in items has a productid
+    // mongoose.isValidObjectId() ensures the productId format is valid for mongodb
     const invalidItems = items.filter((item: any) => !mongoose.isValidObjectId(item.productId));
     if (invalidItems.length > 0) {
       console.error("Validation failed: Invalid product IDs", { invalidItems });
@@ -100,6 +119,8 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
     console.log("Step 2: All product IDs are valid. Proceeding...");
 
     // Check product existence
+    // Ensures each productId in the items exists in the Products collection.
+    // Products.exists is efficient because it only checks for the document's existence, not the full document.
     for (const item of items) {
       const productExists = await Products.exists({ _id: item.productId });
       if (!productExists) {
@@ -126,10 +147,13 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
     console.log("Step 4: Delivery info validated. Proceeding to create order...");
 
     // Generate unique order number
+    // gets the last 6 digits of the current timestamp
+    // Math.random() * 1000 adds a random 3-digit number.
+    // (EP)123456789
     const orderNumber = `EP${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 1000)}`;
     console.log("Generated order number:", orderNumber);
 
-    // Prepare order payload
+    // Prepare order payload (all necessary order data into a single object)
     const orderPayload = {
       userId,
       items,
@@ -143,19 +167,21 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res: Respons
     };
 
     console.log("Step 5: Saving order to database...");
+    // Creates new Order document using the mongoose model and saves it to the db
     const order = new Order(orderPayload);
     await order.save();
     console.log("Order successfully saved:", order);
 
     console.log("Step 6: Sending confirmation email...");
 
-    // Fetch user's email
+    // Fetch user's email by userId
     const user = await User.findById(order.userId);
     if (!user || !user.email) {
       res.status(404).json({ error: "User or email not found" });
       return;
     }
 
+    // using trnasporter (configured with nodemailer) to send email
     const emailBody = `
       <h1>Order Confirmation</h1>
       <p>Thank you for your order, ${user.name || "Customer"}!</p>
@@ -214,7 +240,7 @@ router.post("/:id/return", authenticateJWT, async (req: AuthenticatedRequest, re
     order.returnStatus = "Pending"; // Add return status (Pending by default)
     order.returnInitiated = true; // Set return initiated flag
     order.returnInitiatedAt = new Date(); // Set the return initiation date
-    await order.save();
+    await order.save(); //gem opdateringerne i db'en
 
     // Fetch the user's email
     const user = await User.findById(userId);

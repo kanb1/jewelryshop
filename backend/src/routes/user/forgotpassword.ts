@@ -10,8 +10,10 @@ const router = express.Router();
 
 // POST /forgot-password - Send reset link to user's email
 router.post("/forgot-password", async (Request, Response) => {
+  // takes the email from the requestbody
   const { email } = Request.body;
 
+  // finds the user with the provided email
   try {
     const user = await User.findOne({ email });
     if (!user) {
@@ -19,16 +21,17 @@ router.post("/forgot-password", async (Request, Response) => {
       return;
     }
 
-    // Generate reset token and expiration
+    // creates a a token using crypto.randomBytes()
     const resetToken = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+    // saves the token and expiration time in the user's document
     await user.save();
 
     // Generate the reset link
     const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}&id=${user._id}`;
 
-    // Send email
+    // Send email, I use nodemaielr with the gmail SMTP server. SEnds a personalized email with the passwrod reset link
     try {
       await transporter.sendMail({
         to: user.email,
@@ -63,6 +66,8 @@ router.put("/reset-password", async (Request, Response) => {
         currentTime: Date.now(),
       });
 
+    // ensures: user exists, reset token matches the one stored in db, the token has not expired 
+
     if (
         !user ||
         !user.resetPasswordToken ||
@@ -82,7 +87,7 @@ router.put("/reset-password", async (Request, Response) => {
       }
       
 
-    // Hash the new password
+    // Hash the new password before saving it
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update user with the new password

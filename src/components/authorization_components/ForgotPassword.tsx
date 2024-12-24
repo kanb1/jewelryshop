@@ -13,13 +13,14 @@ import ButtonComponent from "../shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
 const ForgotPassword: React.FC = () => {
+  // tracks the email entered by the user and potential error messages
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [, setLoading] = useState(false);
   const toast = useToast();
 
   const handleSubmit = async () => {
-    // Validate email
+    // Validate email (not empty and valid format)
     if (!email) {
       setEmailError("Email is required.");
       return;
@@ -32,6 +33,7 @@ const ForgotPassword: React.FC = () => {
     setLoading(true);
 
     try {
+      // POST request to the route with the email
         const response = await fetch(`${BACKEND_URL}/api/forgotpassword/forgot-password`, {
             method: "POST",
             headers: {

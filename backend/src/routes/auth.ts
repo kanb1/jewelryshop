@@ -16,7 +16,7 @@ require("dotenv").config();
 
 
 // We receive the form data via a POST request to /api/auth/users
-// ***************************************************************************************************************** REGISTER
+// ******************************************************************************************* REGISTER
 // POST /users - Register a new user
 router.post("/users", async (Request, Response) => {
   // extracts form data, destructs the form data sent in the request body
@@ -95,7 +95,7 @@ router.post("/users", async (Request, Response) => {
   // Hash password using bcrypt with a salt round of 10
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Save the new user to the database (default role is 'user')
+  // DB interaction --> Save the new user to the database (default role is 'user')
   // this creates a new user document with the hashed pass and saves it to the db
   const newUser = new User({
     username,
@@ -105,14 +105,14 @@ router.post("/users", async (Request, Response) => {
     surname,
     role: "user", // Default role
   });
-  await newUser.save();
+  await newUser.save(); //.save, mongoose method 
 
   Response.status(201).json({ message: "User created successfully" });
 });
 
 
 
-// ***************************************************************************************************************** LOGIN
+// ******************************************************************************************************** LOGIN
 
 // POST /auth/login - User login
 router.post("/login", async (req: Request, res: Response) => {
@@ -120,14 +120,14 @@ router.post("/login", async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   try {
-    // Find the user by username
+    // Find the user by username (looking up in the database User.findOne)
     const user = await User.findOne({ username });
     if (!user) {
       res.status(400).json({ error: "Invalid username or password" });
       return;
     }
 
-    // Compare provided password with the stored hash pass
+    // Compare provided password (plain text) with the stored hash pass stored in the database
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
       res.status(400).json({ error: "Invalid username or password" });
@@ -140,7 +140,8 @@ router.post("/login", async (req: Request, res: Response) => {
       throw new Error("JWT_SECRET is not defined in the environment. Check your .env file.");
     }
     
-    // generate a token 
+    // generate a token --> creates a JSON Web Token with userId and role
+      // signs the token using a secret JWT secret and sets it to expire in 1 hour
     const token = jwt.sign(
       { userId: user._id, role: user.role }, // Payload containing the userId and role from the authenticated user
       process.env.JWT_SECRET, // Environment variable for the secret, used to sign the token. to ensure the token can't be tampered with

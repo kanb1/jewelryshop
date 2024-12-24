@@ -24,7 +24,7 @@ const MyOrders: React.FC = () => {
   const isMobile = useBreakpointValue({ base: true, md: false });
 
 
-  // Function to fetch orders
+  //***************************** */ Function to fetch orders
   const fetchOrders = async () => {
     setLoading(true); // Set loading to true while fetching
     try {
@@ -52,7 +52,7 @@ const MyOrders: React.FC = () => {
     }
   };
 
-  // Handle initiating a return
+  //***************************** Handle initiating a return
   const initiateReturn = async (orderId: string) => {
     try {
       const token = localStorage.getItem("jwt");

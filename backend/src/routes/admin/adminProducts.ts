@@ -13,19 +13,24 @@ router.use(adminMiddleware); // Apply admin middleware to all routes in this fil
 // Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // destination where uploaded files will be stored on the server
     cb(null, path.join(__dirname, "../../../../public/uploads")); 
   },
   filename: (req, file, cb) => {
+    //  renames files with a timestamp to ensure unique filenames
     cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
+// initilaize multer for handling file upload
 const upload = multer({ storage });
 
-// POST /api/admin/products - Add a new product
-router.post("/", adminMiddleware, upload.array("images"), async (req, res) => {
+  //************************************************************************* ADD NEW PRODUCT
+  // uses multer to handle image uploads from the frontend-request
+  router.post("/", adminMiddleware, upload.array("images"), async (req, res) => {
     const { name, type, productCollection, price, sizes } = req.body;
 
+    // checks for required fields
     if (!name || !type || !price || !sizes) {
       res.status(400).json({ error: "Missing required fields." });
       return;
@@ -33,12 +38,13 @@ router.post("/", adminMiddleware, upload.array("images"), async (req, res) => {
 
     try {
       
-      // Cast req.files to Multer.File[] for TypeScript
+      // Maps the uploaded files to an array of paths (/uploads/<filename>), which are saved in the database.
       const imagePaths =
         (req.files as Express.Multer.File[])?.map(
           (file) => `/uploads/${file.filename}`
         ) || [];
 
+        // Creates a new Product document with the extracted details and image paths.
       const product = new Product({
         name,
         type,
@@ -48,6 +54,7 @@ router.post("/", adminMiddleware, upload.array("images"), async (req, res) => {
         images: imagePaths, // Save image paths
       });
 
+      // Saves the product to MongoDB 
       await product.save();
       res
         .status(201)
@@ -59,17 +66,18 @@ router.post("/", adminMiddleware, upload.array("images"), async (req, res) => {
   }
 );
 
-// PUT /api/admin/products/:id - Update a product
-router.put(
+  //************************************************************************* UPDATE  PRODUCT
+  router.put(
   "/:id",
   adminMiddleware,
   upload.array("images"), // Handle multiple images
   async (req, res) => {
+    // Extracts the product ID from the URL and updates from the request body.
     const { id } = req.params;
     const updates = req.body;
 
     try {
-      // If new images are uploaded, add them to the updates
+      // If new images are uploaded, maps them to paths and adds them to the updates object.
       if (req.files && (req.files as Express.Multer.File[]).length > 0) {
         const imagePaths = (req.files as Express.Multer.File[]).map(
           (file) => `/uploads/${file.filename}`
@@ -77,6 +85,7 @@ router.put(
         updates.images = imagePaths;
       }
 
+      // Finds the product by ID and updates its details in MongoDB. The { new: true } option returns the updated document.
       const product = await Product.findByIdAndUpdate(id, updates, {
         new: true,
       });
@@ -96,8 +105,8 @@ router.put(
   }
 );
 
-// DELETE /api/admin/products/:id - Delete a product
-router.delete("/:id", adminMiddleware, async (req, res) => {
+  //************************************************************************* DELETE A  PRODUCT
+  router.delete("/:id", adminMiddleware, async (req, res) => {
   const { id } = req.params;
 
   try {

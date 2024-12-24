@@ -12,6 +12,7 @@ const AdminPage: React.FC = () => {
   minH="100vh" 
 >
     <Routes>
+      {/* the role prop is passed to the protectedroute compoennt. The admindashboard will only render if it's a valid JWT (authenticated user) and if the user's role matches the required role which is admin in this case */}
       <Route path="/" element={
           <ProtectedRoute role="admin">
             <AdminDashboard />

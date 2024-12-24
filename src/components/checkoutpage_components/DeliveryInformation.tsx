@@ -19,7 +19,7 @@ import { useToast } from "@chakra-ui/react";
 import { BACKEND_URL } from "../../config";
 
 
-
+// Current state of the user's delivery information (passed from the checkoutpage parent)
 interface DeliveryInfoProps {
   deliveryInfo: {
     address: string;
@@ -28,6 +28,7 @@ interface DeliveryInfoProps {
     country: string;
     deliveryMethod: "home" | "parcel-shop";
   };
+  // callback to updat ethe deliveryinfo state in checkoutpage when user fills out delivery details
   setDeliveryInfo: React.Dispatch<
     React.SetStateAction<{
       address: string;
@@ -37,6 +38,7 @@ interface DeliveryInfoProps {
       deliveryMethod: "home" | "parcel-shop";
     }>
   >;
+  // callback to update the currentstep state in checkoutpage
   setCurrentStep: React.Dispatch<
     React.SetStateAction<"delivery" | "billing" | "confirmation">
   >;
@@ -49,21 +51,30 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
   setCurrentStep,
 
 }) => {
-  const navigate = useNavigate(); // Add navigation hook
+  const navigate = useNavigate(); 
+  // stores the list of parcel shops fetched from the backend
   const [parcelShops, setParcelShops] = useState<any[]>([]);
+  // sets after what the user choose
   const [selectedParcelShop, setSelectedParcelShop] = useState<any>(null);
+  // whether or not the parcel shop data is being fetched
   const [isLoading, setIsLoading] = useState(false);
 
+
+  // ******************************** USER ENTERS INPUTFIELDS
+  // dynamically updates the deliveryInfo object in checkoutpage when the user types into address, city and so on
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDeliveryInfo({ ...deliveryInfo, [e.target.name]: e.target.value });
   };
 
+  // ********************************** FETCH PARCEL SHOPS
   const fetchParcelShops = async () => {
     if (!deliveryInfo.address) {
       alert("Please enter an address to find parcel shops!");
       return;
     }
     setIsLoading(true);
+    // fetch the parcelshops nearby
+    // uses deliveryInfo.adress to find nearby parcel shops
     try {
       const response = await fetch(
         `${BACKEND_URL}/api/delivery/parcel-shops?address=${deliveryInfo.address}&radius=10000`
@@ -72,6 +83,7 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
       if (data.length === 0) {
         alert("No parcel shops found near this address!");
       } else {
+        // vil have kun 3 ad gangen
         setParcelShops(data.slice(0, 3));
       }
     } catch (error) {
@@ -84,18 +96,22 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
 
   const toast = useToast();
 
+  // ******************************** USER SELECTS PARCELSHOP
   const handleSelectParcelShop = (shop: any) => {
+    // the chosen shop
     setSelectedParcelShop(shop);
+    // the deliveryinfo
     setDeliveryInfo({
       ...deliveryInfo,
       address: shop.address,
       city: shop.city,
       postalCode: shop.postcode,
       country: shop.country,
-      deliveryMethod: "parcel-shop", // Update delivery method
+      // if user choose parcelshop instead of home delivery 
+      deliveryMethod: "parcel-shop", 
     });
-    // Show a toast message
-  toast({
+
+    toast({
     title: "Parcel Shop Selected",
     description: `You have selected ${shop.name} for delivery.`,
     status: "success", // success, error, warning, or info
@@ -105,7 +121,12 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
   });
   };
 
+  // ******************************** VALIDATIOn BEFORE SAVE AND PROCEED TO BILLING
   const saveAndPay = () => {
+    // checks whether or not the deliveryinfo is complete before allowing the user to proceed
+
+    // for homedelivery --> fill in all information
+    // for parcelshop --> ensures a parcelshop is selected
     if (deliveryInfo.deliveryMethod === "home") {
       if (
         !deliveryInfo.address ||

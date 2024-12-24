@@ -3,6 +3,8 @@ import { Box, Text, Image, Stack, Badge } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import ButtonComponent from "./ButtonComponent";
 
+// Hvad vi forventer at productcard får som props (dataen ("product") som kommer fra products.tsx under productgrid). 
+// derudover accepterer interfacet en valfri children-prop som kan bruges til at inklduer ekestra custom indhold i komponenten
 interface ProductCardProps {
   product: {
     _id: string;
@@ -53,6 +55,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, children }) => {
         ${product.price.toLocaleString()}
       </Text>
 
+      {/* Navigerer til produktets detaljeside */}
+      {/* product._id --> unikt ID, som bruges til at hente produktdata fra backend via endpoint /:id */}
       <Link to={`/product/${product._id}`}>
         <ButtonComponent text="View product" variant="ctaBtn" />
       </Link>

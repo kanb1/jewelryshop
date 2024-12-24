@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import ButtonComponent from "../shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
-
+// Defining the shape of an order object
 interface Order {
   _id: string;
   status: "In Progress" | "Completed" | "Return" | "Return Initiated";
@@ -41,6 +41,7 @@ interface Order {
 }
 
 const AdminOrders: React.FC = () => {
+  // state to store all fetched orders
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate(); 
@@ -48,11 +49,13 @@ const AdminOrders: React.FC = () => {
   // Responsive media query
   const [isMobile] = useMediaQuery("(max-width: 768px)");
 
-  // Fetch all orders
+  // ************************************ FETCH ALL ORDERS
+  // fetches when the components loads 
   useEffect(() => {
     const fetchOrders = async () => {
       setIsLoading(true);
       const token = localStorage.getItem("jwt");
+      // calls the backend for fetching all the orders for the admin
       try {
         const response = await fetch(`${BACKEND_URL}/api/admin/orders`, {
           headers: {
@@ -63,6 +66,7 @@ const AdminOrders: React.FC = () => {
           throw new Error("Failed to fetch orders");
         }
         const data = await response.json();
+        // updates the orders state with the fetched data
         setOrders(data);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -74,10 +78,13 @@ const AdminOrders: React.FC = () => {
     fetchOrders();
   }, []);
 
-  // Handle updating the return status
+  //********************************* */ Handle updating the return status
+  // orderID --> unique id of the order to update
   const handleUpdateReturnStatus = async (orderId: string, newStatus: "Pending" | "Received" | "Refunded") => {
     try {
       const token = localStorage.getItem("jwt");
+      // orderId is the id of the order to update
+      
       const response = await fetch(
         `${BACKEND_URL}/api/admin/orders/${orderId}/return-status`,
         {
@@ -86,6 +93,7 @@ const AdminOrders: React.FC = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          // body contains the new returnStatus (ex: admin clicks "Received")
           body: JSON.stringify({ returnStatus: newStatus }),
         }
       );
@@ -96,10 +104,11 @@ const AdminOrders: React.FC = () => {
   
       alert(`Return status updated to ${newStatus}`);
   
-      // Refresh orders after updating
+      //maps over all orders, finds the order witht he matching orderId and updates its returnStatus to the new value
       const updatedOrders: Order[] = orders.map((order) =>
         order._id === orderId ? { ...order, returnStatus: newStatus } : order
       );
+      // setOrders updates the orders state
       setOrders(updatedOrders);
     } catch (error) {
       console.error("Error updating return status:", error);

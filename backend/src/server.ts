@@ -31,6 +31,7 @@ dotenv.config(); // Load environment variables from .env file
 const app = express();
 const PORT = process.env.PORT || 5001;
 const mongoUri = process.env.MONGO_URI || '';
+// checks if the current environment is proudction by the NODE_ENV
 const isProduction = process.env.NODE_ENV === "production";
 const frontendURL = isProduction
   ? "https://jewelryshop-two.vercel.app" // Deployed frontend
@@ -59,6 +60,11 @@ app.use(express.json()); // Parse JSON from requests
 
 // Serve static files from the `public/uploads` directory
 app.use("/uploads", express.static(path.join(__dirname, "../../public/uploads")));
+app.use("/uploads_profilepictures", express.static(path.join(__dirname, "../../public/uploads_profilepictures")));
+console.log(
+  "Serving static files from:",
+  path.join(__dirname, "../../public/uploads_profilepictures")
+);
 
 
 

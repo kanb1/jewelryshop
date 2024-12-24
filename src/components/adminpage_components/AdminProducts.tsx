@@ -30,7 +30,9 @@ import { BACKEND_URL } from "../../config";
 
 
 const AdminProducts: React.FC = () => {
+  // All the products fetched from the backend
   const [products, setProducts] = useState<any[]>([]);
+  // The formdata for adding the new product
   const [newProduct, setNewProduct] = useState({
     name: "",
     type: "",
@@ -39,13 +41,15 @@ const AdminProducts: React.FC = () => {
     sizes: "",
     images: null as FileList | null,
   });
+  // Holds the product currently being edited
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  // Open and close of modal for editing products
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   const isMobile = useBreakpointValue({ base: true, md: false });
 
 
-  // Fetch products from backend
+  //************************************************************************* */ Fetch products from backend
   const fetchProducts = async () => {
     const token = localStorage.getItem("jwt");
     try {
@@ -76,25 +80,31 @@ const AdminProducts: React.FC = () => {
     fetchProducts();
   }, []);
 
-  // Add a new product
+  
+  //************************************************************************* */ Add a new proudct
   const handleAddProduct = async () => {
     const token = localStorage.getItem("jwt");
+    // Create a FormData object to send the product details and images as a multipart/form-data request
     const formData = new FormData();
+    //append fields to FormData object
     formData.append("name", newProduct.name);
     formData.append("type", newProduct.type);
     formData.append("productCollection", newProduct.productCollection);
     formData.append("price", newProduct.price);
     formData.append("sizes", newProduct.sizes);
+    // checks if images are uploaded, loop through and append each file to the formdata object
     if (newProduct.images) {
       Array.from(newProduct.images).forEach((file) =>
         formData.append("images", file)
       );
     }
 
+    // sends a POSt req to the backend to createa  new product
     try {
       const response = await fetch(`${BACKEND_URL}/api/admin/products`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
+        // uses formdata as the reqbody, enabling file uploads
         body: formData,
       });
 
@@ -104,8 +114,10 @@ const AdminProducts: React.FC = () => {
       }
 
       const addedProduct = await response.json();
+      // Adds the new product to the beginning of the products array in the state
       setProducts((prev) => [addedProduct.product, ...prev]);
       alert("Product added successfully!");
+      // resets the form
       setNewProduct({
         name: "",
         type: "",
@@ -119,14 +131,16 @@ const AdminProducts: React.FC = () => {
     }
   };
 
-  // Delete a product
+  //************************************************************************* */ Delete a product
   const handleDelete = async (id: string) => {
     const token = localStorage.getItem("jwt");
     try {
+      // sends a delete request to the backend with the product's ID
       await fetch(`${BACKEND_URL}/api/admin/products/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+      // removes the deleted product form the products state
       setProducts((prev) => prev.filter((product) => product._id !== id));
       alert("Product deleted successfully!");
     } catch (err) {
@@ -134,17 +148,20 @@ const AdminProducts: React.FC = () => {
     }
   };
 
-  // Update a product
+  //************************************************************************* */ Update a  proudct
   const handleUpdateProduct = async () => {
     const token = localStorage.getItem("jwt");
-  
+    // Creates a FormData object for the updated product details and images.
     const formData = new FormData();
+    // Appends the updated product details to the FormData object
     formData.append("name", editingProduct.name);
     formData.append("type", editingProduct.type);
     formData.append("productCollection", editingProduct.productCollection);
     formData.append("price", editingProduct.price);
     formData.append("sizes", editingProduct.sizes);
-  
+    //Checks if new images were uploaded
+    //Loops through the uploaded files and appends each file to the FormData.
+
     if (editingProduct.images && editingProduct.images instanceof FileList) {
       Array.from(editingProduct.images as FileList).forEach((file: File) => {
         formData.append("images", file);
@@ -152,11 +169,13 @@ const AdminProducts: React.FC = () => {
     }
   
     try {
+      // sends a put req to the backend targeting the spedcfic productid
       const response = await fetch(
         `${BACKEND_URL}/api/admin/products/${editingProduct._id}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
+          // the updated details
           body: formData,
         }
       );
@@ -165,14 +184,17 @@ const AdminProducts: React.FC = () => {
         console.error("Failed to update product");
         return;
       }
-  
+      
+      //parses the repsonse to get the updated product details
       const updatedProduct = await response.json();
+      // finds the updated product in the products array and replaces it with the new data
       setProducts((prev) =>
         prev.map((product) =>
           product._id === editingProduct._id ? updatedProduct.product : product
         )
       );
       alert("Product updated successfully!");
+      // clears the editing product state and closes the edit modal
       setEditingProduct(null);
       onClose();
     } catch (err) {

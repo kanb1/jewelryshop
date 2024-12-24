@@ -15,14 +15,21 @@ import ButtonComponent from "../shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
 const UserInfo: React.FC = () => {
+  // user's info from the backend
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  // Tracks whether the user’s profile or password is currently being updated.
   const [updatingInfo, setUpdatingInfo] = useState<boolean>(false);
   const [changingPassword, setChangingPassword] = useState<boolean>(false);
+  //  Stores the current and new passwords entered by the user during the password change process.
   const [currentPassword, setCurrentPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
   const toast = useToast();
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
+
+
+// ************************************** GET USER DATA
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -46,6 +53,83 @@ const UserInfo: React.FC = () => {
 
     fetchUser();
   }, []);
+
+
+
+
+
+
+  // ************************************** HANDLE PROFILE PICTURE UPLOAD
+
+  // Handle file input changes
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setProfilePicture(e.target.files[0]);
+    }
+  };
+
+  // Handle upload process
+  const handleUpload = async () => {
+    if (!profilePicture) {
+      toast({
+        title: "No file selected",
+        description: "Please select a profile picture to upload.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("profilePicture", profilePicture);
+  
+    try {
+      const token = localStorage.getItem("jwt");
+      if (!token) throw new Error("Unauthorized");
+  
+      const response = await fetch(`${BACKEND_URL}/api/users/upload-profile-picture`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the JWT token for authentication
+        },
+        body: formData,
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        toast({
+          title: "Upload Successful",
+          description: "Profile picture uploaded successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+  
+        // Update user data to reflect the new profile picture
+        setUser({ ...user, profilePicture: data.profilePicture });
+      } else {
+        throw new Error(data.message || "Upload failed");
+      }
+    } catch (error: any) {
+      console.error("Error uploading profile picture:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload profile picture.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+  
+
+  
+
+
+
+  // ************************************** HANDLE INFO UPDATE
 
   const handleInfoUpdate = async () => {
     const nameRegex = /^[A-Za-z]+$/;
@@ -83,6 +167,7 @@ const UserInfo: React.FC = () => {
     return;
   }
   
+  // setting the updating info
     try {
       setUpdatingInfo(true);
       const token = localStorage.getItem("jwt");
@@ -94,6 +179,7 @@ const UserInfo: React.FC = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        // updated user is sent to req body
         body: JSON.stringify(user),
       });
 
@@ -121,8 +207,9 @@ const UserInfo: React.FC = () => {
       setUpdatingInfo(false);
     }
   };
-
+// ***********************************HANDLE PASSWORD CHANGE
   const handlePasswordChange = async () => {
+    // Sends a PUT request to change the user's password. The current and new passwords are sent in the request body.
     try {
       setChangingPassword(true);
       const token = localStorage.getItem("jwt");
@@ -177,27 +264,82 @@ const UserInfo: React.FC = () => {
   }
 
   return (
-    <Box p={5}>
-      <Heading size="lg" mb={4}>
-        User Info
-      </Heading>
+    <Box p={5} mt={20}>   
 
-      {/* User Summary */}
-      <Box
-        borderWidth="1px"
-        borderRadius="md"
-        p={4}
-        mb={5}
-        bg="gray.50"
-        boxShadow="sm"
-      >
-        <Text fontWeight="bold">Name:</Text>
-        <Text>{user?.name} {user?.surname}</Text>
-        <Text fontWeight="bold" mt={3}>Email:</Text>
-        <Text>{user?.email}</Text>
-      </Box>
+  {/* Profile and User Details */}
+  <Box display="flex" justifyContent="center" alignItems="center" mb={20} flexWrap="wrap">
+    {/* Profile Picture Section */}
+    <Box textAlign="center" mb={4} flex="1" maxW="200px">
+      {user?.profilePicture && (
+        <Box
+          as="img"
+          src={`${BACKEND_URL}/${user.profilePicture}`}
+          alt="Profile"
+          borderRadius="full"
+          boxSize="150px"
+          boxShadow="lg"
+          border="4px solid"
+          borderColor="gray.200"
+          mx="auto"
+          mb={4}
+        />
+      )}
+      <FormControl>
+        <Input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          display="none"
+          id="fileInput"
+        />
+        <FormLabel
+          htmlFor="fileInput"
+          cursor="pointer"
+          bg="gray.100"
+          p={2}
+          borderRadius="md"
+          _hover={{ bg: "gray.200" }}
+          textAlign="center"
+          width="auto"
+          mx="auto"
+          mb={2}
+        >
+          Choose New Photo
+        </FormLabel>
+        <ButtonComponent
+          text="Change Now"
+          variant="primaryBlackBtn"
+          onClick={handleUpload}
+        />
+      </FormControl>
+    </Box>
 
-      <Divider mb={5} />
+    {/* User Details */}
+    <Box
+      bg="white"
+      borderRadius="2xl"
+      p={5}
+      boxShadow="sm"
+      flex="1"
+      maxW="500px"
+      ml={{ base: 0, md: 6 }}
+      textAlign="left"
+    >
+      <Text fontWeight="bold" fontSize="lg" mb={2} color="grey">
+        Your Name:
+      </Text>
+      <Text mb={4} fontWeight="thin">
+        {user?.name} {user?.surname}
+      </Text>
+      <Text fontWeight="bold" fontSize="lg" mb={2} color="grey">
+        Your Email:
+      </Text>
+      <Text>{user?.email}</Text>
+    </Box>
+  </Box>
+
+  <Divider mb={6} />
+
 
       {/* Update Profile Form */}
       <VStack spacing={4} align="stretch">

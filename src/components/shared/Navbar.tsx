@@ -24,11 +24,15 @@ import { useCart } from "../../context/CartContext";
 import { HamburgerIcon } from "@chakra-ui/icons";
 
 const Navbar: React.FC = () => {
+  // consumes those state tracking from authcontext
+  // ensures that the navbar dynamically updates its UI based on the authentication state
   const { isLoggedIn, userRole, setIsLoggedIn, setUserRole } = useAuthContext();
   const { cartCount, setCartCount } = useCart();
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  // remove the JWT from localstorage
+  // authcontext's states are reset (isloggedin and userrole)
   const handleLogout = () => {
     localStorage.removeItem("jwt");
     setIsLoggedIn(false);
@@ -79,6 +83,7 @@ const Navbar: React.FC = () => {
         </HStack>
 
         {/* LOGIN/LOGOUT AND CART */}
+        {/* if isLoggedIn is true and userrole is admin, it displays a link to the admin dashboard and vice versa if role is user. If it's false it displays login and signup options */}
         <HStack spacing={{ base: 2, lg: 6 }} alignItems="center">
           {isLoggedIn ? (
             <>

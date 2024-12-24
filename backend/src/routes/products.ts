@@ -7,45 +7,75 @@ import NodeCache from 'node-cache';
 
 
 
-
+// Express Router is a feature of the Express.js framework that helps you organize your REST API 
+// Each router defines routes (URLs) and their associated HTTP methods
 const router = express.Router(); // Opret en ny router
 
+// Caching optimizes performance by storing frequent data responses.
+// For read-heavy operations like displaying orders, the backend could cache results, but this was not directly implemented.
 // Opretter en ny cache-instans
 const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 }); // stdTTL = cache tid i sekunder, checkperiod = opdateringstid
 
-// GET route for at hente produkterne fra databasen. Denne rute vil understøtte filtrering baseret på forespørgselsparametre.
-// GET route for fetching products with pagination
+
+// ******************************************************************* GET PRODUCTS
+// Pagination, Filtering and Sorting while fetching
+// GET route for fetching products with 
 router.get("/", async (Request, Response) => {
   try {
+    // extracts parameters from request.query (from the frontend) as part of the URL
+    // example --> /api/products?type=rings&page=2&limit=10 --> request query would be like {"type": "rings", "page": "2", "limit": "10"} and so on
+    // sort is the sortingorder
     const { type, collection, minPrice, maxPrice, page = 1, limit = 6, sort } = Request.query;
 
+    // filter object --> describes how u want to filter the data from the db
+      // sendes som argument til Product.find(filter)
     const filter: any = {};
-    // Bruger regex til case-insensitive match for type (f.eks. "Rings" vs "rings")
+    // hvis type parameteren findes --> Gør det til array altid, ellers konverter den
     if (type) {
-      const types = Array.isArray(type) ? type : [type]; // Gør `type` til en array, hvis det ikke allerede er det
+      const types = Array.isArray(type) ? type : [type]; 
       filter.type = {
-        // håndterer case sensitiveness
-        $in: types.map((t) => new RegExp(`^${String(t)}$`, "i")), // Explicitly cast `t` to a string
+        // opretter et mognodb filter for type ($in), som tillader flere værdier:
+        //  "type": {"$in": [/^rings$/i, /^necklaces$/i]
+        // matcher værdier case-insensitive ved hjælp af regexp men virker ikke
+        $in: types.map((t) => new RegExp(`^${String(t)}$`, "i")), 
       };
     }
         if (collection) {
       filter.productCollection = { $in: Array.isArray(collection) ? collection : [collection] };
     }
+    // tilføjer minimum og maksismumspris til filter.price
+    // $gte --> større end eller lig med, $lte --> mindre end
     if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice as string) };
     if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice as string) };
 
+    //************** */ sortering af prisen
+    // opretter et objekt til at specificere sorteringsrækkefølge: -1 sorter faldende (høj til lav), 1 sorter stigende
+    // example: URL /api/products?sort=priceHighToLow
+    // sorting would then be --> {"price": -1}
     const sortOptions: any = {};
     if (sort === "priceHighToLow") sortOptions.price = -1;
     else if (sort === "priceLowToHigh") sortOptions.price = 1;
 
+
+    //************* */ pagination
+    // beregner hvor mange resultater der skal sprignes over for den aktuelle side
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+    // query til mongoDB
+    // filtrerer produkterne baseret på filter
+    // sorterer resultaterne baseret på sortoptions
+    // springer skip produkter over og henter kun limit antal
     const products = await Product.find(filter)
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit as string));
 
+    // finder det samlede antal produtker der matcher filter
     const totalProducts = await Product.countDocuments(filter);
 
+    // totalpages --> beregner det totalae antal sider
+    // eksempelvis hvis der er 30 produkter og limit = 6 = 5
+      // respons ville være et json objekt med "products": [produkter for denne side], "totalproducts":30 osv.. current page er den aktuelle side der vises
     const result = {
       products,
       totalProducts,
@@ -60,7 +90,7 @@ router.get("/", async (Request, Response) => {
 });
 
 
-// DELETE
+// ***************************************************************************************************************** DELETE PRODUCTS
 // By adding any to both req and res, TypeScript is no longer enforcing strict type checks, which is why the error disappears. This approach bypasses TypeScript's type validation but is not recommended for production code because it sacrifices the type safety TypeScript offers.
 router.delete('/:id', async (req: any, res: any) => {
   try {
@@ -94,7 +124,7 @@ router.delete('/:id', async (req: any, res: any) => {
 
 
 
-
+// ***************************************************************************************************************** ADD PRODUCTS
 // POST /api/products - Add one or multiple products
 router.post('/', async (req, res) => {
   try {
@@ -119,7 +149,7 @@ router.post('/', async (req, res) => {
 
 
 
-// PUT
+// ***************************************************************************************************************** UPDATE PRODUCTS
 // PUT /api/products/:id - Update a product by its ID
 router.put('/:id', async (Request, Response) => {
   try {
@@ -152,7 +182,7 @@ router.put('/:id', async (Request, Response) => {
   }
 });
 
-
+// ******************************************************************************************************* GET COLLECTIONS
 // New route to fetch all collections independently from the products
 router.get('/collections', async (req, res) => {
   try {
@@ -169,6 +199,7 @@ router.get('/collections', async (req, res) => {
 });
 
 
+// ******************************************************************************************************* GET PRODUCT BY ID
 // GET /products/:id - Fetch single product by ID
 router.get('/:id', async (Request, Response) => {
   try {

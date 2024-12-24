@@ -1,9 +1,14 @@
+// mongoose to define a schema for mongodb
 import mongoose from "mongoose";
 
+// defiens a schema for the Order collection
 const orderSchema = new mongoose.Schema({
+  // links each order to a specific user (foreign key ref to User)
+  // order can't be created wtihout a user ID
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   items: [
     {
+      // references the Product model to fetch product details
       productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
       size: { type: String, required: true },
       quantity: { type: Number, required: true },
@@ -18,17 +23,22 @@ const orderSchema = new mongoose.Schema({
   },
   deliveryMethod: {
     type: String,
-    enum: ["home", "parcel-shop"], // Restrict to valid options
+    enum: ["home", "parcel-shop"], // Restrict delivery method to "home" or parcel-shop
     required: true,
   },
+  // unique order numer generated during order creation
   orderNumber: { type: String, required: true },
-  paymentIntentId: { type: String, required: true }, // Stripe Payment Intent ID
+  // Stripe Payment Intent ID, for tracking payments
+  paymentIntentId: { type: String, required: true }, 
+  // paymentStatus is default set to pending
   paymentStatus: { type: String, default: "Pending" },
+  // trakcs the order status trhough various stages
   status: {
     type: String,
     enum: ["In Progress", "Completed", "Return", "Return Initiated"], // Updated order status options
     default: "In Progress", // Default status for a new order
   },
+  // return logic
   returnId: {
     type: String, // Unique identifier for tracking the return process
     default: null,
