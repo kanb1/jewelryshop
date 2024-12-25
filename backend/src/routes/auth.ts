@@ -143,7 +143,7 @@ router.post("/login", async (req: Request, res: Response) => {
     // generate a token --> creates a JSON Web Token with userId and role
       // signs the token using a secret JWT secret and sets it to expire in 1 hour
     const token = jwt.sign(
-      { userId: user._id, role: user.role }, // Payload containing the userId and role from the authenticated user
+      { userId: user._id, username: user.username, role: user.role }, // Payload containing the userId and role from the authenticated user
       process.env.JWT_SECRET, // Environment variable for the secret, used to sign the token. to ensure the token can't be tampered with
       // expiration instead of session management
       { expiresIn: "1h" }

@@ -16,6 +16,11 @@ if (!JWT_SECRET) {
 
 require("dotenv").config();
 
+// Extending the Request interface locally
+interface AuthenticatedRequest extends Request {
+  user?: JwtPayload & { userId: string; username: string; role?: string };
+}
+
 
 // ********************************************************************************************** Middleware for authenticating JWT
 
@@ -23,14 +28,15 @@ require("dotenv").config();
   // if valid --> allows the request to proceed
 
 // next --> a function to pass control to the next middleware or route handler (middleware job is finished, ex validating a JWT token) (express)
-const authenticateJWT = (req: Request, res: Response, next: NextFunction): void => {
+const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   // Reads the authorization header
   // Removes the "Bearer" prefix to get the raw token
   const token = req.header('Authorization')?.replace('Bearer ', '');
-  console.log('Token received:', token);
+  console.log("Token received in middleware:", token);
 
   // if token is missing --> respons with 401 unauthorized
   if (!token) {
+    console.error("No token provided in the request.");
     res.status(401).json({ error: 'Unauthorized: No token provided' });
     return;
   }
@@ -44,7 +50,7 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction): void 
       // callback --> Invoked with errors during verification
       // if it's invalid or expired, or if decoded is undefined
       if (err || !decoded) {
-        console.log('Token decoding failed:', err);
+        console.log("Token verification failed:", err);
         res.status(403).json({ error: 'Forbidden: Invalid token' });
         return;
       }
@@ -57,8 +63,15 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction): void 
       // Attaches the decoded payload (e.g., userId and role) to req.user.
       // Extends the req object with custom properties (user) for subsequent middlewares or route handlers.
       if (typeof decoded === 'object' && decoded !== null) {
-        (req as Request & { user?: JwtPayload }).user = decoded;
+        req.user = {
+          userId: decoded.userId, // Assuming this exists in your JWT payload
+          username: decoded.username, // Assuming this exists in your JWT payload
+          role: decoded.role, // Optional
+        };
       }
+
+      console.log("Request user data attached to req.user:", req.user);
+
 
       // If the token is valid and req.user is populated, control passes to the next middleware or route handler.
       next();
@@ -71,7 +84,6 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction): void 
 
 // Restricts access to admin-only routes.
 
-// 
 export const adminMiddleware = (
   req: Request & { user?: JwtPayload },
   res: Response,

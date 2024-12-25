@@ -4,6 +4,10 @@ import Product from '../models/Products'; // Importer din produktmodel
 import mongoose from 'mongoose';
 import { isValidObjectId } from "mongoose";
 import NodeCache from 'node-cache';
+import Comment from '../models/Comment';
+import authenticateJWT from '../routes/authMiddleware';
+
+
 
 
 
@@ -16,6 +20,9 @@ const router = express.Router(); // Opret en ny router
 // Opretter en ny cache-instans
 const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 }); // stdTTL = cache tid i sekunder, checkperiod = opdateringstid
 
+interface AuthenticatedRequest extends Request {
+  user?: { userId: string; username: string; role?: string };
+}
 
 // ******************************************************************* GET PRODUCTS
 // Pagination, Filtering and Sorting while fetching
@@ -227,9 +234,91 @@ router.get('/:id', async (Request, Response) => {
 });
 
 
+// *************************************************************COMMENTS*************************************************************
 
 
 
+// ********************************************************************** GET COMMENTS TO EACH PRODUCT
+router.get('/:id/comments', async (req, res) => {
+  try {
+    const comments = await Comment.find({ productId: req.params.id }).sort({ createdAt: -1 });
+    res.status(200).json(comments);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch comments', details: err });
+  }
+});
+
+
+
+// ********************************************************************** ADD A COMMENT
+router.post("/:id/comments", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+  console.log("Request user data from JWT:", req.user); // Log user-data fra middleware
+  console.log("Request body content:", req.body); // Log dataen, der bliver sendt fra frontend
+
+
+  try {
+    const { content } = req.body;
+    const { userId, username } = req.user || {}; // Tjek at req.user findes
+
+    if (!userId || !username) {
+      console.error("Missing userId or username in req.user:", req.user); // Log manglende user-data
+      res.status(403).json({ error: "Unauthorized: Missing user data" });
+      return;
+    }
+
+    const newComment = new Comment({
+      productId: req.params.id,
+      userId,
+      username,
+      content,
+    });
+    console.log("Data to be saved in Comment model:", newComment); // Log dataen, før den gemmes
+
+
+    const savedComment = await newComment.save();
+    console.log("Saved comment:", savedComment); // Log det gemte kommentarobjekt
+    res.status(201).json(savedComment);
+  } catch (err) {
+    console.error("Error adding comment:", err); // Log fejl ved tilføjelse af kommentar
+    res.status(500).json({ error: "Failed to add comment", details: err });
+  }
+});
+
+
+// ********************************************************************** DELETE YOUR COMMENT
+// Assuming you're using express and your authenticateJWT middleware is properly set
+router.delete("/:id/comments/:commentId", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.user?.userId; // This should be set by your authenticateJWT middleware
+    const userRole = req.user?.role; // Assuming you're storing the role in the JWT
+
+    if (!userId) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+
+    // Find the comment and ensure the logged-in user is the owner
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      res.status(404).json({ error: "Comment not found" });
+      return;
+    }
+
+    // Allow admins to delete any comment
+    if (comment.userId.toString() !== userId && userRole !== 'admin') {
+      res.status(403).json({ error: "You can only delete your own comments or you need admin access" });
+      return;
+    }
+
+    // If user is allowed, delete the comment
+    await Comment.findByIdAndDelete(commentId);
+    res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting comment:", err);
+    res.status(500).json({ error: "Failed to delete comment" });
+  }
+});
 
 
 
