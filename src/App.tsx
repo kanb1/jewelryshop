@@ -13,6 +13,7 @@ import Cartpage from './pages/Cartpage';
 import ProductDetailPage from './pages/Productdetailpage';
 import Checkoutpage from './pages/Checkoutpage';
 import Adminpage from './pages/Adminpage';
+import RecyclePage from './pages/Recyclepage';
 import About from './pages/Aboutpage';
 import theme from './theme';
 
@@ -56,6 +57,7 @@ const App: React.FC = () => {
            {/*I set up as a nested route, with subpaths handled by the AdminPage component.  */}
           <Route path="/admin/*" element={<Adminpage />} />
           <Route path="/about" element={<About />} />
+          <Route path="/recycle" element={<RecyclePage />} />
         </Routes>
         <Footer />
       </Router>

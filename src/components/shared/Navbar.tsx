@@ -80,6 +80,10 @@ const Navbar: React.FC = () => {
               {category}
             </Link>
           ))}
+            <Link to="/recycle" style={{ fontWeight: "medium", textDecoration: "none" }}>
+              Recycle 
+            </Link>
+
         </HStack>
 
         {/* LOGIN/LOGOUT AND CART */}

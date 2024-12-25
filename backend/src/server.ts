@@ -23,6 +23,7 @@ import favouritesRouter from "./routes/user/favorites";
 import adminProducts from "./routes/admin/adminProducts";
 import adminOrders from "./routes/admin/adminOrders";
 import userRouter from "./routes/user/userinfo";
+import recycleRoutes from './routes/recycle';  
 
 
 dotenv.config(); // Load environment variables from .env file
@@ -109,6 +110,8 @@ app.use("/api/favourites", favouritesRouter);
 app.use("/api/admin/products", adminProducts);
 app.use("/api/admin/orders", adminOrders);
 app.use('/api/users', userRouter);
+app.use('/api/recycle', recycleRoutes);
+
 
 
 
