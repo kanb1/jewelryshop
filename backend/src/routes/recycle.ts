@@ -1,9 +1,10 @@
-import express, { Router, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import RecycledProduct from '../models/RecycledProduct';
-import authenticateJWT from '../routes/authMiddleware';
-import mongoose from 'mongoose';
+import authenticateJWT, { adminMiddleware } from '../routes/authMiddleware';
 import multer from 'multer';
 import path from 'path';
+import transporter from '../helpers/emailConfig'; // Import the transporter from emailConfig
+
 
 
 
@@ -68,60 +69,54 @@ router.post("/", authenticateJWT, upload.single("image"), async (Request: any, R
   
 
 // ************************************************************************ UPDATE OTHER DETAILS
-//   router.put("/:id", authenticateJWT, upload.single("image"), async (Request: any, Response) => {
-//     try {
-//       // Get the product ID and user ID
-//       const { id } = Request.params;
-//       const userId = Request.user?.userId;
-  
-//       // Check if user is authenticated
-//       if (!userId) {
-//          Response.status(401).json({ error: "Unauthorized" });
-//          return;
-//       }
-  
-//       // Fetch the existing product
-//       const product = await RecycledProduct.findById(id);
-//       if (!product) {
-//          Response.status(404).json({ error: "Product not found" });
-//         return;
 
-//       }
-  
-//       // If a new image is uploaded, delete the old one
-//       if (Request.file) {
-//         // Delete old image if it exists
-//         if (product.images) {
-//           const oldImagePath = path.join(__dirname, '../../../../public', product.images);
-//           try {
-//             fs.unlinkSync(oldImagePath);  // Delete the old image from the filesystem
-//             console.log(`Deleted old image: ${oldImagePath}`);
-//           } catch (err) {
-//             console.error("Failed to delete old image:", err);
-//           }
-//         }
-  
-//         // Update the product with the new image path
-//         product.images = `recycleproduct_images/${Request.file.filename}`;
-//       }
-  
-//       // Update other product details (like name, price, etc.)
-//       product.name = Request.body.name || product.name;
-//       product.price = Request.body.price || product.price;
-//       product.size = Request.body.size || product.size;
-//       product.visibility = Request.body.visibility || product.visibility;
-//       product.type = Request.body.type || product.type;
-  
-//       // Save the updated product
-//       await product.save();
-  
-//       Response.status(200).json({ message: "Product updated successfully!", product });
-//     } catch (error) {
-//       console.error("Error updating product:", error);
-//       Response.status(500).json({ error: "Failed to update product" });
-//     }
-//   });
-  
+router.put("/:id", authenticateJWT, async (Request: any, Response) => {
+  try {
+    const { id } = Request.params;
+    const userId = Request.user?.userId;
+    const { visibility } = Request.body; // 'public' or 'private'
+
+
+    // Check if user is authenticated
+    if (!userId) {
+      Response.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    // Fetch the existing product
+    const product = await RecycledProduct.findById(id);
+    if (!product) {
+      Response.status(404).json({ error: "Product not found" });
+      return;
+    }
+
+    // Ensure the product belongs to the authenticated user
+    if (product.userId.toString() !== userId) {
+       Response.status(403).json({ error: "You can only edit your own products" });
+       return;
+    }
+
+    // Update the product's visibility
+    product.visibility = visibility;
+    await product.save();
+
+    // Update other product details (like name, price, size, visibility, and type)
+    product.name = Request.body.name || product.name;
+    product.price = Request.body.price || product.price;
+    product.size = Request.body.size || product.size;
+    product.visibility = Request.body.visibility || product.visibility;
+    product.type = Request.body.type || product.type;
+
+    // Save the updated product
+    await product.save();
+
+    Response.status(200).json({ message: "Product updated successfully!", product });
+  } catch (error) {
+    console.error("Error updating product:", error);
+    Response.status(500).json({ error: "Failed to update product" });
+  }
+});
+
 
 //*************************************************** GET ALL RECYCLED PRODUCTS, THAT IS VIEWABLE FOR ALL
 router.get("/", async (req: Request, res: Response) => {
@@ -154,15 +149,16 @@ router.get("/user", authenticateJWT, async (req: AuthenticatedRequest, Response)
 
 
 //*************************************************** EDIT VISIBILITY OF A RECYCLED PRODUCT (PUBLIC/PRIVATE)
-
+// Endpoint to update the visibility of a recycled product (public/private)
 router.put("/:productId/visibility", authenticateJWT, async (req: AuthenticatedRequest, Response) => {
   const { productId } = req.params;
-  const { visibility } = req.body; // either 'public' or 'private'
+  const { visibility } = req.body;
   const userId = req.user?.userId;
 
   if (!userId) {
      Response.status(401).json({ error: "Unauthorized" });
-     return;
+    return;
+
   }
 
   try {
@@ -173,55 +169,65 @@ router.put("/:productId/visibility", authenticateJWT, async (req: AuthenticatedR
 
     }
 
+    // Ensure the product belongs to the authenticated user
     if (product.userId.toString() !== userId) {
        Response.status(403).json({ error: "You can only edit your own products" });
-      return;
-
+       return;
     }
 
+    // Update the product's visibility
     product.visibility = visibility;
-    await product.save();
+    const updatedProduct = await product.save();
 
-    Response.status(200).json({ message: "Product visibility updated successfully" });
+    Response.status(200).json({ message: "Product visibility updated successfully", product: updatedProduct });
   } catch (error) {
     console.error("Error updating product visibility:", error);
     Response.status(500).json({ error: "Failed to update product visibility" });
   }
 });
 
+
+
+
 //*************************************************** DELETE A RECYCLED PRODUCT (ADMIN & PRODUCTOWNER)
-router.delete("/:productId", authenticateJWT, async (req: AuthenticatedRequest, Response) => {
-    const { productId } = req.params;
-    const userId = req.user?.userId;
-    const userRole = req.user?.role;
-  
-    if (!userId) {
-       Response.status(401).json({ error: "Unauthorized" });
+router.delete("/:productId", authenticateJWT, adminMiddleware, async (Request, Response) => {
+  const { productId } = Request.params;
+
+  try {
+    // Find the product and populate the userId field to get the associated user document
+    const deletedProduct = await RecycledProduct.findByIdAndDelete(productId).populate('userId');
+
+    if (!deletedProduct) {
+      Response.status(404).json({ error: "Product not found" });
       return;
-
     }
-  
-    try {
-      const product = await RecycledProduct.findById(productId);
-      if (!product) {
-         Response.status(404).json({ error: "Product not found" });
-        return;
 
+    // Check if the populated product has a userId field, and access the user's email
+    const ownerEmail = deletedProduct.userId.email; // Now, userId is populated with the full User document
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender address from environment variable
+      to: ownerEmail, // Recipient address
+      subject: "Your product has been banned", 
+      text: `Dear user,\n\nYour product "${deletedProduct.name}" has been banned from the platform due to policy violations.\n\nRegards,\nJewelryShop Team`,
+    };
+
+    // Send email notification to the product owner
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log("Email sent: " + info.response);
       }
-  
-      // Check if the logged-in user is the owner or an admin
-      if (product.userId.toString() !== userId && userRole !== "admin") {
-         Response.status(403).json({ error: "You can only delete your own products or if you're an admin" });
-         return;
-      }
-  
-      await RecycledProduct.findByIdAndDelete(productId); 
-  
-      Response.status(200).json({ message: "Product deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      Response.status(500).json({ error: "Failed to delete product" });
-    }
-  });
+    });
+
+    // Send success response
+    Response.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    Response.status(500).json({ error: "Failed to delete product" });
+  }
+});
+
 
 export default router;

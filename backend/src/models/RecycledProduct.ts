@@ -1,5 +1,7 @@
 // models/RecycledProduct.ts
 import { Schema, model, Document } from 'mongoose';
+import { IUser } from './User'; // Import IUser interface from the User model
+
 
 const recycledProductSchema = new Schema(
   {
@@ -19,8 +21,9 @@ interface RecycledProduct extends Document {
   name: string;
   price: number;
   size: string;
-  visibility: string; // public/private visibility
-  userId: string;
+  visibility: "public" | "private";
+  type: string; // Make sure to include the 'type' field
+  userId: IUser; // Populated userId, which is of type IUser
   images: string[];
   isRecycled: boolean;
 }

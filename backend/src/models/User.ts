@@ -5,7 +5,7 @@ import mongoose, { Schema, Document } from "mongoose";
 // IUser --> a TS interface that extends the Document type
   // fields like username, email, password are required
   // feilds with ? are optional
-interface IUser extends Document {
+export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
