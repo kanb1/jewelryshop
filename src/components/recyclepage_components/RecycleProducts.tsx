@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, SimpleGrid, Text, Button } from '@chakra-ui/react';
+import { Box, SimpleGrid} from '@chakra-ui/react';
 import { BACKEND_URL } from '../../config';
 import RecycleProductCard from '../shared/RecycledProductcard'; // Import your RecycleProductCard component
 

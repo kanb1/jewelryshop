@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Image, Text, Button, Flex, VStack } from "@chakra-ui/react";
+import { Box, Image, Text, Button, VStack } from "@chakra-ui/react";
 
 // Define the expected structure of the decoded token
 interface DecodedToken {

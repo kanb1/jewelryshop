@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Heading, VStack, Button } from '@chakra-ui/react';
+import { Box, Heading, VStack} from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import RecycleProducts from '../components/recyclepage_components/RecycleProducts';
 import ButtonComponent from '../components/shared/ButtonComponent';
