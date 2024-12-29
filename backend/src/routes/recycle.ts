@@ -3,6 +3,7 @@ import RecycledProduct from '../models/RecycledProduct';
 import authenticateJWT, { adminMiddleware } from '../routes/authMiddleware';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';  
 import transporter from '../helpers/emailConfig'; // Import the transporter from emailConfig
 
 
@@ -202,12 +203,31 @@ router.delete("/:productId", authenticateJWT, adminMiddleware, async (Request, R
       return;
     }
 
+    if (deletedProduct.images && deletedProduct.images.length > 0) {
+      deletedProduct.images.forEach((image: string) => {
+        // Ensure the correct path relative to the 'public' folder
+        const imagePath = path.join(__dirname, '../../../public', image);
+    
+        // Log the image path for debugging
+        console.log(`Checking if image exists at: ${imagePath}`);
+    
+        if (fs.existsSync(imagePath)) {
+          // Delete the image file
+          fs.unlinkSync(imagePath);
+          console.log(`Deleted image: ${image}`);
+        } else {
+          console.log(`Image not found: ${imagePath}`);
+        }
+      });
+    }
+
+
     // Check if the populated product has a userId field, and access the user's email
-    const ownerEmail = deletedProduct.userId.email; // Now, userId is populated with the full User document
+    const ownerEmail = deletedProduct.userId.email;  // Now, userId is populated with the full User document
 
     const mailOptions = {
-      from: process.env.EMAIL_USER, // Sender address from environment variable
-      to: ownerEmail, // Recipient address
+      from: process.env.EMAIL_USER,  // Sender address from environment variable
+      to: ownerEmail,  // Recipient address
       subject: "Your product has been banned", 
       text: `Dear user,\n\nYour product "${deletedProduct.name}" has been banned from the platform due to policy violations.\n\nRegards,\nJewelryShop Team`,
     };
