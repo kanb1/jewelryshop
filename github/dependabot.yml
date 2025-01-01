@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Dependency updates for npm i rodmappen
+  - package-ecosystem: "npm"
+    directory: "/"           # Rodmappen
+    schedule:
+      interval: "daily"      # Daglig tjekning
+    ignore:
+      - dependency-name: "some-package"
+        versions: ["1.x"]
+  # Dependency updates for npm i backend-mappen
+  - package-ecosystem: "npm"
+    directory: "/backend"    # Backend-mappen
+    schedule:
+      interval: "daily"      # Daglig tjekning
+    ignore:
+      - dependency-name: "another-package"
+        versions: ["2.x"]
+
