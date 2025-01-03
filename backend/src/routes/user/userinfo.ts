@@ -45,63 +45,56 @@ router.get("/me", authenticateJWT, async (Request: AuthenticatedRequest, Respons
 });
 
 //************************************************************** */ UPDATE USER INFO
-
 router.put("/:id", authenticateJWT, async (Request: AuthenticatedRequest, Response) => {
-  const nameRegex = /^[A-Za-z]+$/;
   const { name, surname } = Request.body;
-
 
   try {
     const userId = Request.user?.userId;
-    const updates = Request.body;
 
-    // VALIDATION
+    // Ensure the user is authorized to update this profile
     if (!userId || userId !== Request.params.id) {
       Response.status(403).json({ message: "Unauthorized to update this user" });
       return;
     }
 
+    // Validate inputs
     if (!name || !surname) {
       Response.status(400).json({ message: "First name and last name cannot be empty." });
       return;
     }
 
-    if (name.length < 2 || !nameRegex.test(name)) {
-      Response.status(400).json({ message: "First name must be at least 2 characters and cannot contain numbers or special characters." });
+    // Sanitize inputs to remove unwanted characters
+    const sanitizedName = name.replace(/[^a-zA-Z\s]/g, "").trim();
+    const sanitizedSurname = surname.replace(/[^a-zA-Z\s]/g, "").trim();
+
+    if (sanitizedName.length < 2) {
+      Response.status(400).json({ message: "First name must be at least 2 characters." });
+      return;
+    }
+    if (sanitizedSurname.length < 2) {
+      Response.status(400).json({ message: "Last name must be at least 2 characters." });
       return;
     }
 
-    if (surname.length < 2 || !nameRegex.test(surname)) {
-      Response.status(400).json({ message: "Last name must be at least 2 characters and cannot contain numbers or special characters." });
-      return;
-    }
-
-
-
-    if (!userId || userId !== Request.params.id) {
-       Response.status(403).json({ message: "Unauthorized to update this user" });
-       return;
-    }
-
-    // Updates the user's information in the database and validates the input.
-    const user = await User.findByIdAndUpdate(userId, updates, {
-      new: true,
-      runValidators: true,
-    }).select("-password");
+    // Update user's information in the database
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { name: sanitizedName, surname: sanitizedSurname },
+      { new: true, runValidators: true }
+    ).select("-password");
 
     if (!user) {
-       Response.status(404).json({ message: "User not found" });
-       return;
+      Response.status(404).json({ message: "User not found" });
+      return;
     }
 
-     Response.status(200).json({ message: "User updated successfully", user });
-     return;
+    Response.status(200).json({ message: "User updated successfully", user });
   } catch (err) {
     console.error("Error updating user:", err);
-     Response.status(500).json({ message: "Server error" });
-     return;
+    Response.status(500).json({ message: "Server error" });
   }
 });
+
 
 
 
@@ -113,6 +106,12 @@ router.put("/:id/change-password", authenticateJWT, async (req: AuthenticatedReq
   const { currentPassword, newPassword } = req.body;
 
   try {
+    // Validate inputs to ensure they are not empty
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ message: "Current password and new password are required." });
+      return;
+    }
+
     // Ensure the user is only updating their own password
     if (!userId || userId !== req.params.id) {
       res.status(403).json({ message: "Unauthorized to change password for this user" });
@@ -126,23 +125,35 @@ router.put("/:id/change-password", authenticateJWT, async (req: AuthenticatedReq
       return;
     }
 
-    // Verifies that the provided current password matches the hashed password stored in the database.
+    // Validate current password matches the stored hashed password
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       res.status(400).json({ message: "Current password is incorrect" });
       return;
     }
 
-    // Hash and update the new password
+    // Validate new password strength (OWASP recommended rules)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      res.status(400).json({
+        message:
+          "New password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one number, and one special character.",
+      });
+      return;
+    }
+
+    // Hash and securely update the new password
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
+    // Send confirmation response
     res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
     console.error("Error updating password:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 
 

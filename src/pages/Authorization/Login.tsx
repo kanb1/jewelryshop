@@ -12,30 +12,26 @@ import {
   Link,
 } from "@chakra-ui/react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuthContext } from "../../context/AuthContext"; 
+import { useAuthContext } from "../../context/AuthContext";
 import ButtonComponent from "../../components/shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
 const Login: React.FC = () => {
-  // Using the username and password to store the input values
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(""); // General form error
-  const [usernameError, setUsernameError] = useState(""); // Field-specific error
-  const [passwordError, setPasswordError] = useState(""); // Field-specific error
+  const [error, setError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Access AuthContext to update login state
   const { setIsLoggedIn, setUserRole } = useAuthContext();
 
-  // Access the redirected message
   const message = location.state?.message;
 
   useEffect(() => {
     if (message) {
-      // Show a toast message if redirected with a state message
       toast({
         title: message,
         status: "error",
@@ -45,27 +41,39 @@ const Login: React.FC = () => {
     }
   }, [message, toast]);
 
+  // Validates the input fields
+  const validateInput = (): boolean => {
+    let isValid = true;
 
-
-
-// ************************************************' HANDLE LOGIN SUBMISSION
-  const handleSubmit = async () => {
-
-    // Ensures that both fields are filled before sending the request
     if (!username) {
       setUsernameError("Username is required.");
-      return;
+      isValid = false;
+    } else if (!/^[a-zA-Z0-9]+$/.test(username)) {
+      setUsernameError("Username can only contain letters and numbers.");
+      isValid = false;
+    } else {
+      setUsernameError("");
     }
+
     if (!password) {
       setPasswordError("Password is required.");
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters long.");
+      isValid = false;
+    } else {
+      setPasswordError("");
+    }
+
+    return isValid;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateInput()) {
       return;
     }
 
-    setUsernameError("");
-    setPasswordError("");
-
     try {
-      // Sending the request, with the username and password
       const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
@@ -74,25 +82,20 @@ const Login: React.FC = () => {
         body: JSON.stringify({ username, password }),
       });
 
-      // the response
       const data = await response.json();
-      //  if fails --> login failed
+
       if (!response.ok) {
-        throw new Error(data.message || "Login failed.");
+        throw new Error("Invalid username or password."); // General error
       }
 
-      // Save the JWT token to localStorage
       localStorage.setItem("jwt", data.token);
 
-      // Manually decode JWT to extract the user's role
       const tokenPayload = JSON.parse(atob(data.token.split(".")[1]));
       const userRole = tokenPayload.role;
 
-      // Update the global AuthContext - authentication context
-      setIsLoggedIn(true); // Update login state
-      setUserRole(userRole); // Update role in context
+      setIsLoggedIn(true);
+      setUserRole(userRole);
 
-      // Show success toast
       toast({
         title: "Login successful",
         status: "success",
@@ -100,12 +103,7 @@ const Login: React.FC = () => {
         isClosable: true,
       });
 
-      // Redirect based on role
-      if (userRole === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/profile");
-      }
+      navigate(userRole === "admin" ? "/admin" : "/profile");
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     }
@@ -127,7 +125,6 @@ const Login: React.FC = () => {
             Login
           </Text>
 
-          {/* Display Redirect Message */}
           {message && (
             <Alert status="error" borderRadius="md">
               <AlertIcon />
@@ -135,7 +132,6 @@ const Login: React.FC = () => {
             </Alert>
           )}
 
-          {/* Username Field */}
           <FormControl isInvalid={!!usernameError}>
             <Input
               placeholder="Username"
@@ -145,7 +141,6 @@ const Login: React.FC = () => {
             <FormErrorMessage>{usernameError}</FormErrorMessage>
           </FormControl>
 
-          {/* Password Field */}
           <FormControl isInvalid={!!passwordError}>
             <Input
               placeholder="Password"
@@ -156,10 +151,8 @@ const Login: React.FC = () => {
             <FormErrorMessage>{passwordError}</FormErrorMessage>
           </FormControl>
 
-          {/* General Form Error */}
           {error && <Text color="red.500">{error}</Text>}
 
-          {/* Submit Button */}
           <ButtonComponent
             variant="primaryBlackBtn"
             text={"Login"}
@@ -167,7 +160,6 @@ const Login: React.FC = () => {
             styleOverride={{ width: "100%" }}
           />
 
-          {/* Forgot Password Link */}
           <Text fontSize="sm" color="blue.500" mt={2}>
             <Link onClick={() => navigate("/forgot-password")}>
               Forgot Password?

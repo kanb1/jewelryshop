@@ -24,6 +24,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import ResetPassword from './components/authorization_components/ResetPassword';
 import ForgotPassword from './components/authorization_components/ForgotPassword';
 import ManageRecycleProducts from './components/recyclepage_components/ManageRecycleProducts';
+import CSRFTestForm from './components/CSRFTestForm';
+import VerifyEmail from './pages/Authorization/VerifyEmail';
 
 // Initialize Stripe with my public key
 // const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -60,6 +62,10 @@ const App: React.FC = () => {
           <Route path="/about" element={<About />} />
           <Route path="/recycle" element={<RecyclePage />} />
           <Route path="/user-manage-recycleproducts" element={<ManageRecycleProducts />} />
+          {/* CSRF testform */}
+          <Route path="/csrf-test" element={<CSRFTestForm />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+
         </Routes>
         <Footer />
       </Router>

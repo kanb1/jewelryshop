@@ -42,13 +42,15 @@ const Signup: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    const passwordRegex =
+      /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,64}$/;
     const nameRegex = /^[A-Za-z]+$/;
-
+  
     if (!username || !email || !password || !confirmPassword || !name || !surname) {
       setError("Please fill in all fields.");
       return;
     }
-
+  
     if (!validateEmail(email)) {
       setError("Invalid email format. Please enter a valid email.");
       return;
@@ -58,40 +60,24 @@ const Signup: React.FC = () => {
       setError("Passwords do not match.");
       return;
     }
-
-    if (!nameRegex.test(name)) {
-      setError("First name cannot contain numbers or special characters.");
+  
+    if (!passwordRegex.test(password)) {
+      setError(
+        "Password must be 8-64 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character."
+      );
       return;
     }
   
-    if (!nameRegex.test(surname)) {
-      setError("Last name cannot contain numbers or special characters.");
-      return;
-    }
-
-    if (name.length < 2) {
-      setError("First name must be at least 2 characters.");
+    if (!nameRegex.test(name) || !nameRegex.test(surname)) {
+      setError("Name and surname can only contain letters.");
       return;
     }
   
-    if (surname.length < 2) {
-      setError("Last name must be at least 2 characters.");
+    if (name.length < 2 || surname.length < 2) {
+      setError("Name and surname must be at least 2 characters long.");
       return;
     }
   
-    console.log({
-      username,
-      email,
-      name,
-      surname,
-      password,
-    }); // Log data being sent to the backend
-  
-    setError(""); // Clear error if validation passes
-    setLoading(true);
-   // ************************* VALIDATION AND HANDLESUBMIT
-
-    // sends POST request to /api/auth/users with the user data
     try {
       const response = await axios.post(`${BACKEND_URL}/api/auth/users`, {
         username,
@@ -101,27 +87,22 @@ const Signup: React.FC = () => {
         password,
       });
   
-      console.log("Backend response:", response.data); 
-      
-      //If success --> send a toast with successful message
       toast({
-        title: "Signup successful",
-        description: "Your account has been created.",
+        title: "You are almost there!",
+        description: "A verification email has been sent to your email address.",
         status: "success",
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       });
   
       setLoading(false);
       navigate("/login");
-
-      //If failure --> logs the error and sets the error state with the backends error message
     } catch (err: any) {
-      console.error("Error during signup:", err); 
+      setError(err.response?.data?.error || "Failed to create account.");
       setLoading(false);
-      setError(err.response?.data?.error || "Failed to create account."); 
     }
   };
+  
   
 
   return (

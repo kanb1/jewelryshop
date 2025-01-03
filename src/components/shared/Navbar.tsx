@@ -23,6 +23,7 @@ import { AiOutlineShoppingCart } from "react-icons/ai";
 import { useCart } from "../../context/CartContext";
 import { HamburgerIcon } from "@chakra-ui/icons";
 
+
 const Navbar: React.FC = () => {
   // consumes those state tracking from authcontext
   // ensures that the navbar dynamically updates its UI based on the authentication state
@@ -31,15 +32,49 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  // **************SECURITY
   // remove the JWT from localstorage
   // authcontext's states are reset (isloggedin and userrole)
-  const handleLogout = () => {
-    localStorage.removeItem("jwt");
-    setIsLoggedIn(false);
-    setUserRole(null);
-    setCartCount(0);
-    navigate("/login");
+  const handleLogout = async () => {
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      console.warn("No token found. Logging out locally.");
+      setIsLoggedIn(false);
+      setUserRole(null);
+      navigate("/login");
+      return;
+    }
+  
+    try {
+      const response = await fetch("http://localhost:5001/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (response.ok) {
+        localStorage.removeItem("jwt");
+        setIsLoggedIn(false);
+        setUserRole(null);
+        navigate("/login");
+      } else {
+        console.error("Logout failed:", await response.json());
+        localStorage.removeItem("jwt"); // Clear token anyway
+        setIsLoggedIn(false);
+        setUserRole(null);
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+      localStorage.removeItem("jwt"); // Clear token in case of error
+      setIsLoggedIn(false);
+      setUserRole(null);
+      navigate("/login");
+    }
   };
+  
 
   const categories = ["Rings", "Necklaces", "Bracelets", "Earrings"];
 

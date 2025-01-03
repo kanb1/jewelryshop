@@ -132,56 +132,66 @@ const UserInfo: React.FC = () => {
 
   const handleInfoUpdate = async () => {
     const nameRegex = /^[A-Za-z]+$/;
-
-  if (!user.name || !user.surname) {
-    toast({
-      title: "Validation Error",
-      description: "First name and last name cannot be empty.",
-      status: "error",
-      duration: 3000,
-      isClosable: true,
-    });
-    return;
-  }
-
-  if (user.name.length < 2 || !nameRegex.test(user.name)) {
-    toast({
-      title: "Validation Error",
-      description: "First name must be at least 2 characters and cannot contain numbers or special characters.",
-      status: "error",
-      duration: 3000,
-      isClosable: true,
-    });
-    return;
-  }
-
-  if (user.surname.length < 2 || !nameRegex.test(user.surname)) {
-    toast({
-      title: "Validation Error",
-      description: "Last name must be at least 2 characters and cannot contain numbers or special characters.",
-      status: "error",
-      duration: 3000,
-      isClosable: true,
-    });
-    return;
-  }
   
-  // setting the updating info
+    // Frontend validering for navn og efternavn
+    if (!user.name || !user.surname) {
+      toast({
+        title: "Validation Error",
+        description: "First name and last name cannot be empty.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+  
+    if (!nameRegex.test(user.name)) {
+      toast({
+        title: "Validation Error",
+        description: "First name can only contain letters.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+  
+    if (!nameRegex.test(user.surname)) {
+      toast({
+        title: "Validation Error",
+        description: "Last name can only contain letters.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+  
+    if (user.name.trim().length < 2 || user.surname.trim().length < 2) {
+      toast({
+        title: "Validation Error",
+        description: "First and last names must be at least 2 characters long.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+  
     try {
       setUpdatingInfo(true);
       const token = localStorage.getItem("jwt");
       if (!token) throw new Error("Unauthorized");
-
+  
       const response = await fetch(`${BACKEND_URL}/api/users/${user._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        // updated user is sent to req body
         body: JSON.stringify(user),
       });
-
+  
       if (response.ok) {
         toast({
           title: "Profile Updated",
@@ -206,52 +216,91 @@ const UserInfo: React.FC = () => {
       setUpdatingInfo(false);
     }
   };
+  
 // ***********************************HANDLE PASSWORD CHANGE
-  const handlePasswordChange = async () => {
-    // Sends a PUT request to change the user's password. The current and new passwords are sent in the request body.
-    try {
-      setChangingPassword(true);
-      const token = localStorage.getItem("jwt");
-      if (!token) throw new Error("Unauthorized");
+const handlePasswordChange = async () => {
+  // Regex for adgangskodestyrke i henhold til OWASP
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
 
-      const response = await fetch(`${BACKEND_URL}/api/users/${user._id}/change-password`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
+  // Validering af nuværende adgangskode
+  if (!currentPassword) {
+    toast({
+      title: "Validation Error",
+      description: "Current password is required.",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+    return;
+  }
 
-      if (response.ok) {
-        toast({
-          title: "Password Updated",
-          description: "Your password has been updated successfully.",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+  // Validering af ny adgangskode
+  if (!newPassword) {
+    toast({
+      title: "Validation Error",
+      description: "New password is required.",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+    return;
+  }
 
-        // Clear password fields
-        setCurrentPassword("");
-        setNewPassword("");
-      } else {
-        const data = await response.json();
-        throw new Error(data.message || "Failed to update password");
-      }
-    } catch (error: any) {
-      console.error("Error updating password:", error);
+  if (!passwordRegex.test(newPassword)) {
+    toast({
+      title: "Validation Error",
+      description:
+        "New password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+    return;
+  }
+
+  try {
+    setChangingPassword(true);
+    const token = localStorage.getItem("jwt");
+    if (!token) throw new Error("Unauthorized");
+
+    const response = await fetch(`${BACKEND_URL}/api/users/${user._id}/change-password`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    if (response.ok) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update password.",
-        status: "error",
+        title: "Password Updated",
+        description: "Your password has been updated successfully.",
+        status: "success",
         duration: 3000,
         isClosable: true,
       });
-    } finally {
-      setChangingPassword(false);
+
+      // Ryd adgangskodefelter
+      setCurrentPassword("");
+      setNewPassword("");
+    } else {
+      const data = await response.json();
+      throw new Error(data.message || "Failed to update password");
     }
-  };
+  } catch (error: any) {
+    console.error("Error updating password:", error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to update password.",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+  } finally {
+    setChangingPassword(false);
+  }
+};
 
   if (loading) {
     return (

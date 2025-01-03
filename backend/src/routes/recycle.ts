@@ -5,6 +5,8 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';  
 import transporter from '../helpers/emailConfig'; // Import the transporter from emailConfig
+import { body, validationResult } from "express-validator";
+
 
 
 
@@ -37,37 +39,83 @@ const storage = multer.diskStorage({
 
 
 //*************************************************** ADD A NEW RECYCLED PRODUCT
-// Route to create a new recycled product with image upload
-router.post("/", authenticateJWT, upload.single("image"), async (Request: any, Response) => {
-    const { name, price, size, visibility, type } = Request.body;
-    const userId = Request.user?.userId; // Ensure the user is authenticated
+router.post(
+  "/",
+  authenticateJWT,
+  upload.single("image"), // Use the multer middleware
+  [
+    body("name")
+      .isString()
+      .trim()
+      .isLength({ min: 3, max: 50 })
+      .withMessage("Name must be between 3 and 50 characters."),
+    body("price")
+      .isFloat({ gt: 0, lt: 10000 })
+      .withMessage("Price must be a positive value and below 10,000."),
+    body("size")
+      .isIn(["Onesize", "6", "7", "8", "9", "10"])
+      .withMessage("Invalid size value."),
+    body("visibility")
+      .isIn(["public", "private"])
+      .withMessage("Invalid visibility value."),
+    body("type")
+      .isIn(["ring", "necklace", "bracelet", "earring"])
+      .withMessage("Invalid type of jewelry."),
+  ],
+  async (req: AuthenticatedRequest, res: Response) => {
+    console.log("Request received for creating a new recycled product.");
+    console.log("Request Body:", req.body);
+    console.log("Uploaded File:", req.file);
 
-  if (!userId) {
-     Response.status(401).json({ error: "Unauthorized" });
-     return;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.error("Validation errors:", errors.array());
+       res.status(400).json({ errors: errors.array() });
+       return;
+    }
+
+    const { name, price, size, visibility, type } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      console.error("User ID missing in request.");
+       res.status(401).json({ error: "Unauthorized" });
+      return;
+
+    }
+
+    if (!req.file) {
+      console.error("File upload failed. No file found in request.");
+       res.status(400).json({ error: "File upload failed. Please upload a valid file." });
+      return;
+
+    }
+
+    try {
+      const imagePath = `recycleproduct_images/${req.file.filename}`;
+
+      const newProduct = new RecycledProduct({
+        name,
+        price,
+        size,
+        visibility,
+        type,
+        userId,
+        images: imagePath,
+      });
+
+      await newProduct.save();
+      console.log("New product saved successfully:", newProduct);
+
+      res.status(201).json({ message: "Product added successfully!", product: newProduct });
+    } catch (error) {
+      console.error("Error creating product:", error);
+      res.status(500).json({ error: "Failed to create product. Internal server error." });
+    }
   }
+);
 
-  try {
-    const imagePath = Request.file ? `recycleproduct_images/${Request.file.filename}` : null;
 
-    const newProduct = new RecycledProduct({
-      name,
-      price,
-      size,
-      visibility,
-      type,
-      userId,
-      images: imagePath, // Store the image path
-    });
-
-    await newProduct.save();
-    Response.status(201).json({ message: "Product added successfully!", product: newProduct });
-  } catch (error) {
-    console.error("Error creating product:", error);
-    Response.status(500).json({ error: "Failed to create product" });
-  }
-  });
-  
 
 // ************************************************************************ UPDATE OTHER DETAILS
 

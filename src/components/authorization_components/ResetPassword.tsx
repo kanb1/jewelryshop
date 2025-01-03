@@ -18,6 +18,7 @@ const ResetPassword: React.FC = () => {
   const [error, setError] = useState(""); // General form error
   const [newPasswordError, setNewPasswordError] = useState(""); // Field-specific error
   const [confirmPasswordError, setConfirmPasswordError] = useState(""); // Field-specific error
+  const [passwordStrength, setPasswordStrength] = useState(""); // Feedback on password strength
   const toast = useToast();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -26,10 +27,35 @@ const ResetPassword: React.FC = () => {
   const token = searchParams.get("token");
   const userId = searchParams.get("id");
 
+  // Function to check password strength
+  const validatePassword = (password: string) => {
+    const requirements = [
+      { regex: /.{8,}/, message: "At least 8 characters" },
+      { regex: /[A-Z]/, message: "At least one uppercase letter" },
+      { regex: /[a-z]/, message: "At least one lowercase letter" },
+      { regex: /\d/, message: "At least one number" },
+      { regex: /[@$!%*?&#]/, message: "At least one special character" },
+    ];
+
+    const unmetRequirements = requirements.filter((req) => !req.regex.test(password));
+    return unmetRequirements.length
+      ? unmetRequirements.map((req) => req.message).join(", ")
+      : "Strong password!";
+  };
+
+  const handleNewPasswordChange = (password: string) => {
+    setNewPassword(password);
+    setPasswordStrength(validatePassword(password)); // Update password strength feedback
+  };
+
   const handleSubmit = async () => {
     // Validation
     if (!newPassword) {
       setNewPasswordError("New password is required.");
+      return;
+    }
+    if (passwordStrength !== "Strong password!") {
+      setNewPasswordError("Password does not meet the security requirements.");
       return;
     }
     if (!confirmPassword) {
@@ -85,7 +111,7 @@ const ResetPassword: React.FC = () => {
       borderWidth="1px"
       borderRadius="md"
       boxShadow="lg"
-      minH="100vh" 
+      minH="100vh"
     >
       <VStack spacing={4}>
         <Text fontSize="2xl" fontWeight="bold">
@@ -98,9 +124,12 @@ const ResetPassword: React.FC = () => {
             placeholder="New Password"
             type="password"
             value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
+            onChange={(e) => handleNewPasswordChange(e.target.value)}
           />
           <FormErrorMessage>{newPasswordError}</FormErrorMessage>
+          <Text mt={1} fontSize="sm" color={passwordStrength === "Strong password!" ? "green.500" : "red.500"}>
+            {passwordStrength}
+          </Text>
         </FormControl>
 
         {/* Confirm Password Field */}
@@ -117,7 +146,6 @@ const ResetPassword: React.FC = () => {
         {/* General Form Error */}
         {error && <Text color="red.500">{error}</Text>}
 
-        {/* Submit Button */}
         {/* Submit Button */}
         <ButtonComponent
           text="Reset Password"

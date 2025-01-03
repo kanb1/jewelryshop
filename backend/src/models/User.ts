@@ -12,6 +12,8 @@ export interface IUser extends Document {
   name: string;
   surname: string;
   role: string; // e.g., 'user' or 'admin'
+  isVerified: boolean; // New field to track email verification
+  verificationToken?: string; // New field for email verification token
   isActive: boolean; // To track if the user is active - Not really used.. wanted the admin to manage accounts and no email confirmation
   resetPasswordToken?: string; // Token for password reset
   resetPasswordExpires?: Date; // Expiry date for the reset token
@@ -24,7 +26,15 @@ export interface IUser extends Document {
 const UserSchema: Schema = new Schema({
   // unique --> ensures that no two users have the same username in the db
   username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    // OWASP anbefaler match med regex for grundlæggende emailvalidering
+    match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  },
+  isVerified: { type: Boolean, default: false }, // Nyttigt til email-verifikation
+  verificationToken: { type: String }, // Token til verifikation af email
   password: { type: String, required: true },
   name: { type: String, required: true },
   surname: { type: String, required: true },

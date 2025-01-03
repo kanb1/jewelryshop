@@ -1,11 +1,20 @@
 import dotenv from 'dotenv'; // Import dotenv for environment variables
 import express from 'express'; // Import express
 import mongoose from 'mongoose'; // Import mongoose
+// **************SECURITY
 import cors from 'cors'; // Import cors
-import fs from 'fs'; // For at læse certifikatfilerne
-import https from 'https'; // For at oprette en HTTPS-server
+import helmet from 'helmet';
+// For at læse certifikatfilerne
+import fs from 'fs'; 
+// For at oprette en HTTPS-server
+import https from 'https'; 
 import { Request, Response, NextFunction } from 'express';
-import path from "path"; // Import the 'path' module if not already imported
+import path from "path"; 
+import rateLimit from "express-rate-limit"; // Import rate limiting middleware
+
+
+
+
 
 
 
@@ -24,12 +33,60 @@ import adminProducts from "./routes/admin/adminProducts";
 import adminOrders from "./routes/admin/adminOrders";
 import userRouter from "./routes/user/userinfo";
 import recycleRoutes from './routes/recycle';  
+import csrfRoutes from "./routes/csrf";
+
 
 
 dotenv.config(); // Load environment variables from .env file
 
 
 const app = express();
+
+
+
+
+
+
+
+// **********************************//SECURITY MIDDLEWARES//******************************************
+// **********************************//SECURITY MIDDLEWARES//******************************************
+// **********************************//SECURITY MIDDLEWARES//******************************************
+// **********************************//SECURITY MIDDLEWARES//******************************************
+
+
+
+
+
+//************************************************************************ */ Helmet for security headers
+
+// Helmet is a middleware for express that adds HTTP headers to improve the security of my app
+// Helps against attacks like XSS, Clickjacking..
+
+// CSP (Content Security Policy) controls which resources my app is allowed to load
+// Prevents XSS and data injection --> No injected JS into my site for example. Only trusted scripts can run.
+app.use(
+  helmet({
+    frameguard: { action: 'sameorigin' }, // Prevents clickjacking
+    hidePoweredBy: true,                 // Hides "X-Powered-By: Express"
+    hsts: { maxAge: 31536000 },          // Enforce HTTPS for 1 year
+    noSniff: true,                       // Prevents MIME type sniffing
+    contentSecurityPolicy: {             // Your current CSP config
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "https://js.stripe.com", "https://api.geoapify.com"],
+        styleSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https://storage.googleapis.com", "http://localhost:5001"],
+        connectSrc: ["'self'", "https://jewelryshop-8q3d.onrender.com"],
+        fontSrc: ["'self'", "https://fonts.googleapis.com"],
+      },
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Fix for image blocking. In my CSP I'm restricting which domains the cross can happen between
+    referrerPolicy: { policy: "no-referrer" },             // Reducer referrer-lækager
+  })
+);
+
+
+
 const PORT = process.env.PORT || 5001;
 const mongoUri = process.env.MONGO_URI || '';
 // checks if the current environment is proudction by the NODE_ENV
@@ -41,21 +98,55 @@ const frontendURL = isProduction
 
 
 
+//************************************************************************ */ CORS configuration
 
-// Middleware
 // Ensureing the backend has CORS enabled to accept requests from my frontend's origin (http://localhost:5173).
+
 app.use(
   cors({
     origin: [
       "http://localhost:5173", // Development frontend
       "https://jewelryshop-two.vercel.app", // Deployed frontend
     ],
-    credentials: true, // Allow cookies and authentication headers
+    credentials: true, // Allowing the cookies and authentication headers
   })
 );
-app.use(express.json()); // Parse JSON from requests
+app.use(express.json()); 
 
 
+// ********************************** Rate Limiting **********************************
+
+// Rate limiting middleware to limit requests from a single IP
+const globalRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes window
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later.", // Error message
+  headers: true, // Include rate limit info in response headers
+});
+
+// Apply the rate limiter globally to all routes
+app.use(globalRateLimiter);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// **********************************//GENERAL STUFF//****************************************************
+// **********************************//GENERAL STUFF//****************************************************
+// **********************************//GENERAL STUFF//****************************************************
+// **********************************//GENERAL STUFF//****************************************************
+// **********************************//GENERAL STUFF//****************************************************
 
 
 
@@ -69,13 +160,12 @@ console.log(
 
 
 
-
-
-// MongoDB connection
+//************************************************************************ */ MongoDB connection
 mongoose
   .connect(mongoUri)
   .then(() => console.log('Connected to MongoDB'))
   .catch((err: unknown) => console.error('Failed to connect to MongoDB', err));
+  
 
 // ***************************************HTTPS*********************************************************
 // HTTPS-server opsætning
@@ -111,6 +201,8 @@ app.use("/api/admin/products", adminProducts);
 app.use("/api/admin/orders", adminOrders);
 app.use('/api/users', userRouter);
 app.use('/api/recycle', recycleRoutes);
+app.use("/api", csrfRoutes);
+
 
 
 
@@ -131,6 +223,8 @@ app.listen(PORT, () => {
     } mode on ${isProduction ? "https" : "http"}://localhost:${PORT}`
   );
 });
+
+
 // ***********************PRODUCTION MODE*****************************Create HTTPS server instead of HTTP server
 // https.createServer(credentials, app).listen(PORT, () => {
 //   console.log(`Server running on https://localhost:${PORT}`);

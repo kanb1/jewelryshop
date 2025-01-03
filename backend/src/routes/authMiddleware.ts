@@ -3,6 +3,10 @@ import { Request, Response, NextFunction } from 'express';
 // VerifyErrors --> Errors that can occur when verifying a JWT
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 import dotenv from 'dotenv';
+// **************SECURITY
+// Opretter en session model for at spore aktive sessioner
+import Session from "../models/Session"; 
+
 
 dotenv.config();
 
@@ -21,6 +25,10 @@ interface AuthenticatedRequest extends Request {
   user?: JwtPayload & { userId: string; username: string; role?: string };
 }
 
+interface CustomJwtPayload extends JwtPayload {
+  jti?: string; // Tilføjer jti som en valgfri egenskab
+}
+
 
 // ********************************************************************************************** Middleware for authenticating JWT
 
@@ -28,7 +36,7 @@ interface AuthenticatedRequest extends Request {
   // if valid --> allows the request to proceed
 
 // next --> a function to pass control to the next middleware or route handler (middleware job is finished, ex validating a JWT token) (express)
-const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+const authenticateJWT = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   // Reads the authorization header
   // Removes the "Bearer" prefix to get the raw token
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -41,44 +49,58 @@ const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: NextFun
     return;
   }
 
-  // verifies the JWT token's validity using the secret key
-  //  decoded --> The decoded payload if the token is valid.
-  jwt.verify(
-    token,
-    JWT_SECRET,
-    (err: VerifyErrors | null, decoded: JwtPayload | string | undefined) => {
-      // callback --> Invoked with errors during verification
-      // if it's invalid or expired, or if decoded is undefined
-      if (err || !decoded) {
-        console.log("Token verification failed:", err);
-        res.status(403).json({ error: 'Forbidden: Invalid token' });
-        return;
-      }
+  try {
+    // Verifies the JWT token's validity using the secret key
+    //  decoded --> The decoded payload if the token is valid.
+    const decoded = await new Promise<CustomJwtPayload | undefined>((resolve, reject) => {
+      jwt.verify(token, JWT_SECRET, (err, payload) => {
+        // Callback --> Invoked with errors during verification
+        // If it's invalid or expired, or if decoded is undefined
+        if (err || !payload) {
+          console.log("Token verification failed:", err);
+          reject(err || new Error("Invalid token"));
+        } else {
+          resolve(payload as CustomJwtPayload);
+        }
+      });
+    });
 
-      console.log('Decoded token:', decoded);
-      // If valid --> Attach the decoded payload (eg userId or role) to the request object, so we can use it in route handlers
+    console.log("Decoded token:", decoded);
 
-      // Ensures the decoded payload is an object (e.g., { userId: '12345', role: 'user' }).
-      // Decoded JWTs can sometimes be strings, so this check ensures it's safe to use.
-      // Attaches the decoded payload (e.g., userId and role) to req.user.
-      // Extends the req object with custom properties (user) for subsequent middlewares or route handlers.
-      if (typeof decoded === 'object' && decoded !== null) {
-        req.user = {
-          userId: decoded.userId, // Assuming this exists in your JWT payload
-          username: decoded.username, // Assuming this exists in your JWT payload
-          role: decoded.role, // Optional
-        };
-      }
-
-      console.log("Request user data attached to req.user:", req.user);
-
-
-      // If the token is valid and req.user is populated, control passes to the next middleware or route handler.
-      next();
+    // If valid --> Attach the decoded payload (e.g., userId, role, jti) to the request object, so we can use it in route handlers
+    if (!decoded || !decoded.jti) {
+      console.error("JTI missing in the token payload.");
+      res.status(403).json({ error: "Session is invalid or expired" });
+      return;
     }
-  );
-};
 
+    // **************SECURITY
+    // Extends the req object with custom properties (user) for subsequent middlewares or route handlers
+    req.user = {
+      userId: decoded.userId,
+      username: decoded.username,
+      role: decoded.role,
+      jti: decoded.jti, 
+    };
+
+    console.log("Request user data attached to req.user:", req.user);
+
+    // **************SECURITY
+    // Check JTI in the database to ensure the session is valid
+    const sessionExists = await Session.findOne({ jti: decoded.jti });
+    if (!sessionExists) {
+      console.error("Session does not exist in the database.");
+      res.status(403).json({ error: "Session is invalid or expired" });
+      return;
+    }
+
+    // If the token is valid and req.user is populated, control passes to the next middleware or route handler
+    next();
+  } catch (error) {
+    console.error("Error during token validation:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 // ********************************************************************************************** Middleware for admin authorization
 

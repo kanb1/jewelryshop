@@ -9,153 +9,270 @@ import jwt from "jsonwebtoken";
 import authenticateJWT from "./authMiddleware";
 // my mongoose model for interacting with the user colelction in the db
 import User from "../models/User";
+// **************SECURITY
+import { v4 as uuidv4 } from "uuid"; // Import UUID
+import Session from "../models/Session";
+import rateLimit from 'express-rate-limit';
+import crypto from "crypto"; // Til at generere verifikationstoken
+import { body, validationResult } from "express-validator"; // Import express-validator
+import transporter from "../helpers/emailConfig"; // Email transporter for sending verification emails
+import dotenv from 'dotenv';
+import { FRONTEND_URL } from "../config";
+
+
+
+
+
+
+dotenv.config();
 
 // creates a new instance of an express router to define API endpoints
 const router = express.Router();
 require("dotenv").config();
 
 
-// We receive the form data via a POST request to /api/auth/users
-// ******************************************************************************************* REGISTER
-// POST /users - Register a new user
-router.post("/users", async (Request, Response) => {
-  // extracts form data, destructs the form data sent in the request body
-  const { username, email, password, name, surname } = Request.body;
-  const nameRegex = /^[A-Za-z]+$/;
 
-
-  // *************VALIDERING
-  // Validate input
-  if (!username || !email || !password || !name || !surname) {
-    Response.status(400).json({ error: "All fields are required. Please complete the form." });
-    return;
-
-  }
-
-  if (username.length < 3) {
-    Response.status(400).json({ error: "Username must be at least 3 characters long." });
-     return;
-
-  }
-
-  if (!nameRegex.test(name)) {
-     Response
-      .status(400)
-      .json({ error: "First name cannot contain numbers or special characters." });
-      return;
-  }
-
-  if (!nameRegex.test(surname)) {
-     Response
-      .status(400)
-      .json({ error: "Last name cannot contain numbers or special characters." });
-      return;
-  }
-
-  if (name.length < 2) {
-    Response.status(400).json({ error: "First name must be at least 2 characters long." });
-    return;
-
-  }
-
-  if (surname.length < 2) {
-    Response.status(400).json({ error: "Last name must be at least 2 characters long." });
-     return;
-
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    Response.status(400).json({ error: "Invalid email format. Please enter a valid email." });
-     return;
-
-  }
-
-  if (password.length < 6) {
-    Response.status(400).json({ error: "Password must be at least 6 characters long." });
-    return;
-
-  }
-
-  // Check for existing username or email
-  //searches the database for an existing user with the same username or email
-  // returns error if dubplicate is found
-  // $or is a query operator used to match documents that satisfy at least one of multiple conditions.
-  const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-  if (existingUser) {
-    const errorMessage =
-      existingUser.username === username
-        ? "Username already exists. Please choose a different one."
-        : "Email already exists. Please use a different email.";
-        Response.status(400).json({ error: errorMessage });
-     return;
-  }
-  
-
-  // Hash password using bcrypt with a salt round of 10
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // DB interaction --> Save the new user to the database (default role is 'user')
-  // this creates a new user document with the hashed pass and saves it to the db
-  const newUser = new User({
-    username,
-    email,
-    password: hashedPassword,
-    name,
-    surname,
-    role: "user", // Default role
-  });
-  await newUser.save(); //.save, mongoose method 
-
-  Response.status(201).json({ message: "User created successfully" });
+// ********************Security
+// Rate limiter for signup (Register)
+const registerRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutter
+  max: 5, // Max 5 requests pr. IP
+  message: "Too many signup attempts from this IP, please try again later.",
 });
+
+// Rate limiter for login
+const loginRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutter
+  max: 10, // Max 10 requests pr. IP
+  message: "Too many login attempts from this IP, please try again later.",
+});
+
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in the environment. Check your .env file.");
+}
+
+// ******************************************************************************************* REGISTER
+
+// We receive the form data via a POST request to /api/auth/users
+router.post(
+  "/users",
+  [
+    // VALIDATION RULES
+    body("username")
+      .isLength({ min: 3 })
+      .withMessage("Username must be at least 3 characters long.")
+      .isAlphanumeric()
+      .withMessage("Username can only contain letters and numbers."),
+    body("email").isEmail().withMessage("Invalid email format."),
+    body("password")
+      .isLength({ min: 8, max: 64 })
+      .withMessage("Password must be between 8 and 64 characters long.")
+      .matches(/[A-Z]/)
+      .withMessage("Password must include at least one uppercase letter.")
+      .matches(/[a-z]/)
+      .withMessage("Password must include at least one lowercase letter.")
+      .matches(/[0-9]/)
+      .withMessage("Password must include at least one number.")
+      .matches(/[!@#$%^&*(),.?":{}|<>]/)
+      .withMessage("Password must include at least one special character."),
+    body("name")
+      .matches(/^[A-Za-z]+$/)
+      .withMessage("First name can only contain letters.")
+      .isLength({ min: 2 })
+      .withMessage("First name must be at least 2 characters."),
+    body("surname")
+      .matches(/^[A-Za-z]+$/)
+      .withMessage("Last name can only contain letters.")
+      .isLength({ min: 2 })
+      .withMessage("Last name must be at least 2 characters."),
+  ],
+  registerRateLimiter,
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+       res.status(400).json({ errors: errors.array() });
+       return;
+    }
+
+    const { username, email, password, name, surname } = req.body;
+
+    try {
+      const existingUser = await User.findOne({
+        $or: [{ username }, { email }],
+      });
+      if (existingUser) {
+         res.status(400).json({
+          error:
+            existingUser.username === username
+              ? "Username already exists. Please choose a different one."
+              : "Email already exists. Please use a different email.",
+        });
+        return;
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const verificationToken = crypto.randomBytes(32).toString("hex");
+
+      const newUser = new User({
+        username,
+        email,
+        password: hashedPassword,
+        name,
+        surname,
+        role: "user",
+        isVerified: false,
+        verificationToken,
+      });
+
+      await newUser.save();
+
+      const verificationLink = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+      await transporter.sendMail({
+        to: email,
+        subject: "Verify your email address",
+        html: `<p>Hi ${name},</p>
+               <p>Click <a href="${verificationLink}">here</a> to verify your email address.</p>
+               <p>If you didn't request this, please ignore this email.</p>`,
+      });
+
+      res.status(201).json({
+        message: "User registered successfully. A verification email has been sent.",
+      });
+    } catch (err) {
+      console.error("Error during signup:", err);
+      res.status(500).json({ error: "Server error. Please try again later." });
+    }
+  }
+);
+
+
+// ******************************************************************************************************** EMAIL VERIFICATION
+router.get("/verify-email", async (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    res.status(400).json({ error: "Token is required." });
+    return;
+  }
+
+  try {
+    const user = await User.findOne({ verificationToken: token });
+
+    // Handle already verified users
+    if (!user && await User.findOne({ isVerified: true })) {
+      res.status(200).json({ message: "Your email is already verified!" });
+      return;
+    }
+
+    if (!user) {
+      res.status(400).json({ error: "Invalid or expired token." });
+      return;
+    }
+
+    // Verify user and remove the token
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Email verified successfully!" });
+  } catch (err) {
+    console.error("Error verifying email:", err);
+    res.status(500).json({ error: "Server error. Please try again later." });
+  }
+});
+
+
+
+
+
 
 
 
 // ******************************************************************************************************** LOGIN
 
-// POST /auth/login - User login
-router.post("/login", async (req: Request, res: Response) => {
-  // extracting the login data (username pass)
-  const { username, password } = req.body;
-
-  try {
-    // Find the user by username (looking up in the database User.findOne)
-    const user = await User.findOne({ username });
-    if (!user) {
-      res.status(400).json({ error: "Invalid username or password" });
+router.post(
+  "/login",
+  loginRateLimiter, // Begræns antallet af loginforsøg
+  [
+    // Inputvalidering
+    body("username")
+      .notEmpty()
+      .withMessage("Username is required.")
+      .isAlphanumeric()
+      .withMessage("Username can only contain letters and numbers."),
+    body("password")
+      .notEmpty()
+      .withMessage("Password is required.")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long."),
+  ],
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() }); // Returner valideringsfejl
       return;
     }
 
-    // Compare provided password (plain text) with the stored hash pass stored in the database
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      res.status(400).json({ error: "Invalid username or password" });
-      return;
-    }
+    const { username, password } = req.body;
 
-    // checks if the environment variable is defined
-    // prevents the app from running without a secret key
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is not defined in the environment. Check your .env file.");
-    }
-    
-    // generate a token --> creates a JSON Web Token with userId and role
-      // signs the token using a secret JWT secret and sets it to expire in 1 hour
-    const token = jwt.sign(
-      { userId: user._id, username: user.username, role: user.role }, // Payload containing the userId and role from the authenticated user
-      process.env.JWT_SECRET, // Environment variable for the secret, used to sign the token. to ensure the token can't be tampered with
-      // expiration instead of session management
-      { expiresIn: "1h" }
-    );
-    console.log("JWT_SECRET is:", process.env.JWT_SECRET);
+    try {
+      // Find brugeren i databasen
+      const user = await User.findOne({ username });
+      if (!user) {
+        res.status(400).json({ error: "Invalid username or password." });
+        return;
+      }
 
-    res.status(200).json({ message: "Login successful", token });
-  } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).json({ error: "Internal server error" });
+      // Tjek om brugeren er verificeret
+      if (!user.isVerified) {
+        res.status(403).json({ error: "Your account is not verified. Please verify your email." });
+        return;
+      }
+
+      // Sammenlign adgangskoder
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) {
+        res.status(400).json({ error: "Invalid username or password." });
+        return;
+      }
+
+      // Kontrollér, at JWT_SECRET er sat
+      if (!process.env.JWT_SECRET) {
+        throw new Error("JWT_SECRET is not defined in the environment. Check your .env file.");
+      }
+
+      // Generér JTI (Unique Token ID) for sessions
+      const jti = uuidv4();
+
+      // Gem JTI i databasen
+      await Session.create({ jti });
+
+      // Opret JWT-token
+      const token = jwt.sign(
+        {
+          userId: user._id,
+          username: user.username,
+          role: user.role,
+          jti,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "24h" }
+      );
+
+      res.status(200).json({
+        message: "Login successful.",
+        token,
+      });
+    } catch (error) {
+      console.error("Error during login:", error);
+      res.status(500).json({ error: "Internal server error." });
+    }
   }
-});
+);
+
 
 
 
@@ -193,6 +310,43 @@ router.get("/profile", authenticateJWT, async (req: Request & { user?: any }, re
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "An error occurred while fetching user data" });
+  }
+});
+
+// ****************************************************************************** LOGOUT 
+// *******************************SECURITY*************************************** 
+
+router.post("/logout", async (req: Request, res: Response) => {
+  const token = req.header("Authorization")?.replace("Bearer ", "");
+  console.log("Logout request received with token:", token);
+
+  if (!token) {
+     res.status(400).json({ error: "No token provided for logout." });
+     return;
+  }
+
+  try {
+    // Verify the token to decode it (even if it's expired)
+    const decoded = jwt.verify(token, JWT_SECRET, { ignoreExpiration: true }) as jwt.JwtPayload;
+
+
+    console.log("Decoded token during logout:", decoded);
+
+    // Check if the session exists (only if JTI is included in your tokens)
+    const sessionDeleted = await Session.deleteOne({ jti: decoded.jti });
+    if (sessionDeleted.deletedCount === 0) {
+      console.warn("No active session found for the provided token.");
+    }
+
+    // Regardless of whether the session was found, consider the logout successful
+     res.status(200).json({ message: "Logout successful. Session invalidated." });
+     return;
+  } catch (err) {
+    console.error("Error during logout:", err);
+
+    // If the token is invalid or expired, still return success
+     res.status(200).json({ message: "Logout successful. Token was invalid or expired." });
+     return;
   }
 });
 

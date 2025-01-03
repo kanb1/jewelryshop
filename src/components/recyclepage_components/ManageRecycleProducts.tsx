@@ -5,6 +5,7 @@ import RecycleProductCard from '../shared/RecycledProductcard'; // Assuming it's
 import { useNavigate } from 'react-router-dom';
 import ButtonComponent from '../shared/ButtonComponent';
 
+
 const ManageRecycleProducts: React.FC = () => {
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -21,6 +22,88 @@ const ManageRecycleProducts: React.FC = () => {
 
   const handleBack = () => {
     navigate("/recycle"); // Navigate to the Recycle products page
+  };
+
+  // validate the products
+  const validateProduct = () => {
+    if (!newProduct.name || newProduct.name.trim().length < 3) {
+      toast({
+        title: "Validation Error",
+        description: "Product name must be at least 3 characters long.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return false;
+    }
+
+    if (!newProduct.price || isNaN(Number(newProduct.price)) || Number(newProduct.price) <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Price must be a positive number.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return false;
+    }
+
+    if (!["Onesize", "6", "7", "8", "9", "10"].includes(newProduct.size)) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a valid size: Onesize or sizes from 6-10.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return false;
+    }
+
+    if (!["ring", "necklace", "bracelet", "earring"].includes(newProduct.type)) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a valid type of jewelry.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return false;
+    }
+
+    if (!newProduct.images || newProduct.images.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please upload an image.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return false;
+    }
+
+    if (newProduct.images[0].size > 2 * 1024 * 1024) { // 2MB size limit
+      toast({
+        title: "Validation Error",
+        description: "Image size must be less than 2MB.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return false;
+    }
+
+    if (!["image/jpeg", "image/png", "image/jpg"].includes(newProduct.images[0].type)) {
+      toast({
+        title: "Validation Error",
+        description: "Only JPEG, PNG, and JPG images are allowed.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return false;
+    }
+
+    return true;
   };
 
   // Fetch user's products for listing
@@ -51,6 +134,11 @@ const ManageRecycleProducts: React.FC = () => {
   }, []); // Fetch products on initial render
 
   const handleAddProduct = async () => {
+
+    if (!validateProduct()) {
+      return; // Stop if validation fails
+    } 
+
     const formData = new FormData();
     formData.append('name', newProduct.name);
     formData.append('price', newProduct.price);
@@ -59,10 +147,15 @@ const ManageRecycleProducts: React.FC = () => {
     formData.append('type', newProduct.type);
 
     if (newProduct.images) {
-      Array.from(newProduct.images).forEach((file) => {
-        formData.append('image', file);
-      });
+      formData.append('image', newProduct.images[0]); // Only one image allowed
     }
+
+    
+    // Debugging: Log FormData
+  console.log("FormData fields and file:");
+  for (let pair of formData.entries()) {
+    console.log(pair[0], pair[1]); // Logger hvert felt i FormData
+  }
 
     try {
       const token = localStorage.getItem('jwt');
@@ -73,6 +166,9 @@ const ManageRecycleProducts: React.FC = () => {
         },
         body: formData,
       });
+
+      console.log("Response status:", response.status); // Logger HTTP-statuskoden
+      console.log("Response data:", await response.json()); // Logger svaret fra serveren
 
       if (!response.ok) {
         console.error('Failed to add product');
