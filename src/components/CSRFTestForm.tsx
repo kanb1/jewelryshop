@@ -37,7 +37,7 @@ const CSRFTestForm: React.FC = () => {
         { data: inputData }, // Data fra input
         {
           headers: {
-            "X-CSRF-Token": csrfToken || "", // Inkluder CSRF-token i header
+            "X-CSRF-Token": csrfToken || "", 
           },
           withCredentials: true,
         }

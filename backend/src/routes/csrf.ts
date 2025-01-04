@@ -13,9 +13,10 @@ router.get("/csrf-token", csrfProtection, (req, res) => {
   res.status(200).json({ csrfToken: req.csrfToken() });
 });
 
-// Beskyt en POST-route med CSRF
+// Beskytter en POST med CSRF
 router.post("/protected-route", csrfProtection, (req, res) => {
   res.status(200).json({ message: "CSRF token validated and request successful!" });
 });
 
 export default router;
+
