@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, VStack, Button, FormControl, FormLabel, Input, Select, Text, SimpleGrid, useToast, Flex} from '@chakra-ui/react';
 import { BACKEND_URL } from '../../config';
-import RecycleProductCard from '../shared/RecycledProductcard'; // Assuming it's in the same directory
+import RecycleProductCard from '../shared/RecycledProductcard'; 
 import { useNavigate } from 'react-router-dom';
 import ButtonComponent from '../shared/ButtonComponent';
 
@@ -18,10 +18,10 @@ const ManageRecycleProducts: React.FC = () => {
   const [userProducts, setUserProducts] = useState<any[]>([]);
   const toast = useToast();
 
-  const navigate = useNavigate(); // Initialize the useNavigate hook
+  const navigate = useNavigate(); 
 
   const handleBack = () => {
-    navigate("/recycle"); // Navigate to the Recycle products page
+    navigate("/recycle"); 
   };
 
   // validate the products

@@ -4,10 +4,9 @@ import authenticateJWT, { adminMiddleware } from '../routes/authMiddleware';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';  
-import transporter from '../helpers/emailConfig'; // Import the transporter from emailConfig
+import transporter from '../helpers/emailConfig'; 
 import { body, validationResult } from "express-validator";
-
-
+// *******SECURITY
 
 
 
@@ -255,9 +254,7 @@ router.delete("/:productId", authenticateJWT, adminMiddleware, async (Request, R
       deletedProduct.images.forEach((image: string) => {
         // Ensure the correct path relative to the 'public' folder
         const imagePath = path.join(__dirname, '../../../public', image);
-    
-        // Log the image path for debugging
-        console.log(`Checking if image exists at: ${imagePath}`);
+
     
         if (fs.existsSync(imagePath)) {
           // Delete the image file
@@ -271,11 +268,11 @@ router.delete("/:productId", authenticateJWT, adminMiddleware, async (Request, R
 
 
     // Check if the populated product has a userId field, and access the user's email
-    const ownerEmail = deletedProduct.userId.email;  // Now, userId is populated with the full User document
+    const ownerEmail = deletedProduct.userId.email; 
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,  // Sender address from environment variable
-      to: ownerEmail,  // Recipient address
+      from: process.env.EMAIL_USER,  
+      to: ownerEmail, 
       subject: "Your product has been banned", 
       text: `Dear user,\n\nYour product "${deletedProduct.name}" has been banned from the platform due to policy violations.\n\nRegards,\nJewelryShop Team`,
     };
@@ -289,7 +286,6 @@ router.delete("/:productId", authenticateJWT, adminMiddleware, async (Request, R
       }
     });
 
-    // Send success response
     Response.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
     console.error("Error deleting product:", error);

@@ -1,9 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+// **********SECURITY
+
+
 export interface IComment extends Document {
   productId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
-  username: string; // For at vise brugernavnet
+  username: string;
   content: string;
   createdAt: Date;
 }

@@ -10,12 +10,12 @@ import authenticateJWT from "./authMiddleware";
 // my mongoose model for interacting with the user colelction in the db
 import User from "../models/User";
 // **************SECURITY
-import { v4 as uuidv4 } from "uuid"; // Import UUID
+import { v4 as uuidv4 } from "uuid"; 
 import Session from "../models/Session";
 import rateLimit from 'express-rate-limit';
 import crypto from "crypto"; // Til at generere verifikationstoken
-import { body, validationResult } from "express-validator"; // Import express-validator
-import transporter from "../helpers/emailConfig"; // Email transporter for sending verification emails
+import { body, validationResult } from "express-validator"; 
+import transporter from "../helpers/emailConfig"; 
 import dotenv from 'dotenv';
 import { FRONTEND_URL } from "../config";
 
@@ -212,7 +212,7 @@ router.post(
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      res.status(400).json({ errors: errors.array() }); // Returner valideringsfejl
+      res.status(400).json({ errors: errors.array() }); 
       return;
     }
 

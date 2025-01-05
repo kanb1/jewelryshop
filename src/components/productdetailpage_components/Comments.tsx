@@ -13,6 +13,8 @@ import {
 import { DeleteIcon } from "@chakra-ui/icons";
 import { BACKEND_URL } from "../../config";
 
+// **********SECURITY
+
 interface Comment {
   _id: string;
   username: string;
@@ -47,7 +49,7 @@ const Comments: React.FC<CommentsProps> = ({ productId }) => {
           },
         });
         const userData = await response.json();
-        setLoggedInUser({ _id: userData.user?._id, role: userData.user?.role }); // Added role
+        setLoggedInUser({ _id: userData.user?._id, role: userData.user?.role }); 
 
       }
     };
@@ -124,8 +126,7 @@ const Comments: React.FC<CommentsProps> = ({ productId }) => {
           {/* Center Section: Comment Content */}
           <Box
             flex="1"
-            textAlign={{ base: "left", md: "center" }} // Align left on small screens
-            overflowWrap="break-word"
+            textAlign={{ base: "left", md: "center" }} 
             mb={{ base: 2, md: 0 }}
           >
             <Text fontSize="md" color="gray.700">

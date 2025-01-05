@@ -1,7 +1,8 @@
 import React from "react";
 import { Box, Image, Text, Button, VStack } from "@chakra-ui/react";
+// *********SECURITY
 
-// Define the expected structure of the decoded token
+
 interface DecodedToken {
   userId: string;
   role: string; // Add role to check if the user is admin

@@ -13,6 +13,10 @@ import {
 import ButtonComponent from "../shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
+  // ************SECURITY
+
+
+
 const UserInfo: React.FC = () => {
   // user's info from the backend
   const [user, setUser] = useState<any | null>(null);
