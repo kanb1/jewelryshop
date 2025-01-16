@@ -113,7 +113,7 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
 
     toast({
     title: "Parcel Shop Selected",
-    description: `You have selected ${shop.name} for delivery.`,
+    description: `You have selected ${shop.name.replace(/</g, "&lt;").replace(/>/g, "&gt;")}`, // escape html
     status: "success", // success, error, warning, or info
     duration: 5000, // Time in milliseconds
     isClosable: true, // Allow the user to close the toast
@@ -124,6 +124,11 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
   // ******************************** VALIDATIOn BEFORE SAVE AND PROCEED TO BILLING
   const saveAndPay = () => {
     // checks whether or not the deliveryinfo is complete before allowing the user to proceed
+
+    // Valider adressen først
+    if (!validateAddress()) {
+      return; // Hvis validation fejler, stop her
+    }
 
     // for homedelivery --> fill in all information
     // for parcelshop --> ensures a parcelshop is selected
@@ -145,6 +150,19 @@ const DeliveryInformation: React.FC<DeliveryInfoProps> = ({
     setCurrentStep("billing"); // Proceed to billing
   };
 
+
+  // ******************************** VALIDATING THE DELIVERY ADRESS INPUTFIELDS
+  const validateAddress = () => {
+    if (!deliveryInfo.address.trim()) {
+      alert("Address cannot be empty.");
+      return false;
+    }
+    if (!/^\d+$/.test(deliveryInfo.postalCode)) {
+      alert("Postal code must contain only numbers.");
+      return false;
+    }
+    return true;
+  };
 
 
   return (

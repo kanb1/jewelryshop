@@ -1,13 +1,37 @@
 import express, { Request, Response } from "express";
 // Used to make HTTP requests to the Geoapify API for geocoding and parcel shop data
 import axios from "axios";
+// ****Security
+import { query, validationResult } from 'express-validator';
+import rateLimit from 'express-rate-limit';
+
 
 // I can create endpoints
 // Allows for a RESTful design (uses HTTP methods to perform CRUD, (GET,POST,PUT,DELETE))
 // stateless --> each request is independent and carries all necessary information eg JWT tokens
 const router = express.Router();
+
 // Loads the API key from env vile
 const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY;
+
+// Opret en Axios-instans med timeout
+const axiosInstance = axios.create({
+    timeout: 5000, // Timeout for alle forespørgsler: 5 sekunder
+  });
+
+// Rate limiter for at forhindre misbrug af /parcel-shop endpoint ved gentagne foresprøgsler
+const parcelShopLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutter
+    max: 100, // Maksimalt 100 forespørgsler pr. IP
+    message: "Too many requests, please try again later.",
+  });
+
+// Brug rate-limiter på /parcel-shops ruten
+router.use("/parcel-shops", parcelShopLimiter);
+
+
+
+
 
 //******************* */ Defining the structure of a parcelshop object
 type ParcelShop = {
@@ -21,10 +45,37 @@ type ParcelShop = {
 };
 
 //******************* GET /api/delivery/parcel-shops
-router.get("/parcel-shops", async (req: Request, res: Response) => {
+router.get("/parcel-shops", [
+    // Validering og sanitizing
+    query("address")
+        .optional()
+        .isString().withMessage("Address must be a string")
+        .trim() // Fjerner whitespace i starten og slutningen
+        .escape(), // Escape HTML-characters (sanitizing)
+
+    query("lon")
+        .optional()
+        .isFloat().withMessage("Longitude must be a number"),
+
+    query("lat")
+        .optional()
+        .isFloat().withMessage("Latitude must be a number"),
+
+    query("radius")
+        .optional()
+        .isInt({ min: 1, max: 100000 }).withMessage("Radius must be between 1 and 100000 meters"),
+], async (req: Request, res: Response) => {
     // extracts query parameters from the frontend
     // radius --> search radius for parcel shops, default is 50 km
     const { address, lon, lat, radius = 50000 } = req.query;
+
+    // Tjekker for valideringsfejl
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+     res.status(400).json({ errors: errors.array() });
+     return;
+    }
+
 
     // Ensures the Geoapify key is loaded
     const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY;
@@ -40,6 +91,7 @@ router.get("/parcel-shops", async (req: Request, res: Response) => {
 
     // To locate parcel shops near a specific address, the API requires coordinates instead of textual address and the radius (Geocoding)
     if (address) {
+        
         // Fetch coordinates from Geoapify Geocoding API
         // Purpose: converting human-readable adress into geographic coordinates (lat and long). We want to make mathematical stuff 
             // encodeURIComponent: Ensures the address is properly encoded for the URL
@@ -50,7 +102,7 @@ router.get("/parcel-shops", async (req: Request, res: Response) => {
         // Request
         try {
             // axios.get(geocodingUrl): Sends a GET request to the Geoapify Geocoding API.
-            const geoResponse = await axios.get(geocodingUrl);
+            const geoResponse = await axiosInstance.get(geocodingUrl); // Bruger timeouteren her
             const features = geoResponse.data.features;
 
             // The API returns an object with features, which includes coordinates

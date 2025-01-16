@@ -62,13 +62,20 @@ const Comments: React.FC<CommentsProps> = ({ productId }) => {
     const token = localStorage.getItem("jwt");
     if (!token) return alert("Login required");
 
+    const sanitizedComment = newComment.trim(); // Remove extra spaces
+
+    if (!sanitizedComment) {
+      alert("Comment cannot be empty.");
+      return;
+    }
+
     const response = await fetch(`${BACKEND_URL}/api/products/${productId}/comments`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ content: newComment }),
+      body: JSON.stringify({ content: sanitizedComment }),
     });
 
     if (response.ok) {

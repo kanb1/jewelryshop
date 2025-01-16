@@ -6,6 +6,11 @@ import { isValidObjectId } from "mongoose";
 import NodeCache from 'node-cache';
 import Comment from '../models/Comment';
 import authenticateJWT from '../routes/authMiddleware';
+// ****Security 
+import createDOMPurify from "dompurify";
+import { JSDOM } from "jsdom";
+import { body, validationResult } from "express-validator";
+
 
 
 
@@ -19,6 +24,10 @@ const router = express.Router(); // Opret en ny router
 // For read-heavy operations like displaying orders, the backend could cache results, but this was not directly implemented.
 // Opretter en ny cache-instans
 const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 }); // stdTTL = cache tid i sekunder, checkperiod = opdateringstid
+
+
+const window = new JSDOM("").window;
+const DOMPurify = createDOMPurify(window);
 
 interface AuthenticatedRequest extends Request {
   user?: { userId: string; username: string; role?: string };
@@ -234,6 +243,20 @@ router.get('/:id', async (Request, Response) => {
 });
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // *************************************************************COMMENTS*************************************************************
 
 
@@ -251,9 +274,25 @@ router.get('/:id/comments', async (req, res) => {
 
 
 // ********************************************************************** ADD A COMMENT
-router.post("/:id/comments", authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:id/comments", authenticateJWT, [
+  // Validate and sanitize the content field
+  body("content")
+    .isString().withMessage("Content must be a string.")
+    .trim() // Removes leading/trailing whitespace
+    .escape() // Escapes HTML entities to prevent XSS
+    .notEmpty().withMessage("Content cannot be empty.")
+    .isLength({ min: 1 }).withMessage('Comment content is required')
+    .isLength({ max: 500 }).withMessage("Content must be under 500 characters."),
+], async (req: AuthenticatedRequest, res: Response) => {
   console.log("Request user data from JWT:", req.user); // Log user-data fra middleware
   console.log("Request body content:", req.body); // Log dataen, der bliver sendt fra frontend
+
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+     res.status(400).json({ errors: errors.array() });
+     return;
+  }
 
 
   try {
@@ -266,11 +305,15 @@ router.post("/:id/comments", authenticateJWT, async (req: AuthenticatedRequest, 
       return;
     }
 
+    // Sanitize content to allow specific tags
+    const sanitizedContent = DOMPurify.sanitize(content, { ALLOWED_TAGS: ["b", "i", "strong", "em"] });
+
+
     const newComment = new Comment({
       productId: req.params.id,
       userId,
       username,
-      content,
+      content: sanitizedContent,
     });
     console.log("Data to be saved in Comment model:", newComment); // Log dataen, før den gemmes
 

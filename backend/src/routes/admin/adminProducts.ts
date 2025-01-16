@@ -5,10 +5,17 @@ import multer from "multer";
 import path from "path";
 // vi vil gerne fjerne billederne fra uploads når produktet bliver slettet
 import fs from "fs"; 
+// ****SEcurity
+import createDOMPurify from "dompurify";
+import { JSDOM } from "jsdom";
 
 
 const router = express.Router();
 router.use(adminMiddleware); // Apply admin middleware to all routes in this file!!
+
+// Opsætter en virtuel DOM til DOMPurify
+const window = new JSDOM("").window;
+const DOMPurify = createDOMPurify(window);
 
 // Configure multer storage
 const storage = multer.diskStorage({
@@ -25,36 +32,51 @@ const storage = multer.diskStorage({
 // initilaize multer for handling file upload
 const upload = multer({ storage });
 
+interface ProductRequestBody {
+  name?: string;
+  type?: string;
+  productCollection?: string;
+  price?: number;
+  sizes?: string;
+  images?: string[]; // Optional, depending on how you handle this
+}
+
+
   //************************************************************************* ADD NEW PRODUCT
   // uses multer to handle image uploads from the frontend-request
   router.post("/", adminMiddleware, upload.array("images"), async (req, res) => {
-    const { name, type, productCollection, price, sizes } = req.body;
-
-    // checks for required fields
-    if (!name || !type || !price || !sizes) {
-      res.status(400).json({ error: "Missing required fields." });
-      return;
-    }
-
     try {
-      
-      // Maps the uploaded files to an array of paths (/uploads/<filename>), which are saved in the database.
+      // Rens input med DOMPurify
+      const name = DOMPurify.sanitize(req.body.name);
+      const type = DOMPurify.sanitize(req.body.type);
+      const productCollection = req.body.productCollection
+        ? DOMPurify.sanitize(req.body.productCollection)
+        : undefined;
+      const price = parseFloat(req.body.price);
+      const sizes = DOMPurify.sanitize(req.body.sizes);
+  
+      // Tjek for manglende eller ugyldige felter
+      if (!name || !type || isNaN(price) || !sizes) {
+        res.status(400).json({ error: "Missing or invalid fields." });
+        return;
+      }
+  
+      // Håndtering af billeder
       const imagePaths =
         (req.files as Express.Multer.File[])?.map(
           (file) => `/uploads/${file.filename}`
         ) || [];
-
-        // Creates a new Product document with the extracted details and image paths.
+  
+      // Opret nyt produkt
       const product = new Product({
         name,
         type,
         productCollection,
         price,
-        sizes: sizes.split(",").map((size: string) => size.trim()), // Convert sizes to array
-        images: imagePaths, // Save image paths
+        sizes: sizes.split(",").map((size: string) => size.trim()),
+        images: imagePaths,
       });
-
-      // Saves the product to MongoDB 
+  
       await product.save();
       res
         .status(201)
@@ -63,47 +85,46 @@ const upload = multer({ storage });
       console.error("Error creating product:", error);
       res.status(500).json({ error: "Internal server error." });
     }
-  }
-);
+  });
 
   //************************************************************************* UPDATE  PRODUCT
-  router.put(
-  "/:id",
-  adminMiddleware,
-  upload.array("images"), // Handle multiple images
-  async (req, res) => {
-    // Extracts the product ID from the URL and updates from the request body.
+  router.put("/:id", adminMiddleware, upload.array("images"), async (req, res) => {
     const { id } = req.params;
-    const updates = req.body;
-
+  
     try {
-      // If new images are uploaded, maps them to paths and adds them to the updates object.
+      const updates: ProductRequestBody = {
+        name: req.body.name ? DOMPurify.sanitize(req.body.name) : undefined,
+        type: req.body.type ? DOMPurify.sanitize(req.body.type) : undefined,
+        productCollection: req.body.productCollection
+          ? DOMPurify.sanitize(req.body.productCollection)
+          : undefined,
+        price: req.body.price ? parseFloat(req.body.price) : undefined, // parseFloat remains here
+        sizes: req.body.sizes ? DOMPurify.sanitize(req.body.sizes) : undefined,
+      };
+  
+      // Handle uploaded images
       if (req.files && (req.files as Express.Multer.File[]).length > 0) {
         const imagePaths = (req.files as Express.Multer.File[]).map(
           (file) => `/uploads/${file.filename}`
         );
         updates.images = imagePaths;
       }
-
-      // Finds the product by ID and updates its details in MongoDB. The { new: true } option returns the updated document.
-      const product = await Product.findByIdAndUpdate(id, updates, {
-        new: true,
-      });
-
+  
+      const product = await Product.findByIdAndUpdate(id, updates, { new: true });
+  
       if (!product) {
         res.status(404).json({ error: "Product not found." });
         return;
       }
-
-      res
-        .status(200)
-        .json({ message: "Product updated successfully.", product });
+  
+      res.status(200).json({ message: "Product updated successfully.", product });
     } catch (error) {
       console.error("Error updating product:", error);
       res.status(500).json({ error: "Internal server error." });
     }
-  }
-);
+  });
+  
+  
 
   //************************************************************************* DELETE A  PRODUCT
   router.delete("/:id", adminMiddleware, async (req, res) => {
