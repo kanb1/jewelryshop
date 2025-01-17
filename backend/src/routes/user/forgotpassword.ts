@@ -9,7 +9,11 @@ import { body, validationResult } from "express-validator";
 
 const router = express.Router();
 
-// **************SECURITY
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
 // Rate limiter for forgot-password to prevent brute-force or spam attacks
 const forgotPasswordRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -24,13 +28,24 @@ const resetPasswordRateLimiter = rateLimit({
   message: "Too many reset password attempts from this IP, please try again later.",
 });
 
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+
+
 // ******************************************************************************** FORGOT PASS
 router.post(
   "/forgot-password",
   forgotPasswordRateLimiter, // Apply rate limiting
   [
-    // Validate and sanitize email input
-    body("email").isEmail().withMessage("Invalid email format").normalizeEmail(),
+    // Tilføj escape til email validering
+    body("email")
+    .isEmail()
+    .withMessage("Invalid email format")
+    .normalizeEmail() // Normaliserer email for at sikre korrekt format
+    .escape(), // Escape for at forhindre XSS-angreb
   ],
   async (req: Request, res: Response) => {
     // Check for validation errors
@@ -90,14 +105,15 @@ router.put(
   resetPasswordRateLimiter, // Apply rate limiting
   [
     // Validate and sanitize inputs
-    body("token").notEmpty().trim().escape().withMessage("Token is required"),
-    body("id").notEmpty().trim().escape().withMessage("User ID is required"),
-    body("newPassword")
-      .isLength({ min: 8 }).withMessage("Password must be at least 8 characters long")
-      .matches(/[A-Z]/).withMessage("Password must contain an uppercase letter")
-      .matches(/[a-z]/).withMessage("Password must contain a lowercase letter")
-      .matches(/\d/).withMessage("Password must contain a number")
-      .matches(/[@$!%*?&#]/).withMessage("Password must contain a special character"),
+  body("token").notEmpty().trim().escape().withMessage("Token is required"),
+  body("id").notEmpty().trim().escape().withMessage("User ID is required"),
+  body("newPassword")
+    .trim() // Trim for at fjerne unødvendige mellemrum
+    .isLength({ min: 8 }).withMessage("Password must be at least 8 characters long")
+    .matches(/[A-Z]/).withMessage("Password must contain an uppercase letter")
+    .matches(/[a-z]/).withMessage("Password must contain a lowercase letter")
+    .matches(/\d/).withMessage("Password must contain a number")
+    .matches(/[@$!%*?&#]/).withMessage("Password must contain a special character"),
   ],
   async (req: Request, res: Response) => {
     // Check for validation errors
@@ -116,7 +132,7 @@ router.put(
 
       if (!user || !user.resetPasswordToken || !user.resetPasswordExpires) {
         // Reject if user doesn't exist or token is missing
-         res.status(400).json({ message: "Invalid or expired reset token" });
+         res.status(400).json({ message: "Unable to reset password. Please try again." });
         return;
 
       }
@@ -126,7 +142,7 @@ router.put(
 
       // Validate token and expiry time
       if (hashedToken !== user.resetPasswordToken || user.resetPasswordExpires.getTime() < Date.now()) {
-         res.status(400).json({ message: "Invalid or expired reset token" });
+         res.status(400).json({ message: "Unable to reset password. Please try again." });
         return;
 
       }
@@ -151,7 +167,7 @@ router.put(
 
     } catch (err) {
       console.error("Error during password reset:", err);
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Something went wrong. Please try again later" });
     }
   }
 );

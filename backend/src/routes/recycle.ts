@@ -5,8 +5,9 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';  
 import transporter from '../helpers/emailConfig'; 
-import { body, validationResult } from "express-validator";
-// *******SECURITY
+import { body, param, validationResult } from "express-validator";
+import crypto from "crypto"; 
+
 
 
 
@@ -18,23 +19,42 @@ interface AuthenticatedRequest extends Request {
   }
 
 
-  // Set up multer storage for image uploads
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+
+// Set up multer storage with file type and size validation
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      // Save the image in the 'recycleproduct_images' folder
-      cb(null, path.join(__dirname, "../../../public/recycleproduct_images"));
-    },
-    filename: (req, file, cb) => {
-      // Generate unique filename using timestamp
-      cb(null, `${Date.now()}-${file.originalname}`);
-    },
-  });
-  
-  const upload = multer({ storage });
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "../../../public/recycleproduct_images"));
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const uniqueSuffix = crypto.randomBytes(4).toString("hex"); // Add randomness
+    const extension = path.extname(file.originalname).toLowerCase();
+    cb(null, `${timestamp}-${uniqueSuffix}${extension}`);
+  },
+});
 
+const upload = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // Limit file size to 2MB
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return cb(new Error("Only image files are allowed"));
+    }
+    cb(null, true);
+  },
+});
 
-
-
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
 
 
 //*************************************************** ADD A NEW RECYCLED PRODUCT
@@ -46,6 +66,7 @@ router.post(
     body("name")
       .isString()
       .trim()
+      .escape() // Escape input to prevent XSS
       .isLength({ min: 3, max: 50 })
       .withMessage("Name must be between 3 and 50 characters."),
     body("price")
@@ -56,15 +77,14 @@ router.post(
       .withMessage("Invalid size value."),
     body("visibility")
       .isIn(["public", "private"])
-      .withMessage("Invalid visibility value."),
+      .withMessage("Invalid visibility value.")
+      .escape(), // Escape visibility field
     body("type")
       .isIn(["ring", "necklace", "bracelet", "earring"])
-      .withMessage("Invalid type of jewelry."),
+      .withMessage("Invalid type of jewelry.")
+      .escape(), // Escape type field
   ],
   async (req: AuthenticatedRequest, res: Response) => {
-    console.log("Request received for creating a new recycled product.");
-    console.log("Request Body:", req.body);
-    console.log("Uploaded File:", req.file);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -78,7 +98,7 @@ router.post(
 
     if (!userId) {
       console.error("User ID missing in request.");
-       res.status(401).json({ error: "Unauthorized" });
+       res.status(401).json({ error: "Access denied." });
       return;
 
     }
@@ -87,7 +107,12 @@ router.post(
       console.error("File upload failed. No file found in request.");
        res.status(400).json({ error: "File upload failed. Please upload a valid file." });
       return;
+    }
 
+    // Validering af filtypen
+    if (!["image/jpeg", "image/png", "image/jpg"].includes(req.file.mimetype)) {
+       res.status(400).json({ error: "Invalid file type. Only JPEG, PNG, and JPG are allowed." });
+       return;
     }
 
     try {
@@ -109,7 +134,7 @@ router.post(
       res.status(201).json({ message: "Product added successfully!", product: newProduct });
     } catch (error) {
       console.error("Error creating product:", error);
-      res.status(500).json({ error: "Failed to create product. Internal server error." });
+      res.status(500).json({ error: "Internal server error. Please try again later." });
     }
   }
 );
@@ -118,7 +143,11 @@ router.post(
 
 // ************************************************************************ UPDATE OTHER DETAILS
 
-router.put("/:id", authenticateJWT, async (Request: any, Response) => {
+router.put("/:id", authenticateJWT, [
+  body("name").optional().trim().escape(),
+  body("price").optional().isFloat({ gt: 0 }).withMessage("Price must be positive."),
+  param("id").isMongoId().withMessage("Invalid product ID."),
+  ],async (Request: any, res: Response) => {
   try {
     const { id } = Request.params;
     const userId = Request.user?.userId;
@@ -127,20 +156,20 @@ router.put("/:id", authenticateJWT, async (Request: any, Response) => {
 
     // Check if user is authenticated
     if (!userId) {
-      Response.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
     // Fetch the existing product
     const product = await RecycledProduct.findById(id);
     if (!product) {
-      Response.status(404).json({ error: "Product not found" });
+      res.status(404).json({ error: "Product not found" });
       return;
     }
 
     // Ensure the product belongs to the authenticated user
     if (product.userId.toString() !== userId) {
-       Response.status(403).json({ error: "You can only edit your own products" });
+      res.status(403).json({ error: "You can only edit your own products" });
        return;
     }
 
@@ -158,10 +187,10 @@ router.put("/:id", authenticateJWT, async (Request: any, Response) => {
     // Save the updated product
     await product.save();
 
-    Response.status(200).json({ message: "Product updated successfully!", product });
+    res.status(200).json({ message: "Product updated successfully!", product });
   } catch (error) {
     console.error("Error updating product:", error);
-    Response.status(500).json({ error: "Failed to update product" });
+    res.status(500).json({ error: "Failed to update product" });
   }
 });
 
@@ -238,15 +267,17 @@ router.put("/:productId/visibility", authenticateJWT, async (req: AuthenticatedR
 
 
 //*************************************************** DELETE A RECYCLED PRODUCT (ADMIN & PRODUCTOWNER)
-router.delete("/:productId", authenticateJWT, adminMiddleware, async (Request, Response) => {
-  const { productId } = Request.params;
+router.delete("/:productId", authenticateJWT, adminMiddleware, [
+  param("productId").isMongoId().withMessage("Invalid product ID."),
+  ], async (req: Request, res: Response) => {
+  const { productId } = req.params;
 
   try {
     // Find the product and populate the userId field to get the associated user document
     const deletedProduct = await RecycledProduct.findByIdAndDelete(productId).populate('userId');
 
     if (!deletedProduct) {
-      Response.status(404).json({ error: "Product not found" });
+      res.status(404).json({ error: "Product not found" });
       return;
     }
 
@@ -286,10 +317,10 @@ router.delete("/:productId", authenticateJWT, adminMiddleware, async (Request, R
       }
     });
 
-    Response.status(200).json({ message: "Product deleted successfully" });
+    res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
     console.error("Error deleting product:", error);
-    Response.status(500).json({ error: "Failed to delete product" });
+    res.status(500).json({ error: "Failed to delete product" });
   }
 });
 
