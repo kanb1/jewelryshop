@@ -13,7 +13,6 @@ import {
 import ButtonComponent from "../shared/ButtonComponent";
 import { BACKEND_URL } from "../../config";
 
-  // ************SECURITY
 
 
 
@@ -67,16 +66,48 @@ const UserInfo: React.FC = () => {
   // Handle file input changes
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setProfilePicture(e.target.files[0]);
+      const file = e.target.files[0];
+      const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "File Upload Error",
+          description: "Only JPEG, PNG, and JPG files are allowed.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+  
+      if (file.size > 5 * 1024 * 1024) { // 5 MB
+        toast({
+          title: "File Upload Error",
+          description: "File size must not exceed 5MB.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+  
+      setProfilePicture(file);
     }
   };
+
+//************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+
+// Generiske fejlmeddelelser
 
   // Handle upload process
   const handleUpload = async () => {
     if (!profilePicture) {
       toast({
-        title: "No file selected",
-        description: "Please select a profile picture to upload.",
+        title: "File Upload Error",
+        description: "Unable to upload your profile picture. Please ensure the file is an image and try again.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -116,17 +147,20 @@ const UserInfo: React.FC = () => {
         throw new Error(data.message || "Upload failed");
       }
     } catch (error: any) {
-      console.error("Error uploading profile picture:", error);
+      const errorMessage =
+        error.message === "Unauthorized"
+          ? "An error occurred. Please ensure you are logged in."
+          : "An unexpected error occurred. Please try again later.";
+  
       toast({
         title: "Error",
-        description: error.message || "Failed to upload profile picture.",
+        description: errorMessage,
         status: "error",
         duration: 3000,
         isClosable: true,
       });
     }
   };
-  
 
   
 

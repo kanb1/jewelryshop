@@ -73,6 +73,7 @@ app.use(
     contentSecurityPolicy: {             // Your current CSP config
       directives: {
         defaultSrc: ["'self'"],
+        // nonce-baseret CSP: Generer en ny tilfældig nonce ved hver request og tilføjer den i inline script
         scriptSrc: ["'self'", "https://js.stripe.com", "https://api.geoapify.com"],
         styleSrc: ["'self'"],
         imgSrc: ["'self'", "data:", "https://storage.googleapis.com", "http://localhost:5001"],

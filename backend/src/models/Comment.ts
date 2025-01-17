@@ -1,7 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// **********SECURITY
-
 
 export interface IComment extends Document {
   productId: mongoose.Types.ObjectId;

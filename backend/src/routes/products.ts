@@ -10,6 +10,8 @@ import authenticateJWT from '../routes/authMiddleware';
 import createDOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 import { body, validationResult } from "express-validator";
+import rateLimit from "express-rate-limit";
+
 
 
 
@@ -25,9 +27,31 @@ const router = express.Router(); // Opret en ny router
 // Opretter en ny cache-instans
 const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 }); // stdTTL = cache tid i sekunder, checkperiod = opdateringstid
 
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
 
 const window = new JSDOM("").window;
 const DOMPurify = createDOMPurify(window);
+
+// Rate limiter for comment-sektionen
+
+const commentRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutter
+  max: 10, // Maksimalt 10 kommentarer pr. IP inden for 15 minutter
+  message: {
+    error: "Too many comments. Please try again later.",
+  },
+});
+
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+
 
 interface AuthenticatedRequest extends Request {
   user?: { userId: string; username: string; role?: string };
@@ -255,8 +279,11 @@ router.get('/:id', async (Request, Response) => {
 
 
 
-
-
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
 // *************************************************************COMMENTS*************************************************************
 
 
@@ -274,7 +301,7 @@ router.get('/:id/comments', async (req, res) => {
 
 
 // ********************************************************************** ADD A COMMENT
-router.post("/:id/comments", authenticateJWT, [
+router.post("/:id/comments", commentRateLimiter, authenticateJWT, [
   // Validate and sanitize the content field
   body("content")
     .isString().withMessage("Content must be a string.")
