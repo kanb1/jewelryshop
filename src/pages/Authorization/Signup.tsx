@@ -98,7 +98,7 @@ const Signup: React.FC = () => {
       setLoading(false);
       navigate("/login");
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to create account.");
+      setError("An error occurred. Please try again.");
       setLoading(false);
     }
   };

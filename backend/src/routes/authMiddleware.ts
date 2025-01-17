@@ -3,8 +3,12 @@ import { Request, Response, NextFunction } from 'express';
 // VerifyErrors --> Errors that can occur when verifying a JWT
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 import dotenv from 'dotenv';
-// **************SECURITY
-// Opretter en session model for at spore aktive sessioner
+
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************// Opretter en session model for at spore aktive sessioner
 import Session from "../models/Session"; 
 
 
@@ -37,6 +41,7 @@ interface CustomJwtPayload extends JwtPayload {
 
 // next --> a function to pass control to the next middleware or route handler (middleware job is finished, ex validating a JWT token) (express)
 const authenticateJWT = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  
   // Reads the authorization header
   // Removes the "Bearer" prefix to get the raw token
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -50,9 +55,12 @@ const authenticateJWT = async (req: AuthenticatedRequest, res: Response, next: N
   }
 
   try {
-    // Verifies the JWT token's validity using the secret key
+    
     //  decoded --> The decoded payload if the token is valid.
     const decoded = await new Promise<CustomJwtPayload | undefined>((resolve, reject) => {
+      // Verifies the JWT token's validity using the secret key --> Tjekker om token er gyldig og ike er blevet komprimeret
+        // dekryptrer tokenents underskrift med den hemmelioge nøgle JWT secret --> Sammenligner underskriften emd payloadens data for at sirke at ingen har ædnret dataene
+        // Signaturen er jo genereret vha en algoritme og en hemmelig nøgle, så den bruges til at verificere at serveren selv har genereret tokenet
       jwt.verify(token, JWT_SECRET, (err, payload) => {
         // Callback --> Invoked with errors during verification
         // If it's invalid or expired, or if decoded is undefined
@@ -75,7 +83,7 @@ const authenticateJWT = async (req: AuthenticatedRequest, res: Response, next: N
     }
 
     // **************SECURITY
-    // Extends the req object with custom properties (user) for subsequent middlewares or route handlers
+    // Gemmer data fra tokenne i anmodningen, så det kan bruges i routes
     req.user = {
       userId: decoded.userId,
       username: decoded.username,
@@ -86,7 +94,7 @@ const authenticateJWT = async (req: AuthenticatedRequest, res: Response, next: N
     console.log("Request user data attached to req.user:", req.user);
 
     // **************SECURITY
-    // Check JTI in the database to ensure the session is valid
+    // Sørger for at den tilknyttede session stadig er aktiv
     const sessionExists = await Session.findOne({ jti: decoded.jti });
     if (!sessionExists) {
       console.error("Session does not exist in the database.");

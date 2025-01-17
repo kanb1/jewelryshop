@@ -1,6 +1,14 @@
 // mongoose --> the primary library interacting with mongodb in a node.js application
 import mongoose, { Schema, Document } from "mongoose";
 
+
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// 
+
 // represents a single document in mongodb collection with all mongoose model features
 // IUser --> a TS interface that extends the Document type
   // fields like username, email, password are required

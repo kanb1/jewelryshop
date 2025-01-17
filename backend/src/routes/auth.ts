@@ -32,7 +32,12 @@ require("dotenv").config();
 
 
 
-// ********************Security
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+
 // Rate limiter for signup (Register)
 const registerRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutter
@@ -47,6 +52,11 @@ const loginRateLimiter = rateLimit({
   message: "Too many login attempts from this IP, please try again later.",
 });
 
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
+// ************************SECURITY*************************
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -59,14 +69,22 @@ if (!JWT_SECRET) {
 router.post(
   "/users",
   [
-    // VALIDATION RULES
+    // VALIDATION AND SANITIZING RULES
     body("username")
+      .trim() // Fjern unødvendige mellemrum fra starten og slutningen
+      .escape() // Escape HTML-tegn for at forhindre XSS
       .isLength({ min: 3 })
       .withMessage("Username must be at least 3 characters long.")
-      .isAlphanumeric()
+      .isAlphanumeric() //Kræver kun bogstaver og tal i brugernavnet
       .withMessage("Username can only contain letters and numbers."),
-    body("email").isEmail().withMessage("Invalid email format."),
+    body("email")
+      .trim()
+      .escape() // Escape HTML-tegn for at forhindre XSS
+      .normalizeEmail() // Normaliserer email (fjerner unødvendige tegn og sikrer korrekt format)
+      .isEmail()
+      .withMessage("Invalid email format."),
     body("password")
+      .trim()
       .isLength({ min: 8, max: 64 })
       .withMessage("Password must be between 8 and 64 characters long.")
       .matches(/[A-Z]/)
@@ -78,58 +96,67 @@ router.post(
       .matches(/[!@#$%^&*(),.?":{}|<>]/)
       .withMessage("Password must include at least one special character."),
     body("name")
+      .trim()
+      .escape()
       .matches(/^[A-Za-z]+$/)
       .withMessage("First name can only contain letters.")
       .isLength({ min: 2 })
       .withMessage("First name must be at least 2 characters."),
     body("surname")
+      .trim()
+      .escape()
       .matches(/^[A-Za-z]+$/)
       .withMessage("Last name can only contain letters.")
       .isLength({ min: 2 })
       .withMessage("Last name must be at least 2 characters."),
   ],
-  registerRateLimiter,
+  registerRateLimiter, //Begrænser antallet af signup forsøg
   async (req: Request, res: Response) => {
+    // Validér inputtet
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
        res.status(400).json({ errors: errors.array() });
        return;
     }
 
+    // Inputdata er nu både valideret og saniteret
+    // Extract sanitizeret input
     const { username, email, password, name, surname } = req.body;
 
     try {
+      // Tjek hvis user eller email allerede eksisterer
       const existingUser = await User.findOne({
         $or: [{ username }, { email }],
       });
       if (existingUser) {
-         res.status(400).json({
-          error:
-            existingUser.username === username
-              ? "Username already exists. Please choose a different one."
-              : "Email already exists. Please use a different email.",
-        });
+        res.status(400).json({ error: "Username or email already exists." });
         return;
       }
 
+
+      // Hash password before saving tot he database
+      // Hasher password med en salt round på 10
       const hashedPassword = await bcrypt.hash(password, 10);
+
+      // GEnerate an email verification token med crypto
+      // Genrerr 32 random bytes, Konverterer til en hexadecimal streng
       const verificationToken = crypto.randomBytes(32).toString("hex");
 
+      // Gem den nye bruger i databasen
       const newUser = new User({
         username,
         email,
         password: hashedPassword,
         name,
         surname,
-        role: "user",
-        isVerified: false,
+        role: "user", //default role
+        isVerified: false, //not verified by defailt
         verificationToken,
       });
-
       await newUser.save();
 
+      // Send verification email der også indeholder en verificationToken
       const verificationLink = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
-
       await transporter.sendMail({
         to: email,
         subject: "Verify your email address",
@@ -151,6 +178,8 @@ router.post(
 
 // ******************************************************************************************************** EMAIL VERIFICATION
 router.get("/verify-email", async (req, res) => {
+  // Indeholder query-parametrene fra URL'en, hvor vi blandt andet har token
+  // Vi trækker token ud som er en del af URL'en --> For at finde den rigtige bruger i databasen
   const { token } = req.query;
 
   if (!token) {
@@ -158,24 +187,28 @@ router.get("/verify-email", async (req, res) => {
     return;
   }
 
+  // Find bruger med den givne token
   try {
+    // Søger efter en bruger i databasen, hvis verificationtoken matcher det token der blev sendt i forespørgslen
+    // Hver bruger har en unik verificationToken, som belv genereret og gemt under registrering --> BRgues til at identifcere brugeren
     const user = await User.findOne({ verificationToken: token });
 
     // Handle already verified users
     if (!user && await User.findOne({ isVerified: true })) {
-      res.status(200).json({ message: "Your email is already verified!" });
+      res.status(200).json({ message: "If the token is valid, your email will be verified." });
       return;
     }
 
+    // Handle invalid tokens
     if (!user) {
       res.status(400).json({ error: "Invalid or expired token." });
       return;
     }
 
     // Verify user and remove the token
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    await user.save();
+    user.isVerified = true; //Sætter til true --> Bruger nu verificeret
+    user.verificationToken = undefined; //Fjerner token fra db så den ikke kan bruges igen
+    await user.save(); //gemmer opdateringerne i db
 
     res.status(200).json({ message: "Email verified successfully!" });
   } catch (err) {
@@ -197,13 +230,16 @@ router.post(
   "/login",
   loginRateLimiter, // Begræns antallet af loginforsøg
   [
-    // Inputvalidering
     body("username")
+      .trim()
+      .escape()
       .notEmpty()
       .withMessage("Username is required.")
       .isAlphanumeric()
       .withMessage("Username can only contain letters and numbers."),
     body("password")
+      .trim()
+      .escape()
       .notEmpty()
       .withMessage("Password is required.")
       .isLength({ min: 6 })
@@ -211,18 +247,20 @@ router.post(
   ],
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
+    
     if (!errors.isEmpty()) {
       res.status(400).json({ errors: errors.array() }); 
       return;
     }
 
+    // Vi har valideret og sanitized inputsene
     const { username, password } = req.body;
 
     try {
       // Find brugeren i databasen
       const user = await User.findOne({ username });
       if (!user) {
-        res.status(400).json({ error: "Invalid username or password." });
+        res.status(400).json({ error: "Invalid credentials." });
         return;
       }
 
@@ -232,7 +270,7 @@ router.post(
         return;
       }
 
-      // Sammenlign adgangskoder
+      // Sammenlign hashed pass med den indtastede pass
       const match = await bcrypt.compare(password, user.password);
       if (!match) {
         res.status(400).json({ error: "Invalid username or password." });
@@ -250,7 +288,8 @@ router.post(
       // Gem JTI i databasen
       await Session.create({ jti });
 
-      // Opret JWT-token
+      // Opret JWT-token - med jti
+      // Signeres med JWT_secret
       const token = jwt.sign(
         {
           userId: user._id,
@@ -262,6 +301,7 @@ router.post(
         { expiresIn: "24h" }
       );
 
+      // Sender token tilbage til frotnend som gemmer den i localstorage
       res.status(200).json({
         message: "Login successful.",
         token,
@@ -317,8 +357,8 @@ router.get("/profile", authenticateJWT, async (req: Request & { user?: any }, re
 // *******************************SECURITY*************************************** 
 
 router.post("/logout", async (req: Request, res: Response) => {
+  // Hent token fra header
   const token = req.header("Authorization")?.replace("Bearer ", "");
-  console.log("Logout request received with token:", token);
 
   if (!token) {
      res.status(400).json({ error: "No token provided for logout." });
@@ -326,25 +366,22 @@ router.post("/logout", async (req: Request, res: Response) => {
   }
 
   try {
-    // Verify the token to decode it (even if it's expired)
+    // Decode token og find JTI
     const decoded = jwt.verify(token, JWT_SECRET, { ignoreExpiration: true }) as jwt.JwtPayload;
 
 
-    console.log("Decoded token during logout:", decoded);
-
-    // Check if the session exists (only if JTI is included in your tokens)
+    // Slet sessionen
     const sessionDeleted = await Session.deleteOne({ jti: decoded.jti });
     if (sessionDeleted.deletedCount === 0) {
       console.warn("No active session found for the provided token.");
     }
 
-    // Regardless of whether the session was found, consider the logout successful
      res.status(200).json({ message: "Logout successful. Session invalidated." });
      return;
   } catch (err) {
     console.error("Error during logout:", err);
 
-    // If the token is invalid or expired, still return success
+    // If the token is invalid or expired, still return logout success
      res.status(200).json({ message: "Logout successful. Token was invalid or expired." });
      return;
   }

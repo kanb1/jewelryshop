@@ -85,7 +85,7 @@ const Login: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error("Invalid username or password."); // General error
+        throw new Error("Invalid credentials."); // General error
       }
 
       localStorage.setItem("jwt", data.token);
@@ -105,7 +105,7 @@ const Login: React.FC = () => {
 
       navigate(userRole === "admin" ? "/admin" : "/profile");
     } catch (err: any) {
-      setError(err.message || "Something went wrong.");
+      setError("Invalid credentials. Please try again.");
     }
   };
 
