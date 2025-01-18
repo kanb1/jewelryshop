@@ -1,12 +1,14 @@
 import express, { Request, Response } from 'express';
 import RecycledProduct from '../models/RecycledProduct';
 import authenticateJWT, { adminMiddleware } from '../routes/authMiddleware';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';  
+import multer from 'multer'; //middleware til håndtering af filuploads
+import path from 'path'; //node.jsbiblio til håndtering af fil- og stioperationer
+import fs from 'fs'; //filsystemoperationer fx sletning af filer
 import transporter from '../helpers/emailConfig'; 
 import { body, param, validationResult } from "express-validator";
 import crypto from "crypto"; 
+import sharp from "sharp";
+
 
 
 
@@ -25,22 +27,31 @@ interface AuthenticatedRequest extends Request {
 // ************************SECURITY*************************
 // ************************SECURITY*************************
 
+// ****Multer Storage
 // Set up multer storage with file type and size validation
 const storage = multer.diskStorage({
+  // Destination -> Filer gemmes i mappen recycleproduct_images
   destination: (req, file, cb) => {
     cb(null, path.join(__dirname, "../../../public/recycleproduct_images"));
   },
+
+  // Filename -> Filerne får unikke navne: 
+    // timestamp, tilfældig streng + filtypenavn
   filename: (req, file, cb) => {
     const timestamp = Date.now();
-    const uniqueSuffix = crypto.randomBytes(4).toString("hex"); // Add randomness
+    // crypto.randomBytes --> Ekstra randomness
+    const uniqueSuffix = crypto.randomBytes(4).toString("hex");
+    // path.extname tager filens navn, som brugerne uplaoder, og udtrækker filens udvidelse
     const extension = path.extname(file.originalname).toLowerCase();
     cb(null, `${timestamp}-${uniqueSuffix}${extension}`);
   },
 });
 
+// ****Multer Upload
 const upload = multer({
+  // Begrænser fiæstørrelse til 2mb og tillader kun JPEG, png og jpg
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // Limit file size to 2MB
+  limits: { fileSize: 2 * 1024 * 1024 }, 
   fileFilter: (req, file, cb) => {
     const allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg"];
     if (!allowedMimeTypes.includes(file.mimetype)) {
@@ -49,6 +60,24 @@ const upload = multer({
     cb(null, true);
   },
 });
+
+
+// **** Sharp: Ekstra validering af billeder
+// Problem med path.extname --> hacker kan ændre file.originalname for a tinkludere en falsk filudvidelse
+// fx fakeimage.png.exe vil returnere exe.. snyd
+// MIME-typen kan ikke nemt manipuleres da den afhænger af filens reele indhold og ikke kun navnetm men hacker kan stadig snyde ved at inkludere .png men med farligt indhold
+// For at sikre filens indhold valideres der med sharp:
+const validateImage = async (filePath: string): Promise<boolean> => {
+  try {
+    // Forsøg at læse metadata fra billedet
+    await sharp(filePath).metadata();
+    return true; // Hvis metadata kan læses, er filen et gyldigt billede
+  } catch (error) {
+    console.error("Invalid image file:", error);
+    return false; // Filen er ikke et billede
+  }
+};
+
 
 // ************************SECURITY*************************
 // ************************SECURITY*************************
@@ -60,13 +89,13 @@ const upload = multer({
 //*************************************************** ADD A NEW RECYCLED PRODUCT
 router.post(
   "/",
-  authenticateJWT,
-  upload.single("image"), // Use the multer middleware
+  authenticateJWT, //middleware der validere rJWT-tokenet, autentificeret brugere kan kun tilgå ruten
+  upload.single("image"), // Use the multer middleware til filupload. LAgrer i den mappe der defineret i multerkonfig med et unikt navn
   [
-    body("name")
+    body("name") //body validerer inputfelt, name
       .isString()
       .trim()
-      .escape() // Escape input to prevent XSS
+      .escape() // Escape input to prevent XSS ved at konvertere farlige tegn som <> til sikre versioner
       .isLength({ min: 3, max: 50 })
       .withMessage("Name must be between 3 and 50 characters."),
     body("price")
@@ -86,6 +115,8 @@ router.post(
   ],
   async (req: AuthenticatedRequest, res: Response) => {
 
+    // Kontrollerer om input overholder reglerne
+    // validationResult(req) samler alle fejl fra valideringsmidlerne i body
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.error("Validation errors:", errors.array());
@@ -93,7 +124,9 @@ router.post(
        return;
     }
 
+    // reqbody --> idneholder data fra klient
     const { name, price, size, visibility, type } = req.body;
+    // udpakker brugerens ID fra tokenet, som authetnicateJWT gemmer i req.user
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -103,21 +136,38 @@ router.post(
 
     }
 
+    // Tjekker om en fil blev uploadet
     if (!req.file) {
       console.error("File upload failed. No file found in request.");
        res.status(400).json({ error: "File upload failed. Please upload a valid file." });
       return;
     }
 
-    // Validering af filtypen
+    // Validering af filtypen - MIME-type kontrol
+    // req.file.mimetype --> MIME-type fx image/jpeg -> includes tjekker om filens type er blandt de tilladte jpeg, jpg and so on
     if (!["image/jpeg", "image/png", "image/jpg"].includes(req.file.mimetype)) {
        res.status(400).json({ error: "Invalid file type. Only JPEG, PNG, and JPG are allowed." });
        return;
     }
 
+    // Generer den fulde sti til filen der lige er blevet uploadet
+    const filePath = path.join(__dirname, "../../../public/recycleproduct_images", req.file.filename);
+
+
+    // validateimage --> Bruger sharp til at kontrollere om filen faktisk er et billede
+    const isValidImage = await validateImage(filePath);
+    if (!isValidImage) {
+      // Slet filen, hvis den ikke er et gyldigt billede
+      fs.unlinkSync(filePath);
+       res.status(400).json({ error: "Invalid image content. Please upload a valid image." });
+       return;
+    }
+
+
     try {
       const imagePath = `recycleproduct_images/${req.file.filename}`;
 
+      // Gem produkt i db
       const newProduct = new RecycledProduct({
         name,
         price,
@@ -145,11 +195,15 @@ router.post(
 
 router.put("/:id", authenticateJWT, [
   body("name").optional().trim().escape(),
+  // isFloat({gt:0}) sikrer at price er flydende tal (decimal) større end 0
   body("price").optional().isFloat({ gt: 0 }).withMessage("Price must be positive."),
+  // Validerer at parameteren id er et gyldigt mognoDB objectId format
   param("id").isMongoId().withMessage("Invalid product ID."),
   ],async (Request: any, res: Response) => {
   try {
+    // Ekstraherer id fra URL-parametrene. Dette bruges til at finde produktet i databasen
     const { id } = Request.params;
+    // Henter den autentificerede brugers ID fra req.user
     const userId = Request.user?.userId;
     const { visibility } = Request.body; // 'public' or 'private'
 
@@ -160,7 +214,7 @@ router.put("/:id", authenticateJWT, [
       return;
     }
 
-    // Fetch the existing product
+    // Finder produktet i databasen ved hjælp af dets unikke ID (id).
     const product = await RecycledProduct.findById(id);
     if (!product) {
       res.status(404).json({ error: "Product not found" });
@@ -198,6 +252,8 @@ router.put("/:id", authenticateJWT, [
 //*************************************************** GET ALL RECYCLED PRODUCTS, THAT IS VIEWABLE FOR ALL
 router.get("/", async (req: Request, res: Response) => {
   try {
+    // RecycledProduct: Er modellen, der repræsenterer recycled produkter i MongoDB
+    // Kører en forespørgsel i databasen for at finde alle produkter, hvor visibility-feltet har værdien "public"
     const products = await RecycledProduct.find({ visibility: "public" });
     res.status(200).json(products);
   } catch (error) {
@@ -207,16 +263,24 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 //*************************************************** GET ALL PRODUCTS CREATED BY LOGGED IN USER
+
+// Middleware, der verificerer, om anmodningen indeholder en gyldig JWT --> For om brugeren er logget ind
 router.get("/user", authenticateJWT, async (req: AuthenticatedRequest, Response) => {
+  // req.user: Denne værdi er tilføjet af authenticateJWT-middleware, som verificerer JWT'en og udtrækker brugeroplysninger
   const userId = req.user?.userId;
+
 
   if (!userId) {
      Response.status(401).json({ error: "Unauthorized" });
      return;
   }
 
+  // await RecycledProduct.find({ userId }):
+  // MongoDB-model, som repræsenterer recycled produkter
+  // .find({ userId }): Søger i databasen efter alle produkter, hvor userId-feltet matcher det autentificerede bruger-ID
   try {
     const userProducts = await RecycledProduct.find({ userId });
+    // Indeholder en liste over produkter oprettet af den aktuelle bruger.
     Response.status(200).json(userProducts);
   } catch (error) {
     console.error("Error fetching user's recycled products:", error);
@@ -228,8 +292,11 @@ router.get("/user", authenticateJWT, async (req: AuthenticatedRequest, Response)
 //*************************************************** EDIT VISIBILITY OF A RECYCLED PRODUCT (PUBLIC/PRIVATE)
 // Endpoint to update the visibility of a recycled product (public/private)
 router.put("/:productId/visibility", authenticateJWT, async (req: AuthenticatedRequest, Response) => {
+  // req.params.productId: Produkt-ID, som er en del af URL'en --> Identificere det produkt der skal opdateres
   const { productId } = req.params;
+  // Indeholder den nye synlighedsstatus, som klienten ønsker at sætte. Klienten sender dette som en del af request body.
   const { visibility } = req.body;
+  // Indeholder ID'et for den bruger, der er logget ind. Denne værdi tilføjes til requesten af authenticateJWT middleware. 
   const userId = req.user?.userId;
 
   if (!userId) {
@@ -239,6 +306,7 @@ router.put("/:productId/visibility", authenticateJWT, async (req: AuthenticatedR
   }
 
   try {
+    // Søger i databasen efter et produkt med det angivne ID.
     const product = await RecycledProduct.findById(productId);
     if (!product) {
        Response.status(404).json({ error: "Product not found" });
@@ -247,6 +315,8 @@ router.put("/:productId/visibility", authenticateJWT, async (req: AuthenticatedR
     }
 
     // Ensure the product belongs to the authenticated user
+    // product.userId: ID'et for den bruger, der har oprettet produktet. userId: ID'et for den aktuelt loggede bruger.
+    // toString --> Konverterer MognoDB ObjectId til en streng, så daen kan sammenlignes med userId
     if (product.userId.toString() !== userId) {
        Response.status(403).json({ error: "You can only edit your own products" });
        return;
@@ -267,13 +337,19 @@ router.put("/:productId/visibility", authenticateJWT, async (req: AuthenticatedR
 
 
 //*************************************************** DELETE A RECYCLED PRODUCT (ADMIN & PRODUCTOWNER)
+
+// Middleware that ensures the user is logged in with a valid JWT token.
+// Middleware that ensures the user has admin privileges or necessary authorization to delete the product
 router.delete("/:productId", authenticateJWT, adminMiddleware, [
+  // Validates that the productId parameter is a valid MongoDB ObjectId.
   param("productId").isMongoId().withMessage("Invalid product ID."),
   ], async (req: Request, res: Response) => {
+  // Extracts the product ID from the URL. This ID is used to locate the product in the database.
   const { productId } = req.params;
 
   try {
-    // Find the product and populate the userId field to get the associated user document
+    // Searches for the product in the database using the provided productId.
+    // If the product is found, it deletes it from the database and returns the deleted document.
     const deletedProduct = await RecycledProduct.findByIdAndDelete(productId).populate('userId');
 
     if (!deletedProduct) {
@@ -281,12 +357,15 @@ router.delete("/:productId", authenticateJWT, adminMiddleware, [
       return;
     }
 
+    // Delete associated images
+    // If the delete dproduct has associated images, the code iterates through the images array
     if (deletedProduct.images && deletedProduct.images.length > 0) {
       deletedProduct.images.forEach((image: string) => {
-        // Ensure the correct path relative to the 'public' folder
+        // Constructs the full path to each image in the public directory.
         const imagePath = path.join(__dirname, '../../../public', image);
 
     
+        // Checks if the image file exists on the server.
         if (fs.existsSync(imagePath)) {
           // Delete the image file
           fs.unlinkSync(imagePath);
@@ -298,9 +377,10 @@ router.delete("/:productId", authenticateJWT, adminMiddleware, [
     }
 
 
-    // Check if the populated product has a userId field, and access the user's email
+    // Retrieves the email of the product owner from the populated userId field
     const ownerEmail = deletedProduct.userId.email; 
 
+    // Constructing the meail that prepares the email notificaiton to informt he product owner that their has been banned
     const mailOptions = {
       from: process.env.EMAIL_USER,  
       to: ownerEmail, 

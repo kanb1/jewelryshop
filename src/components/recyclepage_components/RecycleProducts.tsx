@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Box, SimpleGrid} from '@chakra-ui/react';
 import { BACKEND_URL } from '../../config';
 import RecycleProductCard from '../shared/RecycledProductcard'; 
-// *********SECURITY
 
 const RecycleProducts: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
