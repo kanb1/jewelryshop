@@ -111,24 +111,29 @@ const RecycleProductCard: React.FC<RecycleProductCardProps> = ({
           </Button>
         )}
 
-        {/* Show the "Ban Product" button for admins, else show the visibility toggle */}
-        {userRole === "admin" ? (
-          <Button
-            colorScheme="red"
-            size="sm"
-            onClick={() => handleDeleteProduct(product._id)}  // Admin can delete the product
-          >
-            Ban Product
-          </Button>
-        ) : (
-          <Button
-            colorScheme={product.visibility === "public" ? "red" : "green"}
-            size="sm"
-            onClick={() => handleVisibilityToggle(product._id, product.visibility)}  // Regular user can toggle visibility
-          >
-            {product.visibility === "public" ? "Make Private" : "Make Public"}
-          </Button>
-        )}
+        
+
+        {/* Conditionally render the "Make Private" button only if the product belongs to the current user */}
+  {product.userId === userId && (
+    <Button
+      colorScheme={product.visibility === "public" ? "red" : "green"}
+      size="sm"
+      onClick={() => handleVisibilityToggle(product._id, product.visibility)}
+    >
+      {product.visibility === "public" ? "Make Private" : "Make Public"}
+    </Button>
+  )}
+
+  {/* Show the "Ban Product" button for admins */}
+  {userRole === "admin" && (
+    <Button
+      colorScheme="red"
+      size="sm"
+      onClick={() => handleDeleteProduct(product._id)}
+    >
+      Ban Product
+    </Button>
+  )}
       </VStack>
     </Box>
   );
