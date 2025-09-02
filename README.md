@@ -1,50 +1,57 @@
-# React + TypeScript + Vite
+# JewelryShop – Fullstack E-commerce App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A fullstack e-commerce web application.  
+The platform allows users to browse jewelry, create an account, log in, add items to their cart, and complete a checkout flow.  
+It has been extended to support buying and selling **pre-owned jewelry** for a more sustainable future 🩵
 
-Currently, two official plugins are available:
+👉 **Live demo**: https://jewelryshop-two.vercel.app/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## Features
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Authentication** with JWT (signup/login/logout)
+- **Product management (CRUD)** – users can view/filter products, admins can add/delete
+- **Favorites** and user profile
+- **Cart + Checkout flow** (Stripe integration)
+- **Security**:
+  - Input validation (manual + backend)
+  - Password hashing (bcrypt)
+  - Rate limiting
+  - Helmet & CORS
+  - Dependency security with Dependabot
+- **Frontend**:
+  - Built with React + TypeScript
+  - Styled with Chakra UI
+  - Responsive design
+  - Reusable components
+- **Deployment**:
+  - Frontend hosted on **Vercel**
+  - Backend hosted on **Render**
+  - MongoDB Atlas as database
 
-- Configure the top-level `parserOptions` property like this:
+---
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## Tech Stack
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+**Frontend**
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+- React (TypeScript)
+- Chakra UI
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+**Backend**
+
+- Node.js + Express
+- MongoDB + Mongoose
+- JWT + bcrypt
+
+---
+
+## What I Learned
+
+- Building a fullstack application with **MERN + TypeScript**
+- Integrating **Stripe** and designing a user-friendly checkout flow
+- Structuring code in both frontend (hooks, components) and backend (controllers, middleware)
+- Implementing **security best practices** (JWT, hashing, validation, CORS, Helmet, rate limiting)
+- Deploying apps in the cloud (**Vercel + Render**) and connecting frontend ↔ backend
+- Creating a professional, responsive UI with **Chakra UI** and TypeScript
