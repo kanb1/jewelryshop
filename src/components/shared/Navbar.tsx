@@ -23,12 +23,11 @@ import { AiOutlineShoppingCart } from "react-icons/ai";
 import { useCart } from "../../context/CartContext";
 import { HamburgerIcon } from "@chakra-ui/icons";
 
-
 const Navbar: React.FC = () => {
   // consumes those state tracking from authcontext
   // ensures that the navbar dynamically updates its UI based on the authentication state
   const { isLoggedIn, userRole, setIsLoggedIn, setUserRole } = useAuthContext();
-  const { cartCount, setCartCount } = useCart();
+  const { cartCount } = useCart();
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -44,7 +43,7 @@ const Navbar: React.FC = () => {
       navigate("/login");
       return;
     }
-  
+
     try {
       const response = await fetch("http://localhost:5001/api/auth/logout", {
         method: "POST",
@@ -53,7 +52,7 @@ const Navbar: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (response.ok) {
         localStorage.removeItem("jwt");
         setIsLoggedIn(false);
@@ -74,7 +73,6 @@ const Navbar: React.FC = () => {
       navigate("/login");
     }
   };
-  
 
   const categories = ["Rings", "Necklaces", "Bracelets", "Earrings"];
 
@@ -115,10 +113,12 @@ const Navbar: React.FC = () => {
               {category}
             </Link>
           ))}
-            <Link to="/recycle" style={{ fontWeight: "medium", textDecoration: "none" }}>
-              Recycle 
-            </Link>
-
+          <Link
+            to="/recycle"
+            style={{ fontWeight: "medium", textDecoration: "none" }}
+          >
+            Recycle
+          </Link>
         </HStack>
 
         {/* LOGIN/LOGOUT AND CART */}

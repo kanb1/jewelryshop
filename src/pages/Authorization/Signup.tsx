@@ -17,7 +17,7 @@ import { BACKEND_URL } from "../../config";
 
 // React.FC --> TS type for functional componnents
 const Signup: React.FC = () => {
-  // usestate --> hook that manages component state 
+  // usestate --> hook that manages component state
 
   // storing the values from the inputfields
   const [username, setUsername] = useState("");
@@ -34,7 +34,6 @@ const Signup: React.FC = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
-
   // ************************* VALIDATION AND HANDLESUBMIT (FORM SUBMISSION)
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Simple email regex
@@ -45,56 +44,64 @@ const Signup: React.FC = () => {
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,64}$/;
     const nameRegex = /^[A-Za-z]+$/;
-  
-    if (!username || !email || !password || !confirmPassword || !name || !surname) {
+
+    if (
+      !username ||
+      !email ||
+      !password ||
+      !confirmPassword ||
+      !name ||
+      !surname
+    ) {
       setError("Please fill in all fields.");
       return;
     }
-  
+
     if (!validateEmail(email)) {
       setError("Invalid email format. Please enter a valid email.");
       return;
     }
-  
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
-  
+
     if (!passwordRegex.test(password)) {
       setError(
         "Password must be 8-64 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character."
       );
       return;
     }
-  
+
     if (!nameRegex.test(name) || !nameRegex.test(surname)) {
       setError("Name and surname can only contain letters.");
       return;
     }
-  
+
     if (name.length < 2 || surname.length < 2) {
       setError("Name and surname must be at least 2 characters long.");
       return;
     }
-  
+
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/auth/users`, {
+      await axios.post(`${BACKEND_URL}/api/auth/users`, {
         username,
         email,
         name,
         surname,
         password,
       });
-  
+
       toast({
         title: "You are almost there!",
-        description: "A verification email has been sent to your email address.",
+        description:
+          "A verification email has been sent to your email address.",
         status: "success",
         duration: 5000,
         isClosable: true,
       });
-  
+
       setLoading(false);
       navigate("/login");
     } catch (err: any) {
@@ -102,8 +109,6 @@ const Signup: React.FC = () => {
       setLoading(false);
     }
   };
-  
-  
 
   return (
     <Box
@@ -129,7 +134,9 @@ const Signup: React.FC = () => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
-          {!username && error && <FormErrorMessage>Username is required.</FormErrorMessage>}
+          {!username && error && (
+            <FormErrorMessage>Username is required.</FormErrorMessage>
+          )}
         </FormControl>
 
         {/* Email Field */}
@@ -140,7 +147,9 @@ const Signup: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          {!email && error && <FormErrorMessage>Email is required.</FormErrorMessage>}
+          {!email && error && (
+            <FormErrorMessage>Email is required.</FormErrorMessage>
+          )}
         </FormControl>
 
         {/* Name Field */}
@@ -150,7 +159,9 @@ const Signup: React.FC = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          {!name && error && <FormErrorMessage>First name is required.</FormErrorMessage>}
+          {!name && error && (
+            <FormErrorMessage>First name is required.</FormErrorMessage>
+          )}
         </FormControl>
 
         {/* Surname Field */}
@@ -160,7 +171,9 @@ const Signup: React.FC = () => {
             value={surname}
             onChange={(e) => setSurname(e.target.value)}
           />
-          {!surname && error && <FormErrorMessage>Last name is required.</FormErrorMessage>}
+          {!surname && error && (
+            <FormErrorMessage>Last name is required.</FormErrorMessage>
+          )}
         </FormControl>
 
         {/* Password Field */}
@@ -171,7 +184,9 @@ const Signup: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {!password && error && <FormErrorMessage>Password is required.</FormErrorMessage>}
+          {!password && error && (
+            <FormErrorMessage>Password is required.</FormErrorMessage>
+          )}
         </FormControl>
 
         {/* Confirm Password Field */}
@@ -195,8 +210,8 @@ const Signup: React.FC = () => {
           text="Create account"
           onClick={handleSubmit}
           isLoading={loading}
-          variant="primaryBlackBtn" 
-          styleOverride={{ width: "100%" }} 
+          variant="primaryBlackBtn"
+          styleOverride={{ width: "100%" }}
         />
 
         {/* Redirect to Login */}
