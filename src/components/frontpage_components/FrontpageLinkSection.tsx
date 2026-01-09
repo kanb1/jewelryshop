@@ -1,10 +1,22 @@
 import { Box, Heading, Link, Image, Grid } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
 
 const FrontpageLinkSection = () => {
   return (
-    <Box py={{ base: "16", md: "20", lg: "32" }} px={{ base: "10" }} textAlign="center">
+    <Box
+      py={{ base: "16", md: "20", lg: "32" }}
+      px={{ base: "10" }}
+      textAlign="center"
+    >
       {/* Centered Collection Title */}
-      <Heading as="h2" size="main_heading" variant="subhead" mb={2} color="primary_color.darkgrey" fontWeight="extrabold">
+      <Heading
+        as="h2"
+        size="main_heading"
+        variant="subhead"
+        mb={2}
+        color="primary_color.darkgrey"
+        fontWeight="extrabold"
+      >
         Our Latest Collection:
       </Heading>
       <Heading as="h3" size="md" mb={8} color="primary_color.green">
@@ -21,7 +33,13 @@ const FrontpageLinkSection = () => {
       >
         {/* Necklace */}
         <Box textAlign="center">
-          <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
+          <Box
+            w="100%"
+            h="200px"
+            overflow="hidden"
+            borderRadius="md"
+            boxShadow="xl"
+          >
             <Image
               src="/images/frontpage/linksection_img1.jpg"
               alt="Necklace"
@@ -33,7 +51,8 @@ const FrontpageLinkSection = () => {
             />
           </Box>
           <Link
-            href="/products/necklaces"
+            as={RouterLink}
+            to="/products/necklaces"
             fontSize="lg"
             fontWeight="bold"
             color="primary_color.darkgrey"
@@ -47,7 +66,13 @@ const FrontpageLinkSection = () => {
 
         {/* Earrings */}
         <Box textAlign="center">
-          <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
+          <Box
+            w="100%"
+            h="200px"
+            overflow="hidden"
+            borderRadius="md"
+            boxShadow="xl"
+          >
             <Image
               src="/images/frontpage/linksection_img2.jpg"
               alt="Earrings"
@@ -59,7 +84,8 @@ const FrontpageLinkSection = () => {
             />
           </Box>
           <Link
-            href="/products/earrings"
+            as={RouterLink}
+            to="/products/earrings"
             fontSize="lg"
             fontWeight="bold"
             color="primary_color.darkgrey"
@@ -73,7 +99,13 @@ const FrontpageLinkSection = () => {
 
         {/* Bangles */}
         <Box textAlign="center">
-          <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
+          <Box
+            w="100%"
+            h="200px"
+            overflow="hidden"
+            borderRadius="md"
+            boxShadow="xl"
+          >
             <Image
               src="/images/frontpage/linksection_img3.jpg"
               alt="Bangles"
@@ -85,7 +117,8 @@ const FrontpageLinkSection = () => {
             />
           </Box>
           <Link
-            href="/products/bracelets"
+            as={RouterLink}
+            to="/products/bracelets"
             fontSize="lg"
             fontWeight="bold"
             color="primary_color.darkgrey"
@@ -93,13 +126,19 @@ const FrontpageLinkSection = () => {
             display="block"
             _hover={{ color: "#000", textDecoration: "underline" }}
           >
-            Bangles
+            Bracelets
           </Link>
         </Box>
 
         {/* Rings */}
         <Box textAlign="center">
-          <Box w="100%" h="200px" overflow="hidden" borderRadius="md" boxShadow="xl">
+          <Box
+            w="100%"
+            h="200px"
+            overflow="hidden"
+            borderRadius="md"
+            boxShadow="xl"
+          >
             <Image
               src="/images/frontpage/linksection_img4.jpg"
               alt="Rings"
@@ -111,7 +150,8 @@ const FrontpageLinkSection = () => {
             />
           </Box>
           <Link
-            href="/products/rings"
+            as={RouterLink}
+            to="/products/rings"
             fontSize="lg"
             fontWeight="bold"
             color="primary_color.darkgrey"
