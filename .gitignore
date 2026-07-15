@@ -19,6 +19,7 @@ new-certificate.crt
 certificate.csr
 .env
 seed.ts
+resetAdmin.ts
 
 
 
